@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if test $# != 5; then
+  echo usage: $0 FILESIZE REPETITIONS CHANGES INSERTIONLENGTH DELETIONLENGTH;
+  exit 1;
+fi
+
+# ../xdelta xdelta ./source-code-data 10000 100 20 50 20
+echo -n "xdelta: "
+./xdeltatest ../xdelta xdelta   ./source-code-data $1 $2 $3 $4 $5
+echo -n "xdeltaz: "
+./xdeltatest ../xdelta xdeltaz   ./source-code-data $1 $2 $3 $4 $5
+echo -n "diff:   "
+./xdeltatest /usr/bin/diff diff ./source-code-data $1 $2 $3 $4 $5

@@ -1,0 +1,144 @@
+.ds p \&\s-1XDelta\s0
+.if n .ds - \%--
+.if t .ds - \(em
+.if !\n(.g \{\
+.	if !\w|\*(lq| \{\
+.		ds lq ``
+.		if \w'\(lq' .ds lq "\(lq
+.	\}
+.	if !\w|\*(rq| \{\
+.		ds rq ''
+.		if \w'\(rq' .ds rq "\(rq
+.	\}
+.\}
+.de PE
+.sp \\n()Pu
+.ne 2
+.nf
+.IP
+..
+.de EP
+.fi
+.PP
+.sp \\n()Pu
+..
+.TH XDelta 1
+.SH NAME
+xdelta \- Invoke XDelta
+.SH SYNOPSIS
+.B xdelta
+.I subcommand
+[
+.IR option ".\|.\|.
+] [
+.IR operand .\|.\|.
+]
+.SH DESCRIPTION
+XDelta provides the ability to generate deltas between a pair of files
+and later apply those deltas.  It operates similar to the
+.B diff
+and
+.B patch
+commands, but works on binary files and does not produce a human
+readable output.
+.PP
+XDelta has two subcommands, delta and patch.  Delta accepts two files
+and produces a delta, while patch accepts one original file and a
+delta and produces the other file.  As opposed to the the diff(1)
+format, which can usually be reversed, these deltas are one way.
+
+.SS Subcommands
+Each subcommand will be detailed seperately.  In general, any input
+file may be compressed with
+.IR gzip (1)
+and XDelta will automatically uncompress it into a temporary location
+before examining the file.  This temporary location is either the
+value of the
+.ir TMPDIR
+environment variable, if set, or "/tmp".
+Unless turned off, XDelta always verifies the integrity of
+reconstructed files with MD5 checksums.  By default, XDelta compresses
+constructed deltas, but this feature may be turned off.
+
+.SS Delta
+The delta subcommand has the following synopsis:
+
+.B xdelta
+.I delta
+[
+.IR option ".\|.\|.
+]
+.IR from
+.IR to
+[
+.IR patch
+]
+
+Computes a delta from
+.IR from
+to
+.IR to
+and writes it to
+.IR patch
+or the standard output if
+.IR patch
+is omitted or is named "-".
+
+.SS Patch
+The patch subcommand has the following synopsis:
+
+.B xdelta
+.I patch
+[
+.IR option ".\|.\|.
+]
+.IR patch
+[
+.IR from
+[
+.IR to
+]]
+
+Applies
+.IR patch
+to
+.IR from.
+If from was omitted, XDelta attempts to use the file with the original
+from file name.
+The from file must be identical to the one used to create the delta.
+Its MD5 checksum is used to verify this condition.  The constructed
+file will be written to
+.IR to
+unless to is named "-" or the original to file name if
+.IR to
+is omitted.
+
+.SS Options
+
+.IP -0..9
+Set the zlib compression level.  Zero indicates no compression.  Nine
+indicates maximum compression.
+
+.IP -h
+Print a short help message and exit.
+
+.IP -v
+Print the XDelta version number and exit.
+
+.IP -V
+Verbose.  Prints a bit of extra information.
+
+.IP -n
+No verify.  Turns off MD5 checksum verification of the input and
+output files.
+
+.IP -m=size
+Set an upper bound on the size of an in-memory page cache.
+
+.SH IDENTIFICATION
+Author: Josh MacDonald
+.br
+.\" $Format: "Manual Page Revision: $Revision$; Release Date: $ProjectDate$."$
+Manual Page Revision: 1.2; Release Date: Mon, 11 Jun 2001 03:39:53 -0700.
+.br
+Copyright \(co 1997, 1998

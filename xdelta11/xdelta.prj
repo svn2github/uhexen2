@@ -1,0 +1,146 @@
+;; -*- PRCS -*-
+(Created-By-Prcs-Version 1 2 16)
+(Project-Description "")
+(Project-Version xdelta 1.1-maint 3)
+(Parent-Version xdelta 1.1-maint 2)
+(Version-Log "")
+(New-Version-Log "")
+(Checkin-Time "Mon, 11 Jun 2001 03:39:53 -0700")
+(Checkin-Login jmacd)
+(Populate-Ignore ("\\.o$"
+		  "\\.deps"
+		  "\\.lo$"
+		  ".libs/"
+		  "^\\.#"
+		  "\\.la$"
+		  "stamp-"
+		  "libedsio"
+		  "mkinstalldirs"
+		  "missing"
+		  "ltmain\\.sh"
+		  "ltconfig"
+		  "install-sh"
+		  "xdser\\.h"
+		  "xdser\\.c"
+		  "config\\."
+		  "aclocal\\.m4"
+		  "CVS/"
+		  "Makefile\\.in$"
+		  "Makefile$"
+		  ".cvsignore"
+		  "configure$"
+		  "xdelta$"
+		  "libtool"
+		  "doc/xdelta.info"
+		  ))
+(Project-Keywords
+  (ReleaseMajorVersion 1)
+  (ReleaseMinorVersion 1)
+  (ReleaseMicroVersion 2)
+  (LibCurrent  2)
+  (LibRevision 0)
+  (LibAge      0)
+  (ReleaseVersion "$ReleaseMajorVersion$.$ReleaseMinorVersion$.$ReleaseMicroVersion$")
+)
+(Files
+  ;; Config
+  (configure.in (xdelta/1_configure. 1.10.1.36 644))
+  (Makefile.am (xdelta/2_Makefile.a 1.19.1.40.1.2 644))
+  (dead.code (xdelta/d/8_dead.code 1.6 644))
+  (ChangeLog (xdelta/d/9_ChangeLog 1.5 644))
+  (runtest (xdelta/d/5_runtest 1.6 755))
+  (README (xdelta/d/6_README 1.3 644))
+  (INSTALL (xdelta/d/10_INSTALL 1.2 644))
+  (COPYING (xdelta/d/11_COPYING 1.2 644))
+  (AUTHORS (xdelta/d/12_AUTHORS 1.1 644))
+  (NEWS (xdelta/d/13_NEWS 1.15.1.3 644))
+  (ANNOUNCE (xdelta/d/25_ANNOUNCE 1.2 644))
+  (xdelta.magic (xdelta/d/20_xdelta.mag 1.2 644))
+  (xdelta-config.in (xdelta/d/33_xdelta-con 1.4 644))
+  (autogen.sh (xdelta/d/34_autogen.sh 1.1 755))
+  (xdelta.m4 (xdelta/d/35_xdelta.m4 1.5 644))
+
+  ;; Library
+  (xdelta.h (xdelta/b/8_xdelta.h 1.4.1.8.1.50 644))
+  (xdeltapriv.h (xdelta/c/42_xdeltapriv 1.29 644))
+  (xdelta.c (xdelta/b/14_xdelta.c 1.4.1.50 644))
+  (xd.ser (xdelta/d/7_xd.ser 1.12 644))
+  (xdrsync.c (xdelta/d/44_xdrsync.c 1.2 644))
+  (xdapply.c (xdelta/e/37_xdapply.c 1.1 644))
+
+  ;; Application
+  (xdmain.c (xdelta/d/15_xdmain.c 1.22.1.2 644))
+  (getopt1.c (xdelta/d/17_getopt1.c 1.1 644))
+  (getopt.h (xdelta/d/18_getopt.h 1.1 644))
+  (getopt.c (xdelta/d/19_getopt.c 1.1 644))
+
+  ;; Windows project files
+  (xdelta.dsp (xdelta/d/36_xdelta.dsp 1.2 644) :no-keywords)
+  (xdelta.dsw (xdelta/d/37_xdelta.dsw 1.2 644) :no-keywords)
+
+  ;; Testing
+  (test/Makefile.am (xdelta/e/39_Makefile.a 1.1.1.1 644))
+  (test/xdeltatest.c (xdelta/e/38_xdeltatest 1.3 644))
+  (test/alltest (xdelta/e/40_alltest 1.2 755))
+
+  ;; Immature docs
+  (doc/Makefile.am (xdelta/d/21_Makefile.a 1.2 644))
+
+  (doc/xdelta.1 (xdelta/d/23_xdelta.1 1.2 644))
+  (doc/xdelta.texi (xdelta/d/24_xdelta.tex 1.2 644))
+  (doc/xdelta.gif (xdelta/d/26_xdelta.gif 1.1 644) :no-keywords)
+  (doc/gbg.gif (xdelta/d/27_gbg.gif 1.1 644) :no-keywords)
+  (doc/xdelta.html (xdelta/d/28_xdelta.htm 1.6 644))
+
+  ;; Paper for DCC 99
+  (doc/dcc99/Makefile (xdelta/d/29_Makefile 1.3 644))
+  (doc/dcc99/llncs.cls (xdelta/d/30_llncs.cls 1.2 644))
+  (doc/dcc99/dcc99.tex (xdelta/d/31_dcc99.tex 1.2 644))
+  (doc/dcc99/dcc99.bib (xdelta/d/32_dcc99.bib 1.3 644))
+
+  (doc/dcc99/figs/xdelta.fig (xdelta/d/46_xdelta.fig 1.1 644) :no-keywords)
+  (doc/dcc99/figs/xdelta.eps (xdelta/d/47_xdelta.eps 1.1 644) :no-keywords)
+  (doc/dcc99/figs/xdarchive.fig.normalsize (xdelta/d/48_xdarchive. 1.1 644) :no-keywords)
+  (doc/dcc99/figs/xdarchive.fig (xdelta/d/49_xdarchive. 1.1 644) :no-keywords)
+  (doc/dcc99/figs/xdarchive.eps (xdelta/d/50_xdarchive. 1.1 644) :no-keywords)
+  (doc/dcc99/figs/strings.fig.normalsize.eps (xdelta/d/51_strings.fi 1.1 644) :no-keywords)
+  (doc/dcc99/figs/strings.fig.normalsize (xdelta/e/0_strings.fi 1.1 644) :no-keywords)
+  (doc/dcc99/figs/strings.fig (xdelta/e/1_strings.fi 1.1 644) :no-keywords)
+  (doc/dcc99/figs/strings.eps (xdelta/e/2_strings.ep 1.1 644) :no-keywords)
+  (doc/dcc99/figs/sizes.eps (xdelta/e/3_sizes.eps 1.1 644) :no-keywords)
+  (doc/dcc99/figs/rcs.fig (xdelta/e/4_rcs.fig 1.1 644) :no-keywords)
+  (doc/dcc99/figs/rcs.eps (xdelta/e/5_rcs.eps 1.1 644) :no-keywords)
+  (doc/dcc99/figs/onestep.fig.normalsize (xdelta/e/6_onestep.fi 1.1 644) :no-keywords)
+  (doc/dcc99/figs/onestep.fig (xdelta/e/7_onestep.fi 1.1 644) :no-keywords)
+  (doc/dcc99/figs/onestep.eps (xdelta/e/8_onestep.ep 1.1 644) :no-keywords)
+  (doc/dcc99/figs/normalize.fig (xdelta/e/9_normalize. 1.1 644) :no-keywords)
+  (doc/dcc99/figs/jumping.fig (xdelta/e/10_jumping.fi 1.1 644) :no-keywords)
+  (doc/dcc99/figs/jumping.eps (xdelta/e/11_jumping.ep 1.1 644) :no-keywords)
+  (doc/dcc99/figs/dependency.fig.normalsize (xdelta/e/12_dependency 1.1 644) :no-keywords)
+  (doc/dcc99/figs/dependency.fig (xdelta/e/13_dependency 1.1 644) :no-keywords)
+  (doc/dcc99/figs/dependency.eps (xdelta/e/14_dependency 1.1 644) :no-keywords)
+  (doc/dcc99/figs/bigsizes.eps (xdelta/e/15_bigsizes.e 1.1 644) :no-keywords)
+  (doc/dcc99/exact-delta/suffix.h (xdelta/e/16_suffix.h 1.1 644) :no-keywords)
+  (doc/dcc99/exact-delta/suffix.cc (xdelta/e/17_suffix.cc 1.1 644) :no-keywords)
+  (doc/dcc99/exact-delta/delta.cc (xdelta/e/18_delta.cc 1.1 644) :no-keywords)
+  (doc/dcc99/vupdate (xdelta/e/19_vupdate 1.1 755) :no-keywords)
+  (doc/dcc99/vdelta (xdelta/e/20_vdelta 1.1 755) :no-keywords)
+  (doc/dcc99/mkex2.c (xdelta/e/21_mkex2.c 1.1 644) :no-keywords)
+  (doc/dcc99/mkex.c (xdelta/e/22_mkex.c 1.1 644) :no-keywords)
+  (doc/dcc99/lcs.c (xdelta/e/23_lcs.c 1.1 644) :no-keywords)
+  (doc/dcc99/dead.code (xdelta/e/24_dead.code 1.1 644) :no-keywords)
+  (doc/dcc99/dcc99.sty (xdelta/e/26_dcc99.sty 1.1 644) :no-keywords)
+  (doc/dcc99/data/tclean.l (xdelta/e/27_tclean.l 1.1 644) :no-keywords)
+  (doc/dcc99/data/runtest-versions (xdelta/e/28_runtest-ve 1.1 644) :no-keywords)
+  (doc/dcc99/data/runtest-one (xdelta/e/29_runtest-on 1.1 755) :no-keywords)
+  (doc/dcc99/data/runtest (xdelta/e/30_runtest 1.1 755) :no-keywords)
+  (doc/dcc99/data/mytime.c (xdelta/e/31_mytime.c 1.1 644) :no-keywords)
+  (doc/dcc99/data/fig2.m (xdelta/e/32_fig2.m 1.1 644) :no-keywords)
+  (doc/dcc99/data/fig2.data (xdelta/e/33_fig2.data 1.1 644) :no-keywords)
+  (doc/dcc99/data/fig1.m (xdelta/e/34_fig1.m 1.1 644) :no-keywords)
+  (doc/dcc99/data/fig1.data (xdelta/e/35_fig1.data 1.1 644) :no-keywords)
+  (doc/dcc99/data/analyze.l (xdelta/e/36_analyze.l 1.1 644) :no-keywords)
+
+)
+(Merge-Parents)
+(New-Merge-Parents)

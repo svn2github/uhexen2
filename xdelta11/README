@@ -1,0 +1,64 @@
+ -*- Text -*-
+
+	       XDelta -- A binary delta generator
+
+Announcing version 1.0 of XDelta.  XDelta is a library interface and
+application program designed to compute changes between files.  These
+changes (deltas) are similar to the output of the "diff" program in
+that they may be used to store and transmit only the changes between
+files.  However, unlike diff, the output of XDelta is not expressed in
+a human-readable format--XDelta can also also apply these deltas to a
+copy of the original file(s).  XDelta uses a fast, linear algorithm
+and performs well on both binary and text files.  XDelta typically
+outperforms GNU diff in both time and generated-delta-size, even for
+plain text files.  XDelta also includes a simple implementation of the
+Rsync algorithm and several advanced features for implementing
+RCS-like file-archival with.
+
+Since the 0.x series of releases which began almost a year ago, what
+was originally an experiment has been greatly refined.  It is smaller,
+optimized, and has a clean interface.  This version is a complete
+rewrite, and uses less than 50% of the memory require by the 0.x
+series, even greater reductions are seen in the application for
+compressed files.  Files are now stream-processed when possible, and
+paged otherwise; the application now features a --maxmem option to set
+the size of the internal buffers.  No files are completely read into
+memory.  In addition, many features in the 0.x series have been
+removed, leaving only the delta and patch functions.  The GDBM-archive
+support code has been reimplemented in the new version PRCS.
+
+XDelta was designed and implemented by Josh MacDonald.  The delta
+algorithm is based on the Rsync algorithm, though implementation and
+interface considerations leave the two programs quite distinct.  The
+Rsync algorithm is due to Andrew Tridgell and Paul Mackerras.
+
+To compile and install XDelta, read the instructions in the INSTALL
+file.  Once you have done this, you should at least read the first few
+sections of the documentation.  It is available in info format.  All
+documentation is located in the doc/ subdirectory.
+
+This release, version 1.0, and future releases of XDelta can be found
+at ftp://ftp.XCF.Berkeley.EDU/pub/xdelta.  HTML documentation and recent
+developments are available online at
+
+   http://www.XCF.Berkeley.EDU/~jmacd/xdelta.html.
+
+XDelta is released under the GNU Library Public License (GPL), see the
+file COPYING for details.
+
+A mailing list has been formed for announcements and discussion:
+
+   xdelta-list@XCF.Berkeley.EDU,
+
+you can subscribe by mailing majordomo@XCF.Berkeley.EDU with the
+single line
+
+   subscribe xdelta-list
+
+Comments about XDelta can be addressed to the following addresses:
+
+   xdelta@XCF.Berkeley.EDU
+
+Bug reports can be addressed to the following address:
+
+   xdelta-bugs@XCF.Berkeley.EDU
