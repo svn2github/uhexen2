@@ -294,7 +294,8 @@ serializeio_source_alloc (SerialSource* source, guint32 len)
 
       source->alloc_buf = source->alloc_buf_orig;
 
-      ALIGN_8 ((long)source->alloc_buf);
+	  { long x = source->alloc_buf; ALIGN_8 (x); source->alloc_buf = x; }
+
     }
 
   if (len+source->alloc_pos > source->alloc_total)

@@ -116,7 +116,7 @@ TestProfile cmd_profiles[] =
 {
   { "xdelta -qn   ", "../xdelta",     TEST_IS_XDELTA },
   { "diff --rcs -a", "/usr/bin/diff", 0 },
-  { "gzip         ", "/usr/bin/gzip", TEST_IS_GZIP },
+  { "gzip         ", "/bin/gzip",     TEST_IS_GZIP },
 };
 
 int         cmd_slevels[] = { 16, 32, 64 };

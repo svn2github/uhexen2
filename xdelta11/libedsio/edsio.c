@@ -931,7 +931,8 @@ edsio_property_isset (const char* ph, const char* t, guint32 code, gpointer obj)
 
   if (persist)
     {
-      if (prop->host->isset (obj, prop->prop_name))
+	  PersistIssetFunc issetfunc = prop->host->isset;
+      if (issetfunc(obj, prop->prop_name))
 	{
 	  if (! edsio_property_get (obj, prop))
 	    goto done;
