@@ -342,9 +342,24 @@ main (gint argc, gchar** argv)
     max_mapped_pages %= 8;
     max_mapped_pages *= 7;
   }
-#endif /* DJGPP */
 
+  /*
+   * (richdawe@bigfoot.com): Strip off the file extension 'exe' from
+   * program_name, since it makes the help messages look ugly.
+   */
+  {
+    char strip_ext[PATH_MAX + 1];
+    char *p;
+
+    strcpy (strip_ext, argv[0]);
+    p = strrchr (strip_ext, '.');
+    if ((p != NULL) && (strncasecmp (p + 1, "exe", 3) == 0))
+      *p = '\0';
+    program_name = g_basename (strip_ext);
+  }
+#else /* !__DJGPP__ */
   program_name = g_basename (argv[0]);
+#endif /* __DJGPP__ */  
 
   g_log_set_handler (G_LOG_DOMAIN,
 		     G_LOG_LEVEL_WARNING,
