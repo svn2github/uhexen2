@@ -1,51 +1,4 @@
- -*- Text -*-
-
-	       Xdelta -- A binary delta generator
-
-Announcing version 1.1.2 of Xdelta.  Xdelta is an application program
-designed to compute changes between files.  These changes (deltas) are
-similar to the output of the "diff" program in that they may be used
-to store and transmit only the changes between files.  However, unlike
-diff, the output of Xdelta is not expressed in a human-readable
-format--Xdelta can also also apply these deltas to a copy of the
-original file.  Xdelta uses a fast, linear algorithm and performs well
-on both binary and text files.
-
-Xdelta 1.1.2 is a stable, maintenence release.  New, ongoing work on
-Xdelta has focused on a new storage system with features similar to
-the RCS command set.  For more information on new development, see the
-Xdelta-2.0 release series at http://xdelta.org.
-
-Xdelta was designed and implemented by Joshua MacDonald.  The delta
-algorithm is based on the Rsync algorithm, though implementation and
-interface considerations leave the two programs quite distinct.  The
-Rsync algorithm is due to Andrew Tridgell and Paul Mackerras.
-
-To compile and install Xdelta, read the instructions in the INSTALL
-file.  Once you have done this, you should at least read the first few
-sections of the documentation.  It is available in info format.  All
-documentation is located in the doc/ subdirectory.
-
-This release, version 1.1.2, and future releases of Xdelta can be
-found at http://xdelta.org.
-
-Xdelta is released under the GNU Library Public License (GPL), see the
-file COPYING for details.
-
-There is mailing list for announcements:
-
-   xdelta-announce@lists.sourceforge.net
-
-you can subscribe to the mailing list or file bug reports through
-Sourceforge at:
-
-   http://sourceforge.net/projects/xdelta/
-
-Comments about Xdelta can be addressed to the following addresses:
-
-   jmacd@cs.berkeley.edu
-
-The man page describes how to use Xdelta in more detail:
+Xdelta(1)                                               Xdelta(1)
 
 NAME
        xdelta - Invoke Xdelta
@@ -174,3 +127,8 @@ DESCRIPTION
               Disable  the  automatic  decompression of gzipped
               inputs,  to prevent unexpected differences in the
               re-compressed content.
+
+IDENTIFICATION
+       Author: Joshua P. MacDonald, jmacd@cs.berkeley.edu
+       Manual Page Revision: 1.2; Release Date: Mon, 11 Jun 2001 03:39:53 -0700.
+       Copyright © 1997, 1998, 1999, 2000, 2001

@@ -20,7 +20,7 @@ libxdelta_la_SOURCES = xdelta.c xdapply.c $(SER_SOURCES)
 libxdelta_la_LIBADD  = $(GLIB_LIBS)
 
 EXTRA_DIST = xd.ser $(SER_OUT) xdelta.magic xdelta.prj xdelta.m4	\
-	ANNOUNCE autogen.sh xdelta.dsp xdelta.dsw stamp-ser xdrsync.c
+	autogen.sh xdelta.dsp xdelta.dsw stamp-ser xdrsync.c
 
 SUBDIRS = libedsio . test doc djgpp
 

@@ -2,7 +2,7 @@
  *
  * This file is part of XDelta - A binary delta generator.
  *
- * Copyright (C) 1997, 1998  Josh MacDonald
+ * Copyright (C) 1997, 1998, 2001  Josh MacDonald
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  *
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  *
- * $Id: xdelta.h 1.4.1.8.1.50 Sat, 03 Apr 1999 04:25:02 -0800 jmacd $
+ * $Id: xdelta.h 1.4.1.8.1.50.1.1 Sat, 23 Jun 2001 23:59:42 -0700 jmacd $
  */
 
 #ifndef _XDELTA_H_
@@ -65,7 +65,7 @@ extern const guint xdelta_micro_version;
 /* copy segments are of length 1<<QUERY_SIZE, this must not be greater
  * than 6 due to a space assumption, and also limits the number of
  * sources allowed to (QUERY_SIZE_POW-1). */
-#define QUERY_SIZE          5
+#define QUERY_SIZE          4
 #define QUERY_SIZE_POW      (1<<QUERY_SIZE)
 #define QUERY_SIZE_MASK     (QUERY_SIZE_POW-1)
 

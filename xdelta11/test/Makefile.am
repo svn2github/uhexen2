@@ -1,9 +1,9 @@
 
-EXTRA_DIST = xdeltatest.c
+EXTRA_DIST = xdeltatest.c README.test
 
 INCLUDES = -I$(top_srcdir)/libedsio $(GLIB_CFLAGS)
 
-bin_PROGRAMS    = xdeltatest
+noinst_PROGRAMS    = xdeltatest
 
 xdeltatest_SOURCES  = xdeltatest.c
 

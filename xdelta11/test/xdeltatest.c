@@ -2,7 +2,7 @@
  *
  * This file is part of XDelta - A binary delta generator.
  *
- * Copyright (C) 1997, 1998  Josh MacDonald
+ * Copyright (C) 1997, 1998, 2001  Josh MacDonald
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  *
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  *
- * $Id: xdeltatest.c 1.3 Mon, 11 Jun 2001 03:10:40 -0700 jmacd $
+ * $Id: xdeltatest.c 1.4 Sat, 23 Jun 2001 23:59:42 -0700 jmacd $
  */
 
 #include <sys/param.h>
@@ -47,6 +47,26 @@
 #include <zlib.h>
 
 #include "xdelta.h"
+
+//////////////////////////////////////////////////////////////////////
+// Configure these parameters
+// @@@ Of course, a real test wouldn't require this configuration,
+// fix that!
+//////////////////////////////////////////////////////////////////////
+
+const char* cmd_data_source      = "/scratch/jmacd/source-code-data";
+guint       cmd_size             = 1<<20;
+
+guint       cmd_warmups          = 1;
+guint       cmd_reps             = 2;
+
+guint       cmd_changes          = 1000;
+guint       cmd_deletion_length  = 30;
+guint       cmd_insertion_length = 15;
+
+//////////////////////////////////////////////////////////////////////
+//
+//////////////////////////////////////////////////////////////////////
 
 #define ARRAY_LENGTH(x) (sizeof(x)/sizeof(x[0]))
 
@@ -99,17 +119,7 @@ TestProfile cmd_profiles[] =
 };
 
 int         cmd_zlevels[] = { 0, 1, 3, 6, 9 };
-
-const char* cmd_data_source      = "/scratch/jmacd/source-code-data";
 guint16     cmd_seed[3]          = { 47384, 8594, 27489 };
-guint       cmd_size             = 1<<24;
-
-guint       cmd_warmups          = 1;
-guint       cmd_reps             = 2;
-
-guint       cmd_changes          = 1000;
-guint       cmd_deletion_length  = 30;
-guint       cmd_insertion_length = 15;
 
 FILE*       data_source_handle;
 guint       data_source_length;
@@ -349,7 +359,47 @@ perform_change (Instruction* inst, guint* len)
 }
 
 gboolean
-run_command (TestProfile *tp, int zlevel, File* from, File* to, File* out, gboolean accounting)
+xdelta_verify (TestProfile *tp, int zlevel, File* from, File* to, File* out, File *re)
+{
+  int pid, status;
+
+  if ((pid = vfork()) < 0)
+    return FALSE;
+
+  if (pid == 0)
+    {
+      execl (tp->progname,
+	     tp->progname,
+	     "patch",
+	     out->name,
+	     from->name,
+	     re->name,
+	     NULL);
+      perror ("execl failed");
+      _exit (127);
+    }
+
+  if (waitpid (pid, &status, 0) != pid)
+    {
+      perror ("wait failed");
+      fail ();
+    }
+
+  // Note: program is expected to return 0, 1 meaning diff or no diff,
+  // > 1 indicates failure
+  if (! WIFEXITED (status) || WEXITSTATUS (status) > 1)
+    {
+      g_warning ("patch command failed\n");
+      fail ();
+    }
+
+  compare_files (to, re);
+
+  return TRUE;
+}
+
+gboolean
+run_command (TestProfile *tp, int zlevel, File* from, File* to, File* out, File *re, gboolean accounting)
 {
   int pid, status, outfd;
   struct stat sbuf;
@@ -468,6 +518,15 @@ run_command (TestProfile *tp, int zlevel, File* from, File* to, File* out, gbool
       __dsize = sbuf.st_size;
 
       // Verify only once
+
+      if (starts_with (tp->name, "xdelta"))
+	{
+	  if (! xdelta_verify (tp, zlevel, from, to, out, re))
+	    {
+	      g_warning ("verify failed");
+	      fail ();
+	    }
+	}
     }
   else
     {
@@ -475,6 +534,7 @@ run_command (TestProfile *tp, int zlevel, File* from, File* to, File* out, gbool
 	{
 	  g_warning ("%s -%d: delta command produced different size deltas: %d and %d",
 		     tp->progname, zlevel, (int)__dsize, (int)sbuf.st_size);
+	  fail ();
 	}
     }
 
@@ -484,12 +544,12 @@ run_command (TestProfile *tp, int zlevel, File* from, File* to, File* out, gbool
 }
 
 void
-test1 (TestProfile *test_profile)
+test1 (TestProfile *test_profile,
+       File        *from_file,
+       File        *to_file,
+       File        *out_file,
+       File        *re_file)
 {
-  File* out_file;
-  File* from_file;
-  File* to_file;
-
   int ret;
   guint i, change, current_size = cmd_size;
   guint end_size = (cmd_changes * cmd_insertion_length) + cmd_size;
@@ -523,10 +583,6 @@ test1 (TestProfile *test_profile)
       fail ();
     }
 
-  from_file = empty_file ();
-  to_file   = empty_file ();
-  out_file  = empty_file ();
-
   inst = g_new0 (Instruction, 1);
 
   inst->offset = random_offset (cmd_size);
@@ -558,6 +614,7 @@ test1 (TestProfile *test_profile)
 			     from_file,
 			     to_file,
 			     out_file,
+			     re_file,
 			     (i >= cmd_warmups) /* true => accounting */))
 	    {
 	      fail ();
@@ -573,11 +630,21 @@ main (gint argc, gchar** argv)
 {
   int profile_i;
 
+  File *from_file;
+  File *to_file;
+  File *out_file;
+  File *re_file;
+
+  system ("rm -rf " TEST_PREFIX "*");
+
+  from_file = empty_file ();
+  to_file   = empty_file ();
+  out_file  = empty_file ();
+  re_file   = empty_file ();
+
   for (profile_i = 0; profile_i < ARRAY_LENGTH(cmd_profiles); profile_i += 1)
     {
-      system ("rm -rf " TEST_PREFIX "*");
-
-      test1 (& cmd_profiles[profile_i]);
+      test1 (& cmd_profiles[profile_i], from_file, to_file, out_file, re_file);
 
       system ("rm -rf " TEST_PREFIX "*");
     }

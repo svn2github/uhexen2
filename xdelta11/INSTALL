@@ -2,12 +2,12 @@
 
 XDelta depends on
 
-	glib 1.1.3 or later
-	zlib 1.1.1 or later
+	glib 1.2.8 or later
+	zlib 1.1.3 or later
 
 You can get glib from
 
-	ftp://ftp.gtk.org/pub/gtk/v1.1
+	ftp://ftp.gtk.org/pub/gtk/v1.2
 
 You can get zlib from
 

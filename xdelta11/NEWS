@@ -1,5 +1,5 @@
 XDelta NEWS -- history of user-visible changes. -*- Text -*-
-$Date: 2001/06/11 10:43:57 $
+$Date: Sat, 23 Jun 2001 23:59:42 -0700 $
 $ReleaseVersion: 1.1.2 $
 
 Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
@@ -37,7 +37,14 @@ Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
       ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111b.zip
       ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111s.zip
 
-* Updated autoconf (2.50), automake (1.4-p4), libtool (1.4) scripts.
+* Updated xdelta(1) man page.
+
+* New test program in the 'test' subdirectory, which runs comparisons
+  against "diff --rcs -a" and also verifies the "xdelta patch"
+  command.
+
+* Updated autoconf (2.50), automake (1.4-p4), libtool (1.4) scripts,
+  which includes updated config.guess and config.sub scripts.
 
 * Correct some backward compatibility issues: strcmp() was not being
   tested == 0 for formats older than 1.0.4.

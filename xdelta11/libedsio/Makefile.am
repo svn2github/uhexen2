@@ -1,7 +1,7 @@
 
 INCLUDES = $(GLIB_CFLAGS)
 
-bin_SCRIPTS = edsio-comp
+noinst_SCRIPTS = edsio-comp
 
 lib_LTLIBRARIES = libedsio.la
 

@@ -1,4 +1,4 @@
-.ds p \&\s-1XDelta\s0
+.ds p \&\s-1Xdelta\s0
 .if n .ds - \%--
 .if t .ds - \(em
 .if !\n(.g \{\
@@ -22,9 +22,9 @@
 .PP
 .sp \\n()Pu
 ..
-.TH XDelta 1
+.TH Xdelta 1
 .SH NAME
-xdelta \- Invoke XDelta
+xdelta \- Invoke Xdelta
 .SH SYNOPSIS
 .B xdelta
 .I subcommand
@@ -34,7 +34,7 @@ xdelta \- Invoke XDelta
 .IR operand .\|.\|.
 ]
 .SH DESCRIPTION
-XDelta provides the ability to generate deltas between a pair of files
+Xdelta provides the ability to generate deltas between a pair of files
 and later apply those deltas.  It operates similar to the
 .B diff
 and
@@ -42,23 +42,52 @@ and
 commands, but works on binary files and does not produce a human
 readable output.
 .PP
-XDelta has two subcommands, delta and patch.  Delta accepts two files
-and produces a delta, while patch accepts one original file and a
-delta and produces the other file.  As opposed to the the diff(1)
-format, which can usually be reversed, these deltas are one way.
 
-.SS Subcommands
-Each subcommand will be detailed seperately.  In general, any input
-file may be compressed with
+Xdelta has three subcommands, delta, patch, and info.  Delta accepts
+two file versions and produces a delta, while patch accepts the
+original file version and delta and produces the second version.  The
+info command prints useful information about a delta.  Each subcommand
+will be detailed seperately.
+
+.SS Gzip processing
+Attempting to compute a delta between compressed input files usually
+results in poor compression.  This is because small differences
+between the original contents causes changes in the compression of
+whole blocks of data.  To simplify things, Xdelta implements a special
+case for
 .IR gzip (1)
-and XDelta will automatically uncompress it into a temporary location
-before examining the file.  This temporary location is either the
-value of the
-.ir TMPDIR
-environment variable, if set, or "/tmp".
-Unless turned off, XDelta always verifies the integrity of
-reconstructed files with MD5 checksums.  By default, XDelta compresses
-constructed deltas, but this feature may be turned off.
+compressed files.  If any version input to the delta command is
+recognized as having gzip compression, it will be automatically
+decompressed into a temporary location prior to comparison.  This
+temporary location is either the value of the
+.IR TMPDIR
+environment variable, if set, otherwise "/tmp".
+
+The Xdelta patch header contains a flag indicating that the
+reconstructed version should be recompressed after applying the
+patch.  In general, this allows Xdelta to operate transparently on
+gzip compressed inputs.
+
+There is one potential problem when automatically processing gzip
+compressed files, which is that the recompressed content does not
+always match byte-for-byte with the original compressed content.  The
+uncompressed content still matches, but if there is an external
+integrity check such as cryptographic signature verification, it may
+fail.  To prevent this from happening, the --pristine option disables
+automatic gzip processing.
+
+.SS MD5 integrity check
+By default, Xdelta always verifies the MD5 checksum of the files it
+reconstructs.  This prevents you from supplying an incorrect input
+during patch, which would result in corrupt output.  Because of this
+feature, you can feel confident that patch has produced valid results.
+The --noverify option disables MD5 verification, but this is only
+recommended for performance testing.
+
+.SS Compressed patch format
+Xdelta uses a fairly simple encoding for its delta, then applies zlib
+compression to the result.  You should not have to post-compress an
+Xdelta delta.
 
 .SS Delta
 The delta subcommand has the following synopsis:
@@ -68,21 +97,16 @@ The delta subcommand has the following synopsis:
 [
 .IR option ".\|.\|.
 ]
-.IR from
-.IR to
-[
-.IR patch
-]
+.IR fromfile
+.IR tofile
+.IR patchout
 
 Computes a delta from
-.IR from
+.IR fromfile
 to
-.IR to
+.IR tofile
 and writes it to
-.IR patch
-or the standard output if
-.IR patch
-is omitted or is named "-".
+.IR patchout
 
 .SS Patch
 The patch subcommand has the following synopsis:
@@ -92,26 +116,41 @@ The patch subcommand has the following synopsis:
 [
 .IR option ".\|.\|.
 ]
-.IR patch
+.IR patchin
 [
-.IR from
+.IR fromfile
 [
-.IR to
+.IR tofile
 ]]
 
 Applies
-.IR patch
+.IR patchin
 to
-.IR from.
-If from was omitted, XDelta attempts to use the file with the original
-from file name.
-The from file must be identical to the one used to create the delta.
-Its MD5 checksum is used to verify this condition.  The constructed
-file will be written to
-.IR to
-unless to is named "-" or the original to file name if
-.IR to
-is omitted.
+.IR fromfile
+and produces a reconstructed version of
+.IR tofile.
+
+If fromfile was omitted, Xdelta attempts to use the original fromfile
+name, which is stored in the delta.  The from file must be identical
+to the one used to create the delta.  If its length or MD5 checksum
+differs, patch will abort with an error message.
+
+If tofile was omitted, Xdelta attempts to use the original tofile
+name, which is also stored in the delta.  If the original tofile name
+already exists, a unique filename extension will be added to avoid
+destroying any existing data.
+
+.SS Info
+The info subcommand has the following synopsis:
+
+.B xdelta
+.I info
+.IR patchinfo
+
+Prints information about
+.IR patchinfo
+and the version it reconstructs, including file names, lengths, and
+MD5 checksums.
 
 .SS Options
 
@@ -119,26 +158,34 @@ is omitted.
 Set the zlib compression level.  Zero indicates no compression.  Nine
 indicates maximum compression.
 
-.IP -h
+.IP "-h, --help"
 Print a short help message and exit.
 
-.IP -v
-Print the XDelta version number and exit.
+.IP "-q, --quiet"
+Quiet.  Surpresses several warning messages.
 
-.IP -V
+.IP "-v, --version"
+Print the Xdelta version number and exit.
+
+.IP "-V, --verbose"
 Verbose.  Prints a bit of extra information.
 
-.IP -n
+.IP "-n, --noverify"
 No verify.  Turns off MD5 checksum verification of the input and
 output files.
 
-.IP -m=size
-Set an upper bound on the size of an in-memory page cache.
+.IP "-m=SIZE, --maxmem=SIZE"
+Set an upper bound on the size of an in-memory page cache.  For
+example, --maxmem=32M will use a 32 megabyte page cache.
+
+.IP "-p, --pristine"
+Disable the automatic decompression of gzipped inputs, to prevent
+unexpected differences in the re-compressed content.
 
 .SH IDENTIFICATION
-Author: Josh MacDonald
+Author: Joshua P. MacDonald, jmacd@cs.berkeley.edu
 .br
 .\" $Format: "Manual Page Revision: $Revision$; Release Date: $ProjectDate$."$
-Manual Page Revision: 1.2; Release Date: Mon, 11 Jun 2001 03:39:53 -0700.
+Manual Page Revision: 1.4; Release Date: Sat, 23 Jun 2001 23:59:42 -0700.
 .br
-Copyright \(co 1997, 1998
+Copyright \(co 1997, 1998, 1999, 2000, 2001

@@ -2,7 +2,7 @@
  *
  * This file is part of XDelta - A binary delta generator.
  *
- * Copyright (C) 1997, 1998, 1999  Josh MacDonald
+ * Copyright (C) 1997, 1998, 1999, 2001  Josh MacDonald
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  *
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  *
- * $Id: xdmain.c 1.22.1.2 Mon, 11 Jun 2001 03:39:53 -0700 jmacd $
+ * $Id: xdmain.c 1.22.1.3 Sat, 23 Jun 2001 23:59:42 -0700 jmacd $
  */
 
 #include <stdio.h>
@@ -193,7 +193,7 @@ struct _XdFileHandle
 };
 
 /* $Format: "static const char xdelta_version[] = \"$ReleaseVersion$\"; " $ */
-static const char xdelta_version[] = "1.1.2";
+static const char xdelta_version[] = "1.1.2"; 
 
 typedef struct _Command Command;
 
@@ -223,8 +223,6 @@ static struct option const long_options[] =
   {"noverify",            no_argument, 0, 'n'},
   {"pristine",            no_argument, 0, 'p'},
   {"quiet",               no_argument, 0, 'q'},
-  /*{"long-long-format",    no_argument, 0, 'L'},
-    {"long-format",         no_argument, 0, 'l'},*/
   {"maxmem",              required_argument, 0, 'm'},
   {0,0,0,0}
 };
@@ -236,8 +234,6 @@ static gint         pristine = FALSE;
 static gint         verbose = FALSE;
 static gint         max_mapped_pages = G_MAXINT;
 static gint         quiet = FALSE;
-/*static gint         long_format = FALSE;
-static gint         really_long_format = FALSE;*/
 
 #define xd_error g_warning
 
@@ -384,8 +380,6 @@ main (gint argc, gchar** argv)
     {
       switch (c)
 	{
-	  /*case 'l': long_format = TRUE; break;
-	    case 'L': really_long_format = TRUE; break;*/
 	case 'q': quiet = TRUE; break;
 	case 'n': no_verify = TRUE; break;
 	case 'p': pristine = TRUE; break;
