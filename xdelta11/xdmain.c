@@ -193,7 +193,7 @@ struct _XdFileHandle
 };
 
 /* $Format: "static const char xdelta_version[] = \"$ReleaseVersion$\"; " $ */
-static const char xdelta_version[] = "1.1.2"; 
+static const char xdelta_version[] = "1.1.2";
 
 typedef struct _Command Command;
 
@@ -637,7 +637,7 @@ file_gunzip (const char* name)
 
   if (nread < 0)
     {
-      xd_error ("gzread %s failed: %s\n", name, g_strerror (errno));
+      xd_error ("gzread %s failed\n", name);
       return NULL;
     }
 
