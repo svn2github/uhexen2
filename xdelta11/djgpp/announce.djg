@@ -23,8 +23,8 @@ XDelta is distributed under the GNU General Public License.
 
 The port is available from the DJGPP archive on SimTel.NET:
 
-http://www.simtel.net/gnudlpage.php?product=/gnu/djgpp/v2tk/xdlt112b.zip&name=xdlt112b.zip
-http://www.simtel.net/gnudlpage.php?product=/gnu/djgpp/v2tk/xdlt112s.zip&name=xdlt112s.zip
+http://www.simtel.net/gnudlpage.php?product=/gnu/djgpp/v2apps/xdlt112b.zip&name=xdlt112b.zip
+http://www.simtel.net/gnudlpage.php?product=/gnu/djgpp/v2apps/xdlt112s.zip&name=xdlt112s.zip
 
 These are binary and source distributions respectively. If you only want
 to use XDelta, please download the binary distribution. If you would like
