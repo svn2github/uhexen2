@@ -20,7 +20,7 @@
  *
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  *
- * $Id: xdmain.c 1.22.1.3 Sat, 23 Jun 2001 23:59:42 -0700 jmacd $
+ * $Id: xdmain.c 1.22.1.4 Sun, 24 Jun 2001 01:02:51 -0700 jmacd $
  */
 
 #include <stdio.h>

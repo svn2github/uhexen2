@@ -1,11 +1,11 @@
 ;; -*- PRCS -*-
 (Created-By-Prcs-Version 1 2 16)
 (Project-Description "")
-(Project-Version xdelta 1.1-maint 5)
-(Parent-Version xdelta 1.1-maint 4)
+(Project-Version xdelta 1.1-maint 6)
+(Parent-Version xdelta 1.1-maint 5)
 (Version-Log "")
 (New-Version-Log "")
-(Checkin-Time "Sat, 23 Jun 2001 23:59:42 -0700")
+(Checkin-Time "Sun, 24 Jun 2001 01:02:51 -0700")
 (Checkin-Login jmacd)
 (Populate-Ignore ("\\.o$"
 		  "\\.deps"
@@ -45,29 +45,29 @@
 (Files
   ;; Config
   (configure.in (xdelta/1_configure. 1.10.1.37 664))
-  (Makefile.am (xdelta/2_Makefile.a 1.19.1.40.1.3 664))
-  (ChangeLog (xdelta/d/9_ChangeLog 1.5 664))
+  (Makefile.am (xdelta/2_Makefile.a 1.19.1.40.1.4 664))
+  (ChangeLog (xdelta/d/9_ChangeLog 1.6 664))
   (runtest (xdelta/d/5_runtest 1.6 775))
-  (README (xdelta/d/6_README 1.3 664))
+  (README (xdelta/d/6_README 1.4 664))
   (INSTALL (xdelta/d/10_INSTALL 1.3 664))
   (COPYING (xdelta/d/11_COPYING 1.2 664))
-  (AUTHORS (xdelta/d/12_AUTHORS 1.1 664))
-  (NEWS (xdelta/d/13_NEWS 1.15.1.4 664))
+  (AUTHORS (xdelta/d/12_AUTHORS 1.2 664))
+  (NEWS (xdelta/d/13_NEWS 1.15.1.5 664))
   (xdelta.magic (xdelta/d/20_xdelta.mag 1.2 664))
   (xdelta-config.in (xdelta/d/33_xdelta-con 1.4 664))
   (autogen.sh (xdelta/d/34_autogen.sh 1.1 775))
   (xdelta.m4 (xdelta/d/35_xdelta.m4 1.5 664))
 
   ;; Library
-  (xdelta.h (xdelta/b/8_xdelta.h 1.4.1.8.1.50.1.1 664))
+  (xdelta.h (xdelta/b/8_xdelta.h 1.4.1.8.1.50.1.2 664))
   (xdeltapriv.h (xdelta/c/42_xdeltapriv 1.29 664))
-  (xdelta.c (xdelta/b/14_xdelta.c 1.4.1.50 664))
+  (xdelta.c (xdelta/b/14_xdelta.c 1.4.1.50.1.1 664))
   (xd.ser (xdelta/d/7_xd.ser 1.12 664))
   (xdrsync.c (xdelta/d/44_xdrsync.c 1.2 664))
   (xdapply.c (xdelta/e/37_xdapply.c 1.1 664))
 
   ;; Application
-  (xdmain.c (xdelta/d/15_xdmain.c 1.22.1.3 664))
+  (xdmain.c (xdelta/d/15_xdmain.c 1.22.1.4 664))
   (getopt1.c (xdelta/d/17_getopt1.c 1.1 664))
   (getopt.h (xdelta/d/18_getopt.h 1.1 664))
   (getopt.c (xdelta/d/19_getopt.c 1.1 664))
@@ -77,14 +77,14 @@
   (xdelta.dsw (xdelta/d/37_xdelta.dsw 1.2 664) :no-keywords)
 
   ;; Testing
-  (test/Makefile.am (xdelta/e/39_Makefile.a 1.1.1.2 664))
-  (test/xdeltatest.c (xdelta/e/38_xdeltatest 1.4 664))
-  (test/README.test ())
+  (test/Makefile.am (xdelta/e/39_Makefile.a 1.1.1.3 664))
+  (test/xdeltatest.c (xdelta/e/38_xdeltatest 1.5 664))
+  (test/README.test (xdelta/21_README.tes 1.1 664))
 
   ;; Not much docs
-  (doc/Makefile.am (xdelta/d/21_Makefile.a 1.3 664))
+  (doc/Makefile.am (xdelta/d/21_Makefile.a 1.4 664))
   (doc/xdelta.1 (xdelta/d/23_xdelta.1 1.4 664))
-  (doc/xdelta.cat ())
+  (doc/xdelta.cat (xdelta/22_xdelta.cat 1.1 664))
 
   ;; DJGPP contrib
   (djgpp/readme.djg (xdelta/18_readme.djg 1.1 664))

@@ -20,7 +20,7 @@
  *
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  *
- * $Id: xdelta.h 1.4.1.8.1.50.1.1 Sat, 23 Jun 2001 23:59:42 -0700 jmacd $
+ * $Id: xdelta.h 1.4.1.8.1.50.1.2 Sun, 24 Jun 2001 01:02:51 -0700 jmacd $
  */
 
 #ifndef _XDELTA_H_

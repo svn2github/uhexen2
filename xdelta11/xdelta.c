@@ -20,7 +20,7 @@
  *
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  *
- * $Id: xdelta.c 1.4.1.50 Fri, 09 Apr 1999 15:24:35 -0700 jmacd $
+ * $Id: xdelta.c 1.4.1.50.1.1 Sun, 24 Jun 2001 01:02:51 -0700 jmacd $
  */
 
 #define G_DISABLE_ASSERT
