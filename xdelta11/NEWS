@@ -18,6 +18,11 @@ Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
   a patch against 1.1.1 that is not mentioned below, please resend.  I
   apologize for any patches that may have been lost.
 
+* When 'patch' supplies its default TO file name recorded in the
+  delta, it still generates a unique file name to avoid overwriting an
+  existing copy.  Use the 'xdelta info' command to see what file names
+  are contained in the delta.
+
 * The code for writing patches to stdout was broken in the case where
   gzip compression is used.  Writing patches to stdout has therefore
   been disabled.  The problem is a limitation in the gzdopen/gzwrite
