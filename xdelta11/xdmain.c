@@ -399,8 +399,6 @@ main (gint argc, gchar** argv)
 		return 2;
 	      }
 
-	    l = MAX (l, XD_PAGE_SIZE * 8);
-
 #ifdef __DJGPP__
 	    /*
 	     * (richdawe@bigfoot.com): Old MS-DOS systems may have a maximum
@@ -408,7 +406,7 @@ main (gint argc, gchar** argv)
 	     * asks for on MS-DOS.
 	     */
 #else /* !__DJGPP__ */
-	    l = MAX (l, 8 * (1<<20));
+	    l = MAX (l, XD_PAGE_SIZE * 8);
 #endif /* __DJGPP__ */
 
 	    max_mapped_pages = l / XD_PAGE_SIZE;
@@ -1872,13 +1870,13 @@ patch_command (gint argc, gchar** argv)
 	return 2;
 
       if (from_is_compressed != ((patch->patch_flags & FLAG_FROM_COMPRESSED) && 1))
-	xd_error ("warning: expected %scompressed from file '%s'\n",
+	xd_error ("warning: expected %scompressed from file (%s)\n",
 		  (patch->patch_flags & FLAG_FROM_COMPRESSED) ? "" : "un",
 		  patch->from_name);
 
       if (xd_handle_length (from_in) != patch->from_source->len)
 	{
-	  xd_error ("expected from file '%s' of %slength %d bytes\n",
+	  xd_error ("expected from file (%s) of %slength %d bytes\n",
 		    patch->from_name,
 		    from_is_compressed ? "uncompressed " : "",
 		    patch->from_source->len);
