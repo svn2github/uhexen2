@@ -64,10 +64,42 @@ extern const guint xdelta_micro_version;
 
 /* copy segments are of length 1<<QUERY_SIZE, this must not be greater
  * than 6 due to a space assumption, and also limits the number of
- * sources allowed to (QUERY_SIZE_POW-1). */
-#define QUERY_SIZE          4
+ * sources allowed to (QUERY_SIZE_POW-1).
+ *
+ * The in-core FROM CKSUM table's size is (FROM_LEN bytes * 4 bytes-per-checksum) / (1<<QUERY_SIZE)
+ *
+ * The in-core CKSUM HASH table's size is the same size, each checksum has one 32-bit offset+srcindex
+ *
+ * With the a value of (QUERY_SIZE = 4) gives a 16 byte block size,
+ * gives FROM_LEN/4 bytes for the FROM CKSUM map, and the same for the
+ * CKSUM HASH, giving FROM_LEN/2 bytes, in addition to whatever used
+ * to cache the FROM inputs.
+ **/
+#define QUERY_SIZE_DEFAULT  4
+
+/* The query size has historically been hard coded.  This gains around
+ * 20% in speed, so I've left it the default.  If you're interested in
+ * large files, try undefining this (and using the -s argument to
+ * Xdelta).
+ */
+#define XDELTA_HARDCODE_SIZE
+
+#ifdef XDELTA_HARDCODE_SIZE
+#define QUERY_SIZE          QUERY_SIZE_DEFAULT
 #define QUERY_SIZE_POW      (1<<QUERY_SIZE)
 #define QUERY_SIZE_MASK     (QUERY_SIZE_POW-1)
+#else
+extern int QUERY_SIZE;
+extern int QUERY_SIZE_POW;
+extern int QUERY_SIZE_MASK;
+#endif
+
+#define XDP_QUERY_HARDCODED -7654
+#define XDP_QUERY_POW2      -7655
+
+/* Returns  if query size is hard coded. */
+int xdp_set_query_size_pow (int size_pow);
+int xdp_blocksize          ();
 
 /* An xdelta consists of two pieces of information, the control and
  * data segments.  The control segment consists of instructions,
@@ -86,6 +118,7 @@ extern const guint xdelta_micro_version;
  * file.  This pass pre-computes an index which is used during delta
  * computation.  This index may be saved and restored to avoid
  * computing it multiple times.
+ *
  */
 
 #define xdp_generator_new() __xdp_generator_new (XDELTA_VERSION)
@@ -139,8 +172,8 @@ void             xdp_control_free         (XdeltaControl   *con);
 gboolean         xdp_apply_delta          (XdeltaControl     *cont,
 					   XdeltaOutStream   *res);
 
-/* Rsync: I haven't documented this because it will change before I
- * finish PRCS. */
+/* Rsync: Undocumented, experimental code.  Have a look.  May not
+ * compile. */
 
 XdeltaRsync*     xdp_rsync_index          (XdeltaStream      *file,
 					   guint              seg_len,
@@ -156,5 +189,7 @@ gboolean         xdp_apply_rsync_reply    (XdeltaRsync       *rsync,
 					   XdeltaStream      *from,
 					   XdeltaStream      *reply,
 					   XdeltaStream      *out);
+
+const char* xdp_errno (int errval);
 
 #endif

@@ -46,6 +46,65 @@ static XdeltaControl* control_version_0 (SerialVersion0Control* cont) ;
 static void           control_copy   (XdeltaControl* cont, XdeltaSource* src, guint from, guint to);
 static gboolean       control_add_info (XdeltaControl* cont, XdeltaSource* src, const guint8* md5, guint len);
 
+#ifndef XDELTA_HARDCODE_SIZE
+int QUERY_SIZE = 0;
+int QUERY_SIZE_POW = 0;
+int QUERY_SIZE_MASK = 0;
+#endif
+
+int xdp_set_query_size_pow (int size_pow)
+{
+#ifdef XDELTA_HARDCODE_SIZE
+  return XDP_QUERY_HARDCODED;
+#else
+
+  int x        = 1;
+  int size_log = 0;
+
+  for (; x != 0; x <<= 1, size_log += 1)
+    {
+      if (x == size_pow)
+	goto good;
+    }
+
+  return XDP_QUERY_POW2;
+
+ good:
+
+  QUERY_SIZE      = size_log;
+  QUERY_SIZE_POW  = size_pow;
+  QUERY_SIZE_MASK = size_pow-1;
+
+  return 0;
+
+#endif
+}
+
+int
+xdp_blocksize ()
+{
+  if (QUERY_SIZE == 0)
+    {
+      xdp_set_query_size_pow (1<<QUERY_SIZE_DEFAULT);
+    }
+
+  return QUERY_SIZE_POW;
+}
+
+const char*
+xdp_errno (int errval)
+{
+  switch (errval)
+    {
+    case XDP_QUERY_HARDCODED:
+      return "query size hardcoded";
+    case XDP_QUERY_POW2:
+      return "query size must be a power of 2";
+    }
+
+  return g_strerror (errval);
+}
+
 const guint16 single_hash[256] =
 {
   /* Random numbers generated using SLIB's pseudo-random number
@@ -130,7 +189,8 @@ generate_checksums (XdeltaStream    *stream,
   if (total_checksums == 0)
     return TRUE;
 
-  result = g_new (XdeltaChecksum, total_checksums);
+  /* This is the in-core FROM checksum table. */
+  result         = g_new (XdeltaChecksum, total_checksums);
   source->cksums = result;
 
   for (pages = handle_pages (stream); segment_page <= pages; segment_page += 1)
@@ -885,6 +945,11 @@ xdp_generate_delta_int (XdeltaGenerator *gen,
   gint i, j, total_from_ck_count = 0, prime = 0, index = 0;
   gint total_from_len = 0;
   guint32* table = NULL;
+
+  if (QUERY_SIZE == 0)
+    {
+      xdp_set_query_size_pow (1<<QUERY_SIZE_DEFAULT);
+    }
 
   if (gen->sources->len == 0)
     {

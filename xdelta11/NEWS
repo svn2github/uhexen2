@@ -8,15 +8,8 @@ Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
 
 ** Changes since version 1.1.1
 
-* This version is released after an extremely long period of
-  inactivity.  The reason was that shortly after 1.1.1 was released I
-  began working on new features required for 2.0, and very soon the
-  1.1.x branch would not compile against current libxdelta/libedsio.
-  As a result, I could not make forward progress on the 1.1 release.
-  This release was made by backing up all the way to 1.1.1 and
-  applying just a few known fixes.  If at any time you have submitted
-  a patch against 1.1.1 that is not mentioned below, please resend.  I
-  apologize for any patches that may have been lost.
+* This code release is a distant fork of the 2.0 release.  It will
+  hopefully be replaced.
 
 * When 'patch' supplies its default TO file name recorded in the
   delta, it still generates a unique file name to avoid overwriting an
@@ -31,17 +24,22 @@ Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
   beforehand and then lseek-ing afterwards, which does not work
   correctly if the output file is not seekable.
 
-* Incorporate DJGPP patches from Richard Dawe <richdawe@bigfoot.com>.
-  You can find his versions directly at:
-
-      ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111b.zip
-      ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111s.zip
-
-* Updated xdelta(1) man page.
+* By default, Xdelta uses a hard-coded 16 byte block size.  If you're
+  working with large files, try #undef XDELTA_HARDCODE_SIZE in
+  xdelta.h then use -s BLOCKSIZE (--blocksize=BLOCKSIZE), which should
+  be a power of 2.
 
 * New test program in the 'test' subdirectory, which runs comparisons
   against "diff --rcs -a" and also verifies the "xdelta patch"
   command.
+
+* Incorporate DJGPP patches from Richard Dawe <richdawe@bigfoot.com>.
+  You can find his versions directly at:
+
+      ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt112b.zip
+      ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt112s.zip
+
+* Updated xdelta(1) man page.
 
 * Updated autoconf (2.50), automake (1.4-p4), libtool (1.4) scripts,
   which includes updated config.guess and config.sub scripts.
@@ -51,7 +49,8 @@ Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
 
 * Update GLIB version requirement, now 1.2.8.
 
-* We really need support for 64bit file sizes...
+* We really need support for 64bit file sizes...  perhaps the next
+  version?
 
 
 ** Changes since version 1.1.0

@@ -57,8 +57,8 @@
 const char* cmd_data_source      = "/scratch/jmacd/source-code-data";
 guint       cmd_size             = 1<<20;
 
-guint       cmd_warmups          = 1;
-guint       cmd_reps             = 2;
+guint       cmd_warmups          = 2;
+guint       cmd_reps             = 20;
 
 guint       cmd_changes          = 1000;
 guint       cmd_deletion_length  = 30;
@@ -72,7 +72,8 @@ guint       cmd_insertion_length = 15;
 
 #define TEST_PREFIX "/tmp/xdeltatest"
 
-#define TEST_IS_GZIP 1
+#define TEST_IS_GZIP   1
+#define TEST_IS_XDELTA 2
 
 typedef struct _File        File;
 typedef struct _Patch       Patch;
@@ -113,11 +114,12 @@ guint8 __tmp_buffer[BUFSIZ];
 
 TestProfile cmd_profiles[] =
 {
-  { "xdelta -qn   ", "../xdelta", 0 },
+  { "xdelta -qn   ", "../xdelta",     TEST_IS_XDELTA },
   { "diff --rcs -a", "/usr/bin/diff", 0 },
   { "gzip         ", "/usr/bin/gzip", TEST_IS_GZIP },
 };
 
+int         cmd_slevels[] = { 16, 32, 64 };
 int         cmd_zlevels[] = { 0, 1, 3, 6, 9 };
 guint16     cmd_seed[3]          = { 47384, 8594, 27489 };
 
@@ -144,13 +146,23 @@ void add_tv (GTimer *timer)
 }
 
 void
-report (TestProfile *tp, int zlevel)
+report (TestProfile *tp, int zlevel, int slevel)
 {
   static gboolean once = TRUE;
 
   double t = __total_time / (double) cmd_reps;
   double s;
   const char *u;
+  char  slevel_str[16];
+
+  if (tp->flags & TEST_IS_XDELTA)
+    {
+      sprintf (slevel_str, "%d", slevel);
+    }
+  else
+    {
+      slevel_str[0] = 0;
+    }
 
   if (tp->flags & TEST_IS_GZIP)
     {
@@ -167,10 +179,10 @@ report (TestProfile *tp, int zlevel)
     {
       once = FALSE;
 
-      g_print ("Program\t\tzlevel\tSeconds\tNormalized\n\t\t\t\tcompression\n");
+      g_print ("Program\t\tzlevel\tslevel\tSeconds\tNormalized\n\t\t\t\t\tcompression\n");
     }
 
-  g_print ("%s\t%d\t%0.3f\t%0.3f (of %s)\n", tp->name, zlevel, t, s, u);
+  g_print ("%s\t%d\t%s\t%0.3f\t%0.3f (of %s)\n", tp->name, zlevel, slevel_str, t, s, u);
 }
 
 guint32
@@ -359,7 +371,7 @@ perform_change (Instruction* inst, guint* len)
 }
 
 gboolean
-xdelta_verify (TestProfile *tp, int zlevel, File* from, File* to, File* out, File *re)
+xdelta_verify (TestProfile *tp, int zlevel, int slevel, File* from, File* to, File* out, File *re)
 {
   int pid, status;
 
@@ -399,17 +411,19 @@ xdelta_verify (TestProfile *tp, int zlevel, File* from, File* to, File* out, Fil
 }
 
 gboolean
-run_command (TestProfile *tp, int zlevel, File* from, File* to, File* out, File *re, gboolean accounting)
+run_command (TestProfile *tp, int zlevel, int slevel, File* from, File* to, File* out, File *re, gboolean accounting)
 {
   int pid, status, outfd;
   struct stat sbuf;
   char xdelta_args[16];
+  char xdelta_args2[16];
   char diff_gzargs[16];
   char gzip_args[16];
 
   GTimer *timer = g_timer_new ();
 
   sprintf (xdelta_args, "-qn%d", zlevel);
+  sprintf (xdelta_args2, "-s%d", slevel);
   sprintf (diff_gzargs, "wb%d", zlevel);
   sprintf (gzip_args, "-c%d", zlevel);
 
@@ -428,6 +442,7 @@ run_command (TestProfile *tp, int zlevel, File* from, File* to, File* out, File 
 		 tp->progname,
 		 "delta",
 		 xdelta_args,
+		 xdelta_args2,
 		 from->name,
 		 to->name,
 		 out->name,
@@ -521,7 +536,7 @@ run_command (TestProfile *tp, int zlevel, File* from, File* to, File* out, File 
 
       if (starts_with (tp->name, "xdelta"))
 	{
-	  if (! xdelta_verify (tp, zlevel, from, to, out, re))
+	  if (! xdelta_verify (tp, zlevel, slevel, from, to, out, re))
 	    {
 	      g_warning ("verify failed");
 	      fail ();
@@ -555,7 +570,7 @@ test1 (TestProfile *test_profile,
   guint end_size = (cmd_changes * cmd_insertion_length) + cmd_size;
   Instruction* inst;
   struct stat sbuf;
-  int zlevel_i;
+  int zlevel_i, slevel_i;
 
   seed48 (cmd_seed);
 
@@ -595,33 +610,46 @@ test1 (TestProfile *test_profile,
 
   current_to_size = write_file (to_file, inst);
 
-  for (zlevel_i = 0; zlevel_i < ARRAY_LENGTH(cmd_zlevels); zlevel_i += 1)
+  for (slevel_i = 0; slevel_i < ARRAY_LENGTH(cmd_slevels); slevel_i += 1)
     {
-      int zlevel = cmd_zlevels[zlevel_i];
+      int slevel = cmd_slevels[slevel_i];
 
-      if (test_profile->flags & TEST_IS_GZIP)
+      if ((test_profile->flags & TEST_IS_XDELTA) == 0 && slevel_i != 0)
 	{
-	  if (zlevel != 1 && zlevel != 9)
-	    continue;
+	  continue;
 	}
 
-      reset_stats ();
-
-      for (i = 0; i < cmd_warmups + cmd_reps; i += 1)
+      for (zlevel_i = 0; zlevel_i < ARRAY_LENGTH(cmd_zlevels); zlevel_i += 1)
 	{
-	  if (! run_command (test_profile,
-			     zlevel,
-			     from_file,
-			     to_file,
-			     out_file,
-			     re_file,
-			     (i >= cmd_warmups) /* true => accounting */))
+	  int zlevel = cmd_zlevels[zlevel_i];
+
+	  if (test_profile->flags & TEST_IS_GZIP)
 	    {
-	      fail ();
+	      if (zlevel != 1 && zlevel != 9)
+		continue;
 	    }
+
+	  reset_stats ();
+
+	  for (i = 0; i < cmd_warmups + cmd_reps; i += 1)
+	    {
+	      if (! run_command (test_profile,
+				 zlevel,
+				 slevel,
+				 from_file,
+				 to_file,
+				 out_file,
+				 re_file,
+				 (i >= cmd_warmups) /* true => accounting */))
+		{
+		  fail ();
+		}
+	    }
+
+	  report (test_profile, zlevel, slevel);
 	}
 
-      report (test_profile, zlevel);
+      g_print ("\n");
     }
 }
 

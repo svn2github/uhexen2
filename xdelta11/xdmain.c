@@ -224,6 +224,7 @@ static struct option const long_options[] =
   {"pristine",            no_argument, 0, 'p'},
   {"quiet",               no_argument, 0, 'q'},
   {"maxmem",              required_argument, 0, 'm'},
+  {"blocksize",           required_argument, 0, 's'},
   {0,0,0,0}
 };
 
@@ -248,7 +249,7 @@ usage ()
 static void
 help ()
 {
-  xd_error ("usage: %s COMMAND [OPTIONS] [ARG1 ARG2 ...]\n", program_name);
+  xd_error ("usage: %s COMMAND [OPTIONS] [ARG1 ...]\n", program_name);
   xd_error ("COMMAND is one of:\n");
   xd_error ("  delta     Produce a delta from ARG1 to ARG2 producing ARG3\n");
   xd_error ("  info      List details about delta ARG1\n");
@@ -260,7 +261,9 @@ help ()
   xd_error ("  -n, --noverify     Disable automatic MD5 verification\n");
   xd_error ("  -p, --pristine     Disable automatic GZIP decompression\n");
   xd_error ("  -m, --maxmem=SIZE  Set the buffer size limit, e.g. 640K, 16M\n");
-  xd_error ("  -[0-9]             Compression level: 0=none, 1=fast, 6=default, 9=best\n");
+  xd_error ("  -[0-9]             ZLIB compress level: 0=none, 1=fast, 6=default, 9=best\n");
+  xd_error ("  -s=BLOCK_SIZE      Sets block size (power of 2), minimum match length\n");
+  xd_error ("                     In-core memory requirement is (FROM_LEN * 8) / BLOCK_SIZE\n");
   exit (2);
 }
 
@@ -374,7 +377,7 @@ main (gint argc, gchar** argv)
 
   while ((c = getopt_long(argc,
 			  argv,
-			  "+nqphvVm:0123456789",
+			  "+nqphvVs:m:0123456789",
 			  long_options,
 			  &longind)) != EOF)
     {
@@ -384,6 +387,17 @@ main (gint argc, gchar** argv)
 	case 'n': no_verify = TRUE; break;
 	case 'p': pristine = TRUE; break;
 	case 'V': verbose = TRUE; break;
+	case 's':
+	  {
+	    int ret;
+	    int s = atoi (optarg);
+
+	    if ((ret = xdp_set_query_size_pow (s)) && ! quiet)
+	      {
+		xd_error ("illegal query size: %s\n", xdp_errno (ret));
+	      }
+	  }
+	  break;
 	case 'm':
 	  {
 	    gchar* end = NULL;
@@ -1487,6 +1501,12 @@ delta_command (gint argc, gchar** argv)
       xd_error ("usage: %s delta fromfile tofile patchfile\n", program_name);
       return 2;
     }
+
+  if (verbose)
+    {
+      xd_error ("using block size: %d bytes\n", xdp_blocksize ());
+    }
+
 
   if (! (from = open_read_seek_handle (argv[0], &from_is_compressed, TRUE)))
     return 2;

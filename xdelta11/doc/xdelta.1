@@ -178,6 +178,10 @@ output files.
 Set an upper bound on the size of an in-memory page cache.  For
 example, --maxmem=32M will use a 32 megabyte page cache.
 
+.IP "-s=BLOCK_SIZE"
+Set the block size, unless it was hard coded (20% speed improvement).
+Should be a power of 2.
+
 .IP "-p, --pristine"
 Disable the automatic decompression of gzipped inputs, to prevent
 unexpected differences in the re-compressed content.

@@ -14,7 +14,7 @@ on both binary and text files.
 Xdelta 1.1.2 is a stable, maintenence release.  New, ongoing work on
 Xdelta has focused on a new storage system with features similar to
 the RCS command set.  For more information on new development, see the
-Xdelta-2.0 release series at http://xdelta.org.
+Xdelta-2.0 release series at http://xdelta.sourceforge.net.
 
 Xdelta was designed and implemented by Joshua MacDonald.  The delta
 algorithm is based on the Rsync algorithm, though implementation and
@@ -27,7 +27,7 @@ sections of the documentation.  It is available in info format.  All
 documentation is located in the doc/ subdirectory.
 
 This release, version 1.1.2, and future releases of Xdelta can be
-found at http://xdelta.org.
+found at http://xdelta.sourceforge.net.
 
 Xdelta is released under the GNU Library Public License (GPL), see the
 file COPYING for details.
@@ -169,6 +169,10 @@ DESCRIPTION
               Set an upper bound on the size of an in-memory page
               cache. For example, --maxmem=32M will use a 32 megabyte
               page cache.
+
+       -s=BLOCK_SIZE
+              Set the block size, unless it was hard coded (20% speed
+              improvement).  Should be a power of 2.
 
        -p, --pristine
               Disable  the  automatic  decompression of gzipped
