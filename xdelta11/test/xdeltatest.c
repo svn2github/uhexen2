@@ -20,7 +20,7 @@
  *
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  *
- * $Id: xdeltatest.c 1.5 Sun, 24 Jun 2001 01:02:51 -0700 jmacd $
+ * $Id: xdeltatest.c 1.6 Fri, 29 Jun 2001 06:01:08 -0700 jmacd $
  */
 
 #include <sys/param.h>

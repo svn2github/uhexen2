@@ -20,7 +20,7 @@
  *
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  *
- * $Id: xdelta.h 1.4.1.8.1.50.1.2 Sun, 24 Jun 2001 01:02:51 -0700 jmacd $
+ * $Id: xdelta.h 1.4.1.8.1.50.1.3 Fri, 29 Jun 2001 06:01:08 -0700 jmacd $
  */
 
 #ifndef _XDELTA_H_
@@ -47,7 +47,7 @@ typedef FileHandle XdeltaOutStream;
  */
 
 /* $Format: "#define XDELTA_VERSION \"$ReleaseVersion$\"" $ */
-#define XDELTA_VERSION "1.1.2"
+#define XDELTA_VERSION "1.1.3"
 
 /* $Format: "#define XDELTA_MAJOR_VERSION $ReleaseMajorVersion$" $ */
 #define XDELTA_MAJOR_VERSION 1
@@ -56,7 +56,7 @@ typedef FileHandle XdeltaOutStream;
 #define XDELTA_MINOR_VERSION 1
 
 /* $Format: "#define XDELTA_MICRO_VERSION $ReleaseMicroVersion$" $ */
-#define XDELTA_MICRO_VERSION 2
+#define XDELTA_MICRO_VERSION 3
 
 extern const guint xdelta_major_version;
 extern const guint xdelta_minor_version;
