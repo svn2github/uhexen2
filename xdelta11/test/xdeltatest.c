@@ -84,7 +84,7 @@ struct _TestProfile
 };
 
 #undef  BUFSIZ
-#define BUFSIZ (1<<23)
+#define BUFSIZ (1<<24)
 
 guint8 __tmp_buffer[BUFSIZ];
 
@@ -102,10 +102,10 @@ int         cmd_zlevels[] = { 0, 1, 3, 6, 9 };
 
 const char* cmd_data_source      = "/scratch/jmacd/source-code-data";
 guint16     cmd_seed[3]          = { 47384, 8594, 27489 };
-guint       cmd_size             = 1<<20;
+guint       cmd_size             = 1<<24;
 
-guint       cmd_warmups          = 2;
-guint       cmd_reps             = 10;
+guint       cmd_warmups          = 1;
+guint       cmd_reps             = 2;
 
 guint       cmd_changes          = 1000;
 guint       cmd_deletion_length  = 30;
@@ -272,7 +272,7 @@ write_file (File* file, Instruction* inst)
 
   for (; inst; inst = inst->next)
     {
-      g_assert (inst->length < BUFSIZ);
+      g_assert (inst->length <= BUFSIZ);
 
       if ((ret = fseek (data_source_handle, inst->offset, SEEK_SET))) {
 	perror ("fseek");
@@ -514,7 +514,7 @@ test1 (TestProfile *test_profile)
   data_source_length = sbuf.st_size;
 
   /* arbitrary checks */
-  if (data_source_length < (64 * end_size))
+  if (data_source_length < (1.5 * end_size))
     g_warning ("data source should be longer\n");
 
   if ((cmd_changes * cmd_deletion_length) > cmd_size)

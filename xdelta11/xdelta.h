@@ -65,7 +65,7 @@ extern const guint xdelta_micro_version;
 /* copy segments are of length 1<<QUERY_SIZE, this must not be greater
  * than 6 due to a space assumption, and also limits the number of
  * sources allowed to (QUERY_SIZE_POW-1). */
-#define QUERY_SIZE          4
+#define QUERY_SIZE          5
 #define QUERY_SIZE_POW      (1<<QUERY_SIZE)
 #define QUERY_SIZE_MASK     (QUERY_SIZE_POW-1)
 
