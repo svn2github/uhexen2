@@ -44,29 +44,162 @@
 #include <sys/wait.h>
 #include <sys/resource.h>
 #include <stdio.h>
+#include <zlib.h>
 
 #include "xdelta.h"
 
+#define ARRAY_LENGTH(x) (sizeof(x)/sizeof(x[0]))
+
 #define TEST_PREFIX "/tmp/xdeltatest"
 
-typedef struct _File File;
+#define TEST_IS_GZIP 1
+
+typedef struct _File        File;
+typedef struct _Patch       Patch;
+typedef struct _TestProfile TestProfile;
+typedef struct _Instruction Instruction;
+
+struct _Instruction {
+  guint32 offset;
+  guint32 length;
+  Instruction* next;
+};
 
 struct _File
 {
   char name[MAXPATHLEN];
 };
 
-#undef BUFSIZ
-#define BUFSIZ (1<<20)
+struct _Patch
+{
+  guint8  *data;
+  guint32  length;
+};
+
+struct _TestProfile
+{
+  const char *name;
+  const char *progname;
+  int         flags;
+};
+
+#undef  BUFSIZ
+#define BUFSIZ (1<<23)
 
 guint8 __tmp_buffer[BUFSIZ];
+
+// Note: Of course you should be able to set all this up on the
+// command line.
+
+TestProfile cmd_profiles[] =
+{
+  { "xdelta -qn   ", "../xdelta", 0 },
+  { "diff --rcs -a", "/usr/bin/diff", 0 },
+  { "gzip         ", "/usr/bin/gzip", TEST_IS_GZIP },
+};
+
+int         cmd_zlevels[] = { 0, 1, 3, 6, 9 };
+
+const char* cmd_data_source      = "/scratch/jmacd/source-code-data";
+guint16     cmd_seed[3]          = { 47384, 8594, 27489 };
+guint       cmd_size             = 1<<20;
+
+guint       cmd_warmups          = 2;
+guint       cmd_reps             = 10;
+
+guint       cmd_changes          = 1000;
+guint       cmd_deletion_length  = 30;
+guint       cmd_insertion_length = 15;
+
+FILE*       data_source_handle;
+guint       data_source_length;
+File*       data_source_file;
+
+long        current_to_size;
+long        current_from_size;
+
+double      __total_time;
+off_t       __dsize;
+
+void
+reset_stats ()
+{
+  __total_time = 0;
+  __dsize      = -1;
+}
+
+void add_tv (GTimer *timer)
+{
+  __total_time += g_timer_elapsed (timer, NULL);
+}
+
+void
+report (TestProfile *tp, int zlevel)
+{
+  static gboolean once = TRUE;
+
+  double t = __total_time / (double) cmd_reps;
+  double s;
+  const char *u;
+
+  if (tp->flags & TEST_IS_GZIP)
+    {
+      s = __dsize / (double) current_to_size;
+      u = "total size";
+    }
+  else
+    {
+      s = __dsize / (double) (cmd_changes * cmd_insertion_length);
+      u = "insertion size";
+    }
+
+  if (once)
+    {
+      once = FALSE;
+
+      g_print ("Program\t\tzlevel\tSeconds\tNormalized\n\t\t\t\tcompression\n");
+    }
+
+  g_print ("%s\t%d\t%0.3f\t%0.3f (of %s)\n", tp->name, zlevel, t, s, u);
+}
+
+guint32
+random_offset (guint len)
+{
+  return lrand48 () % (data_source_length - len);
+}
 
 void
 fail ()
 {
   g_warning ("FAILURE\n");
+  abort ();
+}
 
-  exit (1);
+gboolean starts_with (const char* s, const char *start)
+{
+  return strncmp (s, start, strlen (start)) == 0;
+}
+
+Patch*
+read_patch (File *file, struct stat *sbuf)
+{
+  Patch *p = g_new0 (Patch,1);
+  FILE  *f = fopen (file->name, "r");
+
+  p->length = (int)sbuf->st_size;
+
+  p->data   = g_malloc (p->length);
+
+  if (! f || fread (p->data, 1, p->length, f) != p->length)
+    {
+      perror ("fread");
+      fail ();
+    }
+
+  fclose (f);
+
+  return p;
 }
 
 File*
@@ -125,37 +258,16 @@ compare_files (File* fromfile, File* tofile)
     }
 }
 
-const char* cmd_delta_program = "../xdelta";
-const char* cmd_delta_profile = "xdelta";
-const char* cmd_data_source = "data";
-guint16     cmd_seed[3] = { 47384, 8594, 27489 };
-guint       cmd_size = 1<<15;
-guint       cmd_reps = 100;
-guint       cmd_changes = 16;
-guint       cmd_deletion_length = 128;
-guint       cmd_insertion_length = 256;
-
-FILE* data_source_handle;
-guint data_source_length;
-File* data_source_file;
-
-typedef struct _Instruction Instruction;
-
-struct _Instruction {
-  guint32 offset;
-  guint32 length;
-  Instruction* next;
-};
-
-gboolean
+int
 write_file (File* file, Instruction* inst)
 {
   FILE* h;
   int ret;
+  int size = 0;
 
   if (! (h = fopen (file->name, "w"))) {
     perror (file->name);
-    return FALSE;
+    fail ();
   }
 
   for (; inst; inst = inst->next)
@@ -164,156 +276,28 @@ write_file (File* file, Instruction* inst)
 
       if ((ret = fseek (data_source_handle, inst->offset, SEEK_SET))) {
 	perror ("fseek");
-	return FALSE;
+	fail ();
       }
 
       if ((ret = fread (__tmp_buffer, 1, inst->length, data_source_handle)) != inst->length) {
 	perror ("fread");
-	return FALSE;
+	fail ();
       }
 
       if ((ret = fwrite (__tmp_buffer, 1, inst->length, h)) != inst->length) {
 	perror ("fwrite");
-	return FALSE;
+	fail ();
       }
+
+      size += inst->length;
     }
 
   if ((ret = fclose (h))) {
     perror ("fclose");
-    return FALSE;
+    fail ();
   }
 
-  return TRUE;
-}
-
-static struct timeval __usr_time;
-static struct timeval __sys_time;
-static long dsize;
-
-void add_tv (struct timeval* accum, struct timeval* val)
-{
-  accum->tv_sec += val->tv_sec;
-  accum->tv_usec += val->tv_usec;
-
-  if (accum->tv_usec >= 1000000)
-    {
-      accum->tv_usec %= 1000000;
-      accum->tv_sec += 1;
-    }
-}
-
-gboolean
-run_command (File* from, File* to, File* out, gboolean accounting)
-{
-  int pid, status, outfd;
-  struct rusage usage;
-  struct stat sbuf;
-
-  unlink (out->name);
-
-  if ((pid = vfork()) < 0)
-    return FALSE;
-
-  if (pid == 0)
-    {
-      if (strcmp (cmd_delta_profile, "xdelta") == 0)
-	execl (cmd_delta_program,
-	       cmd_delta_program,
-	       "delta",
-	       "-qn0",
-	       from->name,
-	       to->name,
-	       out->name,
-	       NULL);
-      else if (strcmp (cmd_delta_profile, "xdeltaz") == 0)
-	execl (cmd_delta_program,
-	       cmd_delta_program,
-	       "delta",
-	       "-qn6",
-	       from->name,
-	       to->name,
-	       out->name,
-	       NULL);
-      else if (strcmp (cmd_delta_profile, "diff") == 0)
-	{
-	  outfd = open (out->name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-
-	  if (outfd < 0)
-	    {
-	      perror ("open");
-	      fail ();
-	    }
-
-	  dup2(outfd, STDOUT_FILENO);
-
-	  if (close (outfd))
-	    {
-	      perror ("close");
-	      fail ();
-	    }
-
-
-	  execl (cmd_delta_program,
-		 cmd_delta_program,
-		 "--rcs",
-		 "-a",
-		 from->name,
-		 to->name,
-		 NULL);
-	}
-      else
-	{
-	  g_warning ("delta profile did not match, must be one of: xdelta, diff\n");
-	  _exit (127);
-	}
-
-      perror ("execl failed");
-      _exit (127);
-    }
-
-  if (wait4 (pid, &status, 0, & usage) != pid)
-    {
-      perror ("wait failed");
-      fail ();
-    }
-
-  if (! WIFEXITED (status) || WEXITSTATUS (status) > 1)
-    {
-      g_warning ("delta command failed\n");
-      fail ();
-    }
-
-  if (stat (out->name, & sbuf))
-    {
-      perror ("stat");
-      fail ();
-    }
-
-  if (accounting)
-    {
-      add_tv (& __usr_time, & usage.ru_utime);
-      add_tv (& __sys_time, & usage.ru_stime);
-      dsize += sbuf.st_size;
-    }
-
-  // Now verify
-
-  return TRUE;
-}
-
-void
-report (void)
-{
-  double t = (__usr_time.tv_sec + __sys_time.tv_sec + (__usr_time.tv_usec + __sys_time.tv_usec) / 1000000.0) / (double) cmd_reps;
-  double s = (dsize / (double) cmd_reps) / (double) (cmd_changes * cmd_insertion_length);
-
-  g_print ("time %f normalized compression %f\n", t, s);
-}
-
-guint32
-random_offset (guint len)
-{
-  return lrand48 () % (data_source_length - len);
+  return size;
 }
 
 Instruction*
@@ -364,8 +348,143 @@ perform_change (Instruction* inst, guint* len)
   return perform_change_rec (inst, lrand48() % ((* len) - cmd_deletion_length), len);
 }
 
+gboolean
+run_command (TestProfile *tp, int zlevel, File* from, File* to, File* out, gboolean accounting)
+{
+  int pid, status, outfd;
+  struct stat sbuf;
+  char xdelta_args[16];
+  char diff_gzargs[16];
+  char gzip_args[16];
+
+  GTimer *timer = g_timer_new ();
+
+  sprintf (xdelta_args, "-qn%d", zlevel);
+  sprintf (diff_gzargs, "wb%d", zlevel);
+  sprintf (gzip_args, "-c%d", zlevel);
+
+  unlink (out->name);
+
+  g_timer_start (timer);
+
+  if ((pid = vfork()) < 0)
+    return FALSE;
+
+  if (pid == 0)
+    {
+      if (starts_with (tp->name, "xdelta"))
+	{
+	  execl (tp->progname,
+		 tp->progname,
+		 "delta",
+		 xdelta_args,
+		 from->name,
+		 to->name,
+		 out->name,
+		 NULL);
+	}
+      else
+	{
+	  outfd = open (out->name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+
+	  if (outfd < 0)
+	    {
+	      perror ("open");
+	      fail ();
+	    }
+
+	  dup2(outfd, STDOUT_FILENO);
+
+	  if (close (outfd))
+	    {
+	      perror ("close");
+	      fail ();
+	    }
+
+	  if (starts_with (tp->name, "diff"))
+	    execl (tp->progname,
+		   tp->progname,
+		   "--rcs",
+		   "-a",
+		   from->name,
+		   to->name,
+		   NULL);
+	  else if (starts_with (tp->name, "gzip"))
+	    execl (tp->progname,
+		   tp->progname,
+		   gzip_args,
+		   to->name,
+		   NULL);
+	  else
+	    abort ();
+	}
+
+      perror ("execl failed");
+      _exit (127);
+    }
+
+  if (waitpid (pid, &status, 0) != pid)
+    {
+      perror ("wait failed");
+      fail ();
+    }
+
+  // Note: program is expected to return 0, 1 meaning diff or no diff,
+  // > 1 indicates failure
+  if (! WIFEXITED (status) || WEXITSTATUS (status) > 1)
+    {
+      g_warning ("delta command failed\n");
+      fail ();
+    }
+
+  if (stat (out->name, & sbuf))
+    {
+      perror ("stat");
+      fail ();
+    }
+
+  // Do zlib compression on behalf of diff
+  if (zlevel > 0 && starts_with (tp->name, "diff"))
+    {
+      Patch  *patch   = read_patch (out, & sbuf);
+      gzFile *rewrite = gzopen (out->name, diff_gzargs);
+
+      if (! rewrite) fail ();
+
+      if (gzwrite (rewrite, patch->data, patch->length) == 0) { perror ("gzwrite"); fail (); }
+      if (gzclose (rewrite) != Z_OK)                          { perror ("gzclose"); fail (); }
+      if (stat    (out->name, & sbuf))                        { perror ("stat");    fail (); }
+    }
+
+  g_timer_stop (timer);
+
+  if (accounting)
+    {
+      add_tv (timer);
+    }
+
+  if (__dsize < 0)
+    {
+      __dsize = sbuf.st_size;
+
+      // Verify only once
+    }
+  else
+    {
+      if (__dsize != sbuf.st_size)
+	{
+	  g_warning ("%s -%d: delta command produced different size deltas: %d and %d",
+		     tp->progname, zlevel, (int)__dsize, (int)sbuf.st_size);
+	}
+    }
+
+  g_timer_destroy (timer);
+
+  return TRUE;
+}
+
 void
-test1 ()
+test1 (TestProfile *test_profile)
 {
   File* out_file;
   File* from_file;
@@ -376,6 +495,7 @@ test1 ()
   guint end_size = (cmd_changes * cmd_insertion_length) + cmd_size;
   Instruction* inst;
   struct stat sbuf;
+  int zlevel_i;
 
   seed48 (cmd_seed);
 
@@ -412,64 +532,55 @@ test1 ()
   inst->offset = random_offset (cmd_size);
   inst->length = cmd_size;
 
-  if (! write_file (from_file, inst))
-    fail ();
+  current_from_size = write_file (from_file, inst);
 
   for (change = 0; change < cmd_changes; change += 1)
     inst = perform_change (inst, & current_size);
 
-  if (! write_file (to_file, inst))
-    fail ();
+  current_to_size = write_file (to_file, inst);
 
-  /* warm caches */
-  if (! run_command (from_file, to_file, out_file, FALSE) ||
-      ! run_command (from_file, to_file, out_file, FALSE))
-    fail ();
-
-  for (i = 0; i < cmd_reps; i += 1)
+  for (zlevel_i = 0; zlevel_i < ARRAY_LENGTH(cmd_zlevels); zlevel_i += 1)
     {
-      if (! run_command (from_file, to_file, out_file, TRUE))
-	fail ();
-    }
+      int zlevel = cmd_zlevels[zlevel_i];
 
-  report ();
+      if (test_profile->flags & TEST_IS_GZIP)
+	{
+	  if (zlevel != 1 && zlevel != 9)
+	    continue;
+	}
+
+      reset_stats ();
+
+      for (i = 0; i < cmd_warmups + cmd_reps; i += 1)
+	{
+	  if (! run_command (test_profile,
+			     zlevel,
+			     from_file,
+			     to_file,
+			     out_file,
+			     (i >= cmd_warmups) /* true => accounting */))
+	    {
+	      fail ();
+	    }
+	}
+
+      report (test_profile, zlevel);
+    }
 }
 
 int
 main (gint argc, gchar** argv)
 {
-  if (argc != 9)
+  int profile_i;
+
+  for (profile_i = 0; profile_i < ARRAY_LENGTH(cmd_profiles); profile_i += 1)
     {
-      g_print ("usage: %s PROGRAM PROFILE DATASOURCE FILESIZE REPETITIONS CHANGES INSERTIONLENGTH DELETIONLENGTH\n", argv[0]);
-      exit (2);
+      system ("rm -rf " TEST_PREFIX "*");
+
+      test1 (& cmd_profiles[profile_i]);
+
+      system ("rm -rf " TEST_PREFIX "*");
     }
-
-  cmd_delta_program = argv[1];
-  cmd_delta_profile = argv[2];
-  cmd_data_source = argv[3];
-
-  if (! strtoui_checked (argv[4], & cmd_size, "Size"))
-    return 2;
-
-  if (! strtoui_checked (argv[5], & cmd_reps, "Repetitions"))
-    return 2;
-
-  if (! strtoui_checked (argv[6], & cmd_changes, "Changes"))
-    return 2;
-
-  if (! strtoui_checked (argv[7], & cmd_insertion_length, "Insertion length"))
-    return 2;
-
-  if (! strtoui_checked (argv[8], & cmd_deletion_length, "Deletion length"))
-    return 2;
-
-  /* body */
-
-  system ("rm -rf " TEST_PREFIX "*");
-
-  test1 ();
-
-  /*system ("rm -rf " TEST_PREFIX "*");*/
 
   return 0;
 }

@@ -9,4 +9,5 @@ xdeltatest_SOURCES  = xdeltatest.c
 
 xdeltatest_LDADD = $(top_srcdir)/libxdelta.la		\
 		  $(top_srcdir)/libedsio/libedsio.la	\
+		  -lz					\
 		  $(GLIB_LIBS)
