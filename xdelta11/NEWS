@@ -22,8 +22,9 @@ Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
   gzip compression is used.  Writing patches to stdout has therefore
   been disabled.  The problem is a limitation in the gzdopen/gzwrite
   functions provided by zlib--you cannot determine how many bytes have
-  been written to the file descriptor without dup/open/lseek, which
-  does not work correctly if the output is not seekable.
+  been written to the file descriptor without dup-ing the FD
+  beforehand and then lseek-ing afterwards, which does not work
+  correctly if the output file is not seekable.
 
 * Incorporate DJGPP patches from Richard Dawe <richdawe@bigfoot.com>.
   You can find his versions directly at:
@@ -31,12 +32,12 @@ Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
       ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111b.zip
       ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111s.zip
 
-  Xdelta now works on MSDOS!
-
 * Updated autoconf (2.50), automake (1.4-p4), libtool (1.4) scripts.
 
 * Correct some backward compatibility issues: strcmp() was not being
   tested == 0 for formats older than 1.0.4.
+
+* Update GLIB version requirement, now 1.2.8.
 
 
 ** Changes since version 1.1.0

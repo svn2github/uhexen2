@@ -65,6 +65,7 @@ AC_CHECK_LIB(z, gzsetparams,
 AC_OUTPUT(Makefile
 	  doc/Makefile
           test/Makefile
+          djgpp/Makefile
 	  xdelta-config
 	  libedsio/Makefile
 	  libedsio/edsio-comp,

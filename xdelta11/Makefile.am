@@ -16,13 +16,13 @@ noinst_HEADERS  = xdeltapriv.h getopt.h
 
 lib_LTLIBRARIES = libxdelta.la
 
-libxdelta_la_SOURCES = xdelta.c xdapply.c xdrsync.c $(SER_SOURCES)
+libxdelta_la_SOURCES = xdelta.c xdapply.c $(SER_SOURCES)
 libxdelta_la_LIBADD  = $(GLIB_LIBS)
 
 EXTRA_DIST = xd.ser $(SER_OUT) xdelta.magic xdelta.prj xdelta.m4	\
-	ANNOUNCE autogen.sh xdelta.dsp xdelta.dsw stamp-ser
+	ANNOUNCE autogen.sh xdelta.dsp xdelta.dsw stamp-ser xdrsync.c
 
-SUBDIRS = libedsio . test doc
+SUBDIRS = libedsio . test doc djgpp
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = xdelta.m4
