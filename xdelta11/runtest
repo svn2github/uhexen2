@@ -1,8 +1,8 @@
 #!/bin/sh
 
-OUT1=/tmp/out1
-OUT2=/tmp/out2
-OUT3=/tmp/out3
+OUT1=$TMPDIR/out1
+OUT2=$TMPDIR/out2
+OUT3=$TMPDIR/out3
 XDELTA=./xdelta
 
 while test $# -gt 1; do
