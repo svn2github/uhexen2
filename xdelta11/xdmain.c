@@ -193,7 +193,7 @@ struct _XdFileHandle
 };
 
 /* $Format: "static const char xdelta_version[] = \"$ReleaseVersion$\"; " $ */
-static const char xdelta_version[] = "1.1.2"; 
+static const char xdelta_version[] = "1.1.2";
 
 typedef struct _Command Command;
 
@@ -256,16 +256,15 @@ help ()
   xd_error ("COMMAND is one of:\n");
   xd_error ("  delta     Produce a delta from ARG1 to ARG2 producing ARG3\n");
   xd_error ("  info      List details about delta ARG1\n");
-  xd_error ("  patch     Patch file ARG2 with ARG1 producing ARG3\n");
+  xd_error ("  patch     Apply patch ARG1 using file ARG2 producing ARG3\n");
   xd_error ("OPTIONS are:\n");
-  /*xd_error ("  -b, --base64\n"); ADD THIS STUFF BACK */
-  xd_error ("  -v, --version\n");
-  xd_error ("  -V, --verbose\n");
-  xd_error ("  -h, --help\n");
-  xd_error ("  -n, --noverify\n");
-  xd_error ("  -p, --pristine\n");
+  xd_error ("  -v, --version      Print version information\n");
+  xd_error ("  -V, --verbose      Print verbose error messages\n");
+  xd_error ("  -h, --help         Print this summary\n");
+  xd_error ("  -n, --noverify     Disable automatic MD5 verification\n");
+  xd_error ("  -p, --pristine     Disable automatic GZIP decompression\n");
   xd_error ("  -m, --maxmem=SIZE  Set the buffer size limit, e.g. 640K, 16M\n");
-  xd_error ("  -[0-9]    Compression level: 0=none, 1=fast, 6=default, 9=best\n");
+  xd_error ("  -[0-9]             Compression level: 0=none, 1=fast, 6=default, 9=best\n");
   exit (2);
 }
 
@@ -1491,8 +1490,7 @@ delta_command (gint argc, gchar** argv)
 
   memset (header_space, 0, sizeof (header_space));
 
-  /* This could read tofile from stdin... */
-  if (argc < 3 || argc > 3)
+  if (argc != 3)
     {
       xd_error ("usage: %s delta fromfile tofile patchfile\n", program_name);
       return 2;
@@ -1789,7 +1787,7 @@ info_command (gint argc, gchar** argv)
 
   xd_error ("patch from segments: %d\n", patch->cont->source_info_len);
 
-  xd_error ("MD5\t\t\t\t Length\tCopies\tUsed\tSeq?\tName\n");
+  xd_error ("MD5\t\t\t\t\tLength\tCopies\tUsed\tSeq?\tName\n");
 
   for (i = 0; i < patch->cont->source_info_len; i += 1)
     {
@@ -1797,7 +1795,7 @@ info_command (gint argc, gchar** argv)
 
       edsio_md5_to_string (si->md5, buf);
 
-      xd_error ("%s %d\t%d\t%d\t%s\t%s\n",
+      xd_error ("%s\t%d\t%d\t%d\t%s\t%s\n",
 		buf,
 		si->len,
 		si->copies,
@@ -1815,10 +1813,12 @@ patch_command (gint argc, gchar** argv)
   XdFileHandle* to_out;
   XdeltaPatch* patch;
   gint to_out_fd;
+  int count = 1;
+  int ret;
 
   if (argc < 1 || argc > 3)
     {
-      xd_error ("usage: %s patch patchfile fromfile [tofile]\n", program_name);
+      xd_error ("usage: %s patch patchfile [fromfile [tofile]]\n", program_name);
       return 2;
     }
 
@@ -1828,12 +1828,25 @@ patch_command (gint argc, gchar** argv)
   if (argc > 1)
     patch->from_name = argv[1];
   else if (verbose)
-    xd_error ("using default from file name: %s\n", patch->from_name);
+    xd_error ("using from file name: %s\n", patch->from_name);
 
   if (argc > 2)
     patch->to_name = argv[2];
-  else if (verbose)
-    xd_error ("using default to file name: %s\n", patch->to_name);
+  else
+    {
+      struct stat sbuf;
+      gchar *defname = g_strdup (patch->to_name);
+
+      while ((ret = stat (patch->to_name, & sbuf)) == 0)
+	{
+	  if (verbose)
+	    xd_error ("to file exists: %s\n", patch->to_name);
+	  patch->to_name = g_strdup_printf ("%s.xdp%d", defname, count++);
+	}
+
+      if (verbose || strcmp (defname, patch->to_name) != 0)
+	xd_error ("using to file name: %s\n", patch->to_name);
+    }
 
   if (strcmp (patch->to_name, "-") == 0)
     {

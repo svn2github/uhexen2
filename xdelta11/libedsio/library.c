@@ -20,14 +20,8 @@ struct _Library {
 };
 
 static Library known_libraries[] = {
-  { "repo",    "repo",    1 },
-  { "serv",    NULL,      2 },
   { "xd",      "xdelta",  3 },
-  { "prcs",    "prcs",    4 },
-  { "net",     "reponet", 5 },
   { "edsio",   "edsio",   6 },
-  { "xdfs",    "xdfs",    7 },
-  { "modtest", "edsio",   8 }
 };
 
 static GHashTable* loaded_libraries;
