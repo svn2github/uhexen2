@@ -1624,6 +1624,8 @@ delta_command (gint argc, gchar** argv)
   if (! xd_handle_really_close (out))
     return 2;
 
+  xdp_generator_free (gen);
+
   return control_offset != header_offset;
 }
 

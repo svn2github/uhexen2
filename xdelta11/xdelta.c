@@ -251,6 +251,19 @@ __xdp_generator_new (const char* version)
 }
 
 void
+xdp_generator_free (XdeltaGenerator *gen)
+{
+  int i;
+
+  for (i = 0; i < gen->sources->len; i += 1)
+    xdp_source_free (gen->sources->pdata[i]);
+
+  g_ptr_array_free (gen->sources, TRUE);
+  g_free ((void*) gen->table);
+  g_free (gen);
+}
+
+void
 init_pos (XdeltaStream* str, XdeltaPos* pos)
 {
   g_assert (str);

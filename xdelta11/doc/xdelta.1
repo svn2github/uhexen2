@@ -174,17 +174,23 @@ Verbose.  Prints a bit of extra information.
 No verify.  Turns off MD5 checksum verification of the input and
 output files.
 
-.IP "-m=SIZE, --maxmem=SIZE"
+.IP "-mSIZE, --maxmem=SIZE"
 Set an upper bound on the size of an in-memory page cache.  For
 example, --maxmem=32M will use a 32 megabyte page cache.
 
-.IP "-s=BLOCK_SIZE"
+.IP "-sBLOCK_SIZE"
 Set the block size, unless it was hard coded (20% speed improvement).
 Should be a power of 2.
 
 .IP "-p, --pristine"
 Disable the automatic decompression of gzipped inputs, to prevent
 unexpected differences in the re-compressed content.
+
+.SH RETURN VALUES
+The delta command exits with status 0 to indicate that no differences
+were found, with status 1 to indicate that some differences were
+found, and with status 2 to indicate an error of some kind.  The patch
+and info commands exit with status 0 on success and 2 on failure.
 
 .SH IDENTIFICATION
 Author: Joshua P. MacDonald, jmacd@cs.berkeley.edu
