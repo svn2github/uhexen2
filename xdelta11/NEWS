@@ -1,5 +1,5 @@
 XDelta NEWS -- history of user-visible changes. -*- Text -*-
-$Date: Mon, 11 Jun 2001 03:39:53 -0700 $
+$Date: 2001/06/11 10:43:57 $
 $ReleaseVersion: 1.1.2 $
 
 Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
@@ -8,13 +8,35 @@ Please send bug reports to xdelta-bugs@XCF.Berkeley.EDU.  See the file
 
 ** Changes since version 1.1.1
 
-* Correct some backward compatibility issues.
+* This version is released after an extremely long period of
+  inactivity.  The reason was that shortly after 1.1.1 was released I
+  began working on new features required for 2.0, and very soon the
+  1.1.x branch would not compile against current libxdelta/libedsio.
+  As a result, I could not make forward progress on the 1.1 release.
+  This release was made by backing up all the way to 1.1.1 and
+  applying just a few known fixes.  If at any time you have submitted
+  a patch against 1.1.1 that is not mentioned below, please resend.  I
+  apologize for any patches that may have been lost.
+
+* The code for writing patches to stdout was broken in the case where
+  gzip compression is used.  Writing patches to stdout has therefore
+  been disabled.  The problem is a limitation in the gzdopen/gzwrite
+  functions provided by zlib--you cannot determine how many bytes have
+  been written to the file descriptor without dup/open/lseek, which
+  does not work correctly if the output is not seekable.
 
 * Incorporate DJGPP patches from Richard Dawe <richdawe@bigfoot.com>.
   You can find his versions directly at:
 
       ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111b.zip
       ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111s.zip
+
+  Xdelta now works on MSDOS!
+
+* Updated autoconf (2.50), automake (1.4-p4), libtool (1.4) scripts.
+
+* Correct some backward compatibility issues: strcmp() was not being
+  tested == 0 for formats older than 1.0.4.
 
 
 ** Changes since version 1.1.0

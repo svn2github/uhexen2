@@ -1,0 +1,152 @@
+DJGPP Port of XDelta 1.1.1 - Release 2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Installing the Binary Package
+-----------------------------
+
+Unzip the distribution preserving the directory structure - use PKUNZIP's -d
+option; use an equivalent option with other unzippers. Unzip into the top
+DJGPP installation directory, e.g. c:\djgpp.
+
+XDelta should now be ready for use. A man page for XDelta is provided - use:
+
+    man xdelta
+
+to view it. You will need to have installed the man program from the v2apps/
+directory of the DJGPP archive for this to work.
+
+Installing the Source Package
+-----------------------------
+
+You should only install the source package if you want to rebuild XDelta from
+the sources. To build the port, I used the following packages:
+
+. DJGPP 2.03
+. GNU bash 2.04
+. GNU gcc 2.95.2
+. GNU binutils 2.9.5.1 beta
+. GNU sed 3.02
+. GNU awk 3.03
+. GNU fileutils 3.16
+. GNU shellutils 1.12
+. glib 1.2.6
+. zlib 1.1.2
+
+It may be possible to build XDelta with other versions of each package, but
+this has not been tested.
+
+Unzip the distribution preserving the directory structure - use PKUNZIP's -d
+option; use an equivalent option with other unzippers. Unzip into the top
+DJGPP installation directory, e.g. c:\djgpp.
+
+A few changes were made to XDelta to make it work with DJGPP. The file
+contrib/xdlt111/djgpp/xdmain-c.diff was applied to xdmain.c. The source
+distribution has this patch applied, so no action is required to apply it.
+
+Before building XDelta, it must be configured. This is done from bash
+in the source directory using:
+
+    ./configure --prefix=/dev/env/DJDIR
+
+Once this has compelted, build using:
+
+    make
+
+Run the tests using:
+
+    make check
+
+If these compelte successfully, XDelta and its libraries can be installed
+using:
+
+    make install
+
+Some notes on using XDelta
+--------------------------
+
+* XDelta is fairly simple - to see what options are available, use:
+
+    xdelta --help
+
+* The '-p' or '--pristine' option prevents XDelta from using gzip
+  compression, this avoids creating temporary files.  This option
+  is presented because gzip does not support exact re-compression,
+  since there is no way to save the configuration used to produce
+  a particular gzip file.
+
+Bugs fixed since Release 1
+--------------------------
+
+* Temporary filenames are now generated to fit into the MS-DOS 8+3 filename
+  convention.
+
+* Temporary files should now be removed, when XDelta has finised.
+
+  Previously, XDelta tried to remove them before they had been closed. On
+  MS-DOS this can cause filesystem corruption; on Windows this just leaves
+  the temporary files lying around.
+
+* XDelta's buffers are now sized by default according to the amount of
+  free physical memory. It defaults to using 87.5% (7/8) of
+  the available memory.
+
+  Previously, XDelta would try to entire files into memory, to patch them.
+  This included decompressing gzip files. Hence, it was quite easy for
+  XDelta to exhaust available memory, resulting in XDelta crashing.
+
+* The '-m' or '--maxmem' switches, which set the maximum memory usage
+  by XDelta, are now honoured. XDelta will use up to the specified size.
+  NB: XDelta will not check the amount specified - be careful. If you
+  give it too little memory, it will take a long time. If you give it
+  more memory than is actually available, it will crash.
+
+  Previously, XDelta would take the maximum of the specified size or 8MB.
+  Since XDelta may be running on computers with 8MB or less, this was
+  unsatisfactory.
+
+  To see XDelta's maximum memory usage, run in verbose mode, e.g.:
+
+    xdelta patch -V <patch> <fromfile> <tofile>
+
+  It will display a message like:
+
+    xdelta: using 4096 kilobytes of buffer space
+
+* A couple of error messages were modified to include the file name, to make
+  it clearer what the error is.
+
+* The info manual is now omitted from the distribution, since it does not
+  contain any useful information about XDelta.
+
+* A formatted man page is now included.
+
+libxdelta and libedsio
+----------------------
+
+XDelta is actually just a front-end for two libraries - libxdelta
+and libedsio. libxdelta is a library for handling XDelta-format deltas.
+libedsio is a library for handling serialised I/O. Both these libraries are
+included in the port and can be used in your own programs.
+
+Unfortunately, there is no documentation for these libraries - the only
+reference is the source code. If you are interested in libxdelta and libedsio,
+please download the source distribution. Please note that I am not familiar
+with these libraries and I will not be able to answer any queries on them.
+
+libxdelta and libedsio come with *-config files, which return compilation
+and linking parameters. They are similar to glib-config. Example:
+
+    bash-2.04$ xdelta-config --cflags
+    -I/dev/env/DJDIR/lib/glib/include -I/dev/env/DJDIR/include
+    bash-2.04$ $DJDIR/bin/xdelta-config --libs
+    -L/dev/env/DJDIR/lib -lxdelta -ledsio -lglib
+
+Finally
+-------
+
+If you have any comments or problems with this port, please feel free to
+e-mail me. I hope this port is useful.
+
+Thanks, bye,
+
+Richard Dawe <richdawe@bigfoot.com> 2001-03-31

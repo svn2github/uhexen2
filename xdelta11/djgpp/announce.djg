@@ -1,0 +1,98 @@
+From: Richard Dawe (rich@phekda.freeserve.co.uk)
+Subject: ANNOUNCE: Release 2 of DJGPP port of XDelta 1.1.1
+Newsgroups: comp.os.msdos.djgpp
+Date: 2001-04-05 13:42:13 PST
+
+
+Hello.
+
+I've updated the port of XDelta 1.1.1 to DJGPP. If you used the previous
+release, PLEASE UPGRADE. This release fixes a bug that could cause data
+loss. Several other minor bugfixes should make the port much more usable.
+See below for a list of bugfixes. The DJGPP readme has also been updated
+to include a little more information on XDelta, since the XDelta
+documentation is not very helpful.
+
+Here is a description of XDelta, from its 'readme' file:
+
+"XDelta is a library interface and application program designed to compute
+changes between files.  These changes (deltas) are similar to the output
+of the "diff" program in that they may be used to store and transmit only
+the changes between files.  However, unlike diff, the output of XDelta is
+not expressed in a human-readable format--XDelta can also also apply these
+deltas to a copy of the original file(s).  XDelta uses a fast, linear
+algorithm and performs well on both binary and text files.  XDelta
+typically outperforms GNU diff in both time and generated-delta-size, even
+for plain text files.  XDelta also includes a simple implementation of the
+Rsync algorithm and several advanced features for implementing RCS-like
+file-archival with."
+
+XDelta is distributed under the GNU General Public License.
+
+The port is available from the DJGPP archive on SimTel.NET:
+
+ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111b.zip
+ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2apps/xdlt111s.zip
+
+These are binary and source distributions respectively. If you only want
+to use XDelta, please download the binary distribution. If you would like
+to rebuild XDelta, please download the source distribution. Minor changes
+were required to port XDelta to DJGPP - the diffs are included in the
+source distribution.
+
+Bugs fixed since Release 1
+--------------------------
+
+* Temporary filenames are now generated to fit into the MS-DOS 8+3
+  filename convention.
+
+* Temporary files should now be removed, when XDelta has finised.
+
+  Previously, XDelta tried to remove them before they had been closed. On
+  MS-DOS this can cause filesystem corruption; on Windows this just leaves
+  the temporary files lying around.
+
+* XDelta's buffers are now sized by default according to the amount of
+  free physical memory. It defaults to using 87.5% (7/8) of
+  the available memory.
+
+  Previously, XDelta would try to entire files into memory, to patch them.
+  This included decompressing gzip files. Hence, it was quite easy for
+  XDelta to exhaust available memory, resulting in XDelta crashing.
+
+* The '-m' or '--maxmem' switches, which set the maximum memory usage
+  by XDelta, are now honoured. XDelta will use up to the specified size.
+  NB: XDelta will not check the amount specified - be careful. If you
+  give it too little memory, it will take a long time. If you give it
+  more memory than is actually available, it will crash.
+
+  Previously, XDelta would take the maximum of the specified size or 8MB.
+  Since XDelta may be running on computers with 8MB or less, this was
+  unsatisfactory.
+
+  To see XDelta's maximum memory usage, run in verbose mode, e.g.:
+
+    xdelta patch -V <patch> <fromfile> <tofile>
+
+  It will display a message like:
+
+    xdelta: using 4096 kilobytes of buffer space
+
+* A couple of error messages were modified to include the file name, to
+  make it clearer what the error is.
+
+* The info manual is now omitted from the distribution, since it does not
+  contain any useful information about XDelta.
+
+* A formatted man page is now included.
+
+Thanks to Eli Zaretskii for his detailed bug reports, suggestions and
+testing!
+
+If you have any problems, suggestions, etc. about the port, please mail
+me.
+
+Bye,
+
+--
+Richard Dawe <richdawe@bigfoot.com> http://www.bigfoot.com/~richdawe/
