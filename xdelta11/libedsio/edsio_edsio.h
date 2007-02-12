@@ -19,12 +19,8 @@
  *
  * This file was AUTOMATICALLY GENERATED using:
  *
- * $Id: edsio_edsio.h,v 1.3 2007-02-12 09:22:42 sezero Exp $
+ * $Id: edsio_edsio.h,v 1.4 2007-02-12 09:23:23 sezero Exp $
  */
-
-#include "edsio.h"
-
-#include "edsio.h"
 
 #ifndef _EDSIO_EDSIO_H_
 #define _EDSIO_EDSIO_H_

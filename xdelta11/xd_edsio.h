@@ -19,12 +19,10 @@
  *
  * This file was AUTOMATICALLY GENERATED using:
  *
- * $Id: xd_edsio.h,v 1.3 2007-02-12 09:22:42 sezero Exp $
+ * $Id: xd_edsio.h,v 1.4 2007-02-12 09:23:23 sezero Exp $
  */
 
 #include "edsio.h"
-
-#include "xdelta.h"
 
 #ifndef _XD_EDSIO_H_
 #define _XD_EDSIO_H_
@@ -32,8 +30,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "edsio_edsio.h"
 
 /* Initialize this library. */
 
