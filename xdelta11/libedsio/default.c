@@ -84,7 +84,7 @@ sink_next_bool (SerialSink* sink, gboolean val)
 static gboolean
 sink_next_string (SerialSink* sink, const char   *ptr)
 {
-  return sink->next_bytes (sink, ptr, strlen (ptr));
+  return sink->next_bytes (sink, (const unsigned char*)ptr, strlen (ptr));
 }
 
 static gboolean
@@ -241,7 +241,7 @@ static gboolean
 source_next_string (SerialSource* source, const char **ptr)
 {
   guint32 len;
-  guint8* buf;
+  char *buf;
 
   if (! source->next_uint (source, &len))
     return FALSE;
@@ -253,7 +253,7 @@ source_next_string (SerialSource* source, const char **ptr)
 
   (*ptr) = buf;
 
-  return source->source_read (source, buf, len);
+  return source->source_read (source, (guint8 *)buf, len);
 }
 
 static gboolean
@@ -294,7 +294,7 @@ serializeio_source_alloc (SerialSource* source, guint32 len)
 
       source->alloc_buf = source->alloc_buf_orig;
 
-	  { long x = source->alloc_buf; ALIGN_8 (x); source->alloc_buf = x; }
+	  { long x = (long)source->alloc_buf; ALIGN_8 (x); source->alloc_buf = (void*)x; }
 
     }
 

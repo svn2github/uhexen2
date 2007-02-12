@@ -64,7 +64,7 @@
 
 #include "xdelta.h"
 
-extern HandleFuncTable xd_handle_table;
+static HandleFuncTable xd_handle_table;
 
 #define XD_PAGE_SIZE (1<<20)
 
@@ -141,7 +141,7 @@ typedef struct {
   gint16         to_name_len;
 
   guint32        header_space[HEADER_WORDS];
-  guint8         magic_buf[XDELTA_PREFIX_LEN];
+  char           magic_buf[XDELTA_PREFIX_LEN];
 
   XdFileHandle      *patch_in;
 
@@ -1056,7 +1056,7 @@ xd_handle_name (XdFileHandle *fh)
 }
 
 static gssize
-xd_handle_read (XdFileHandle *fh, guint8 *buf, gsize nbyte)
+xd_handle_read (XdFileHandle *fh, char *buf, gsize nbyte)
 {
   if (nbyte == 0)
     return 0;
@@ -1068,7 +1068,7 @@ xd_handle_read (XdFileHandle *fh, guint8 *buf, gsize nbyte)
     }
 
   if (!no_verify)
-    edsio_md5_update (&fh->ctx, buf, nbyte);
+    edsio_md5_update (&fh->ctx, (guint8 *)buf, nbyte);
 
   fh->current_pos += nbyte;
 
@@ -1076,7 +1076,7 @@ xd_handle_read (XdFileHandle *fh, guint8 *buf, gsize nbyte)
 }
 
 static gboolean
-xd_handle_write (XdFileHandle *fh, const guint8 *buf, gsize nbyte)
+xd_handle_write (XdFileHandle *fh, const char *buf, gsize nbyte)
 {
   g_assert (fh->type == WRITE_TYPE);
 
@@ -1088,7 +1088,7 @@ xd_handle_write (XdFileHandle *fh, const guint8 *buf, gsize nbyte)
     }
 
   if (! no_verify)
-    edsio_md5_update (&fh->ctx, buf, nbyte);
+    edsio_md5_update (&fh->ctx, (guint8 *)buf, nbyte);
 
   if (! (*fh->out_write) (fh, buf, nbyte))
     {
@@ -1375,7 +1375,7 @@ xd_handle_copy (XdFileHandle *from, XdFileHandle *to, guint off, guint len)
 {
   if (from->in)
     {
-      guint8 buf[1024];
+      char buf[1024];
 
       /*if (! xd_handle_set_pos (from, off))
 	return FALSE;*/
@@ -1423,7 +1423,7 @@ xd_handle_copy (XdFileHandle *from, XdFileHandle *to, guint off, guint len)
 	  if (xd_handle_map_page (from, off_page, &from->copy_page) < 0)
 	    return FALSE;
 
-	  if (! xd_handle_write (to, from->copy_page + off_off, copy))
+	  if (! xd_handle_write (to, (char *)from->copy_page + off_off, copy))
 	    return FALSE;
 
 	  if (! xd_handle_unmap_page (from, off_page, &from->copy_page))
@@ -1442,13 +1442,13 @@ xd_handle_putui (XdFileHandle *fh, guint32 i)
 {
   guint32 hi = g_htonl (i);
 
-  return xd_handle_write (fh, (guint8*)&hi, 4);
+  return xd_handle_write (fh, (char *)&hi, 4);
 }
 
 static gboolean
 xd_handle_getui (XdFileHandle *fh, guint32* i)
 {
-  if (xd_handle_read (fh, (guint8*)i, 4) != 4)
+  if (xd_handle_read (fh, (char *)i, 4) != 4)
     return FALSE;
 
   *i = g_ntohl (*i);
@@ -1572,7 +1572,7 @@ delta_command (gint argc, gchar** argv)
 
   htonl_array (header_space, HEADER_WORDS);
 
-  if (! xd_handle_write (out, (guint8*) header_space, HEADER_SPACE))
+  if (! xd_handle_write (out, (char *) header_space, HEADER_SPACE))
     return 2;
 
   if (! xd_handle_write (out, from_name, strlen (from_name)))
@@ -1649,7 +1649,7 @@ process_patch (const char* name)
   if (xd_handle_read (patch->patch_in, patch->magic_buf, XDELTA_PREFIX_LEN) != XDELTA_PREFIX_LEN)
     return NULL;
 
-  if (xd_handle_read (patch->patch_in, (guint8*) patch->header_space, HEADER_SPACE) != HEADER_SPACE)
+  if (xd_handle_read (patch->patch_in, (char*) patch->header_space, HEADER_SPACE) != HEADER_SPACE)
     return NULL;
 
   ntohl_array (patch->header_space, HEADER_WORDS);
@@ -1717,7 +1717,7 @@ process_patch (const char* name)
 
   if (patch->has_trailer)
     {
-      guint8 trailer_buf[XDELTA_PREFIX_LEN];
+      char trailer_buf[XDELTA_PREFIX_LEN];
 
       if (xd_handle_read (patch->patch_in, trailer_buf, XDELTA_PREFIX_LEN) != XDELTA_PREFIX_LEN)
 	return NULL;
