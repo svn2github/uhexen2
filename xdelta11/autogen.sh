@@ -52,8 +52,10 @@ do
     autoconf)
 done
 
-echo "Running ./configure --enable-maintainer-mode" "$@"
-./configure --enable-maintainer-mode "$@"
+#echo "Running ./configure --enable-maintainer-mode" "$@"
+#./configure --enable-maintainer-mode "$@"
 
 echo
-echo "Now type 'make' to compile xdelta."
+#echo "Now type 'make' to compile xdelta."
+echo "Now you are ready to run ./configure"
+
