@@ -92,9 +92,11 @@ handle_source_type (SerialSource* source, gboolean set_allocation)
     {
       if (! ssource->fh->table->table_handle_getui (ssource->fh, &source->alloc_total))
 	return ST_Error;
-      /* Work around stupid assumption that sizeof(void*) is the same
-	 everywhere. */
+    /* commented out SuSE solution
       source->alloc_total *= sizeof (void *);
+     */
+      /* There are 12 pointers in all required structures. So 64 bit arch needs 48 more bytes. */
+      source->alloc_total += (sizeof(void *) - 4) * 12;
     }
 
   return x;
