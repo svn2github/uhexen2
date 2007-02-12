@@ -14,6 +14,7 @@ PROFILEFLAG=
 
 AC_ARG_ENABLE(debug, [  --enable-debug          turn on debugging [default=no]])
 AC_ARG_ENABLE(profile, [  --enable-profile        turn on profiling [default=no]])
+AC_ARG_ENABLE(glib2, [  --disable-glib2         use glib-1.2, not 2.0 [default=no]])
 
 TMPCFLAGS="$CFLAGS"
 CFLAGS=
@@ -71,8 +72,19 @@ AC_PATH_PROGS(EMACS, emacs xemacs, emacs)
 top_srcdir_absolute=`cd $srcdir; pwd`
 AC_SUBST(top_srcdir_absolute)
 
+XD_EXTRA_FLAGS=
+AC_SUBST(XD_EXTRA_FLAGS)
+
+if test "x$enable_glib2" = "xno"; then
+XD_EXTRA_FLAGS=-D_XD_USE_GLIB1
+AC_SUBST(XD_EXTRA_FLAGS)
+AC_DEFINE(_XD_USE_GLIB1, 1, Use glib-1.2.x not glib-2.x)
+AM_PATH_GLIB(1.2.8,,
+  AC_MSG_ERROR(Test for GLIB failed. Download it from ftp://ftp.gtk.org/pub/gtk/v1.2/))
+else
 AM_PATH_GLIB_2_0(2.0.0,,
   AC_MSG_ERROR(Test for GLIB failed. Download it from ftp://ftp.gtk.org/pub/gtk/v1.2/))
+fi
 
 AC_CHECK_LIB(z, gzsetparams, true,
   AC_MSG_ERROR(ZLIB library not found))

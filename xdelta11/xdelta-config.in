@@ -2,6 +2,7 @@
 
 glib_libs="@GLIB_LIBS@"
 glib_cflags="@GLIB_CFLAGS@"
+xd_flags="@XD_EXTRA_FLAGS@"
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -90,7 +91,7 @@ if test "$echo_cflags" = "yes"; then
 	    fi
 	  done
 	fi
-	echo $includes $glib_cflags
+	echo $includes $xd_flags $glib_cflags
 fi
 
 if test "$echo_libs" = "yes"; then
