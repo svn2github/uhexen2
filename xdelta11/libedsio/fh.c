@@ -92,6 +92,9 @@ handle_source_type (SerialSource* source, gboolean set_allocation)
     {
       if (! ssource->fh->table->table_handle_getui (ssource->fh, &source->alloc_total))
 	return ST_Error;
+      /* Work around stupid assumption that sizeof(void*) is the same
+	 everywhere. */
+      source->alloc_total *= sizeof (void *);
     }
 
   return x;

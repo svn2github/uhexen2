@@ -295,7 +295,7 @@ edsio_time_of_day (SerialGenericTime* setme)
 
   time_t t = time (NULL);
 
-  if (t < 0)
+  if (t == ((time_t)-1))
     {
       edsio_generate_errno_event (EC_EdsioTimeFailure);
       goto bail;

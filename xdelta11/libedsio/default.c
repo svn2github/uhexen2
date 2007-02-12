@@ -7,6 +7,7 @@
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  */
 
+#include <stdint.h>
 #include "edsio.h"
 
 /* Default Sink methods
@@ -148,6 +149,9 @@ source_type_default (SerialSource* source, gboolean set_allocation)
     {
       if (! source->next_uint32 (source, &source->alloc_total))
 	return ST_Error;
+      /* Work around stupid assumption that sizeof(void*) is the same
+	 everywhere. */
+      source->alloc_total *= sizeof (void *);
     }
 
   return x;
@@ -294,7 +298,7 @@ serializeio_source_alloc (SerialSource* source, guint32 len)
 
       source->alloc_buf = source->alloc_buf_orig;
 
-	  { long x = (long)source->alloc_buf; ALIGN_8 (x); source->alloc_buf = (void*)x; }
+	  { intptr_t x = (intptr_t) source->alloc_buf; ALIGN_8 (x); source->alloc_buf = (void *) x; }
 
     }
 

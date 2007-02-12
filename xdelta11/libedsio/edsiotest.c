@@ -48,6 +48,7 @@ test2 ()
   const char* str = "hello there";
   const char* str2;
   guint32 str2_len;
+  const char ** str2_ptr = &str2;
 
   PropTest *pt = g_new0 (PropTest, 1);
 
@@ -63,12 +64,12 @@ test2 ()
 
   g_assert (proptest_isset_bytes (pt, prop));
 
-  g_assert (proptest_get_bytes (pt, prop, (const guint8**) & str2, & str2_len) && str2_len == (strlen (str) + 1) && strcmp (str, str2) == 0);
+  g_assert (proptest_get_bytes (pt, prop, (const guint8**) str2_ptr, & str2_len) && str2_len == (strlen (str) + 1) && strcmp (str, str2) == 0);
 
   /* kill the cache, to test persistence. */
   pt->_edsio_property_table = NULL;
 
-  g_assert (proptest_get_bytes (pt, prop, (const guint8**) & str2, & str2_len) && str2_len == (strlen (str) + 1) && strcmp (str, str2) == 0);
+  g_assert (proptest_get_bytes (pt, prop, (const guint8**) str2_ptr, & str2_len) && str2_len == (strlen (str) + 1) && strcmp (str, str2) == 0);
 
   g_assert (proptest_unset_bytes (pt, prop));
 

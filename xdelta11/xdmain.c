@@ -1063,7 +1063,7 @@ xd_handle_read (XdFileHandle *fh, char *buf, gsize nbyte)
 
   if (! (fh->in_read) (fh, buf, nbyte)) /* This is suspicious */
     {
-      xd_error ("read failed: %s\n", g_strerror (errno));
+      xd_error ("read failed: %s\n", errno?g_strerror (errno):"Unexpected end of file");
       return -1;
     }
 
@@ -1225,7 +1225,7 @@ static gssize
 xd_handle_map_page (XdFileHandle *fh, guint pgno, const guint8** mem)
 {
   LRU* lru;
-  guint to_map;
+  gint to_map;
 
 #ifdef DEBUG_MAP
   g_print ("map %p:%d\n", fh, pgno);
@@ -1299,7 +1299,7 @@ xd_handle_map_page (XdFileHandle *fh, guint pgno, const guint8** mem)
 	      return -1;
 	    }
 #else
-	  if (! (lru->buffer = mmap (NULL, to_map, PROT_READ, MAP_PRIVATE, fh->fd, pgno * XD_PAGE_SIZE)))
+	  if ( (lru->buffer = mmap (NULL, to_map, PROT_READ, MAP_PRIVATE, fh->fd, pgno * XD_PAGE_SIZE)) == MAP_FAILED )
 	    {
 	      xd_error ("mmap failed: %s\n", g_strerror (errno));
 	      return -1;
@@ -1504,7 +1504,7 @@ delta_command (gint argc, gchar** argv)
   XdeltaSource* src;
   XdeltaControl* cont;
   gboolean from_is_compressed = FALSE, to_is_compressed = FALSE;
-  guint32 control_offset, header_offset;
+  gint32 control_offset, header_offset;
   const char* from_name, *to_name;
   guint32 header_space[HEADER_WORDS];
   int fd;

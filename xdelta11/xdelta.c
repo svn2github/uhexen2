@@ -1414,12 +1414,13 @@ xdp_control_read (XdeltaStream    *cont_in)
 {
   SerialSource* src = handle_source (cont_in);
   XdeltaControl* cont;
+  XdeltaControl** cont_ptr = &cont;
   SerialType type;
 
   if (! src)
     return NULL;
 
-  if (! serializeio_unserialize_generic_acceptable (src, ST_XdeltaControl | ST_Version0Control, & type, (void**) & cont))
+  if (! serializeio_unserialize_generic_acceptable (src, ST_XdeltaControl | ST_Version0Control, & type, (void **) cont_ptr))
     return NULL;
 
   if (type == ST_Version0Control)
