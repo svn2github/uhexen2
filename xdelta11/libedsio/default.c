@@ -7,7 +7,7 @@
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  */
 
-#include <stdint.h>
+#include <inttypes.h>
 #include "edsio.h"
 
 /* Default Sink methods
