@@ -7,18 +7,18 @@
  * Author: Josh MacDonald <jmacd@CS.Berkeley.EDU>
  */
 
-#include <inttypes.h>
 #include "edsio.h"
 
 /* Default Sink methods
  */
 
 static gboolean
-sink_type_default (SerialSink* sink, SerialType type, guint len, gboolean set_allocation)
+sink_type_default (SerialSink* sink, SerialType type, guint32 len, gboolean set_allocation)
 {
   if (! sink->next_uint32 (sink, type))
     return FALSE;
 
+  /* Note: set_allocation is deprecated in 1.1.4 */
   if (set_allocation && !sink->next_uint32 (sink, len))
     return FALSE;
 
@@ -105,7 +105,7 @@ void
 serializeio_sink_init (SerialSink* it,
 		       gboolean (* sink_type) (SerialSink* sink,
 					       SerialType type,
-					       guint mem_size,
+					       guint32 mem_size,
 					       gboolean set_allocation),
 		       gboolean (* sink_close) (SerialSink* sink),
 		       gboolean (* sink_write) (SerialSink* sink,
@@ -147,13 +147,10 @@ source_type_default (SerialSource* source, gboolean set_allocation)
 
   if (set_allocation)
     {
-      if (! source->next_uint32 (source, &source->alloc_total))
+      /* Note: set_allocation is deprecated in 1.1.4 */
+      guint32 bogus;
+      if (! source->next_uint32 (source, &bogus))
 	return ST_Error;
-    /* commented out SuSE solution
-      source->alloc_total *= sizeof (void *);
-     */
-      /* There are 12 pointers in all required structures. So 64 bit arch needs 48 more bytes. */
-      source->alloc_total += (sizeof(void *) - 4) * 12;
     }
 
   return x;
@@ -289,64 +286,25 @@ source_next_bytes_known (SerialSource* source, guint8 *ptr, guint32 len)
 void*
 serializeio_source_alloc (SerialSource* source, guint32 len)
 {
+  AllocList *al;
   void* ret;
 
-  if (! source->alloc_buf)
+  if (source->salloc_func)
     {
-      if (source->salloc_func)
-	source->alloc_buf_orig = source->salloc_func (source, source->alloc_total + 8);
-      else
-	source->alloc_buf_orig = g_malloc0 (source->alloc_total + 8);
-
-      source->alloc_buf = source->alloc_buf_orig;
-
-	  { intptr_t x = (intptr_t) source->alloc_buf; ALIGN_8 (x); source->alloc_buf = (void *) x; }
-
+      ret = source->salloc_func (source, len);
+      al = source->salloc_func (source, sizeof(AllocList));
+    }
+  else
+    {
+      ret = g_malloc0 (len);
+      al = g_malloc0 (sizeof(AllocList));
     }
 
-  if (len+source->alloc_pos > source->alloc_total)
-    {
-      edsio_generate_source_event (EC_EdsioIncorrectAllocation, source);
-      return NULL;
-    }
-
-  ret = ((guint8*)source->alloc_buf) + source->alloc_pos;
-
-  source->alloc_pos += len;
-
-  ALIGN_8 (source->alloc_pos);
-
-  g_assert (((long)ret) % 8 == 0);
-  g_assert (source->alloc_pos % 8 == 0);
+  al->ptr = ret;
+  al->next = source->alloc_list;
+  source->alloc_list = al;
 
   return ret;
-}
-
-gboolean
-serializeio_source_object_received (SerialSource* source)
-{
-  source->alloc_pos = 0;
-  source->alloc_total = 0;
-  source->alloc_buf_orig = NULL;
-  source->alloc_buf = NULL;
-
-  return TRUE;
-}
-
-void
-serializeio_source_reset_allocation (SerialSource* source)
-{
-  source->alloc_pos = 0;
-  source->alloc_total = 0;
-  source->alloc_buf = NULL;
-
-  if (source->alloc_buf_orig)
-    {
-      if (source->sfree_func)
-	source->sfree_func (source, source->alloc_buf_orig);
-      else
-	g_free (source->alloc_buf_orig);
-    }
 }
 
 void
@@ -363,6 +321,7 @@ serializeio_source_init (SerialSource* it,
 			 void       (* sfree_func) (SerialSource* source,
 						    void*         ptr))
 {
+  it->alloc_list = NULL;
   it->next_bytes_known = source_next_bytes_known;
   it->next_bytes = source_next_bytes;
   it->next_uint = source_next_uint;

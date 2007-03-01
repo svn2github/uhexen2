@@ -19,7 +19,7 @@
  *
  * This file was AUTOMATICALLY GENERATED using:
  *
- * $Id: xd_edsio.c,v 1.1 2007-02-12 09:22:42 sezero Exp $
+ * $Id: xd_edsio.c,v 1.2 2007-03-01 11:26:17 sezero Exp $
  */
 
 #include "xdelta.h"
@@ -168,7 +168,6 @@ unserialize_xdeltachecksum (SerialSource *source, SerialXdeltaChecksum** result)
 {
   if ( (* source->source_type) (source, TRUE) != ST_XdeltaChecksum) goto bail;
   if (! unserialize_xdeltachecksum_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -220,7 +219,7 @@ serializeio_print_xdeltaindex_obj (SerialXdeltaIndex* obj, guint indent_spaces) 
     for (i = 0; i < obj->index_len; i += 1)
       {
         print_spaces (indent_spaces);
-        g_print ("%d: ", i);
+        g_print ("%d:\n", i);
         print_spaces (indent_spaces);
       serializeio_print_xdeltachecksum_obj (& (obj->index[i]), indent_spaces + 2);
       print_spaces (indent_spaces);
@@ -315,7 +314,6 @@ unserialize_xdeltaindex (SerialSource *source, SerialXdeltaIndex** result)
 {
   if ( (* source->source_type) (source, TRUE) != ST_XdeltaIndex) goto bail;
   if (! unserialize_xdeltaindex_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -440,7 +438,6 @@ unserialize_xdeltasourceinfo (SerialSource *source, SerialXdeltaSourceInfo** res
 {
   if ( (* source->source_type) (source, TRUE) != ST_XdeltaSourceInfo) goto bail;
   if (! unserialize_xdeltasourceinfo_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -504,7 +501,7 @@ serializeio_print_xdeltacontrol_obj (SerialXdeltaControl* obj, guint indent_spac
     for (i = 0; i < obj->source_info_len; i += 1)
       {
         print_spaces (indent_spaces);
-        g_print ("%d: ", i);
+        g_print ("%d:\n", i);
         print_spaces (indent_spaces);
       serializeio_print_xdeltasourceinfo_obj ((obj->source_info[i]), indent_spaces + 2);
       print_spaces (indent_spaces);
@@ -520,7 +517,7 @@ serializeio_print_xdeltacontrol_obj (SerialXdeltaControl* obj, guint indent_spac
     for (i = 0; i < obj->inst_len; i += 1)
       {
         print_spaces (indent_spaces);
-        g_print ("%d: ", i);
+        g_print ("%d:\n", i);
         print_spaces (indent_spaces);
       serializeio_print_xdeltainstruction_obj (& (obj->inst[i]), indent_spaces + 2);
       print_spaces (indent_spaces);
@@ -634,7 +631,6 @@ unserialize_xdeltacontrol (SerialSource *source, SerialXdeltaControl** result)
 {
   if ( (* source->source_type) (source, TRUE) != ST_XdeltaControl) goto bail;
   if (! unserialize_xdeltacontrol_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -746,7 +742,6 @@ unserialize_xdeltainstruction (SerialSource *source, SerialXdeltaInstruction** r
 {
   if ( (* source->source_type) (source, TRUE) != ST_XdeltaInstruction) goto bail;
   if (! unserialize_xdeltainstruction_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -857,7 +852,6 @@ unserialize_rsyncindexelt (SerialSource *source, SerialRsyncIndexElt** result)
 {
   if ( (* source->source_type) (source, TRUE) != ST_RsyncIndexElt) goto bail;
   if (! unserialize_rsyncindexelt_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -913,7 +907,7 @@ serializeio_print_rsyncindex_obj (SerialRsyncIndex* obj, guint indent_spaces) {
     for (i = 0; i < obj->index_len; i += 1)
       {
         print_spaces (indent_spaces);
-        g_print ("%d: ", i);
+        g_print ("%d:\n", i);
         print_spaces (indent_spaces);
       serializeio_print_rsyncindexelt_obj (& (obj->index[i]), indent_spaces + 2);
       print_spaces (indent_spaces);
@@ -1010,7 +1004,6 @@ unserialize_rsyncindex (SerialSource *source, SerialRsyncIndex** result)
 {
   if ( (* source->source_type) (source, TRUE) != ST_RsyncIndex) goto bail;
   if (! unserialize_rsyncindex_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -1122,7 +1115,6 @@ unserialize_version0sourceinfo (SerialSource *source, SerialVersion0SourceInfo**
 {
   if ( (* source->source_type) (source, TRUE) != ST_Version0SourceInfo) goto bail;
   if (! unserialize_version0sourceinfo_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -1191,7 +1183,7 @@ serializeio_print_version0control_obj (SerialVersion0Control* obj, guint indent_
     for (i = 0; i < obj->source_info_len; i += 1)
       {
         print_spaces (indent_spaces);
-        g_print ("%d: ", i);
+        g_print ("%d:\n", i);
         print_spaces (indent_spaces);
       serializeio_print_version0sourceinfo_obj ((obj->source_info[i]), indent_spaces + 2);
       print_spaces (indent_spaces);
@@ -1207,7 +1199,7 @@ serializeio_print_version0control_obj (SerialVersion0Control* obj, guint indent_
     for (i = 0; i < obj->inst_len; i += 1)
       {
         print_spaces (indent_spaces);
-        g_print ("%d: ", i);
+        g_print ("%d:\n", i);
         print_spaces (indent_spaces);
       serializeio_print_version0instruction_obj (& (obj->inst[i]), indent_spaces + 2);
       print_spaces (indent_spaces);
@@ -1321,7 +1313,6 @@ unserialize_version0control (SerialSource *source, SerialVersion0Control** resul
 {
   if ( (* source->source_type) (source, TRUE) != ST_Version0Control) goto bail;
   if (! unserialize_version0control_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -1427,7 +1418,6 @@ unserialize_version0instruction (SerialSource *source, SerialVersion0Instruction
 {
   if ( (* source->source_type) (source, TRUE) != ST_Version0Instruction) goto bail;
   if (! unserialize_version0instruction_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;

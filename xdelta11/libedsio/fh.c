@@ -90,13 +90,10 @@ handle_source_type (SerialSource* source, gboolean set_allocation)
 
   if (set_allocation)
     {
-      if (! ssource->fh->table->table_handle_getui (ssource->fh, &source->alloc_total))
+      /* Note: set_allocation is deprecated in 1.1.4 */
+      guint32 bogus;
+      if (! ssource->fh->table->table_handle_getui (ssource->fh, &bogus))
 	return ST_Error;
-    /* commented out SuSE solution
-      source->alloc_total *= sizeof (void *);
-     */
-      /* There are 12 pointers in all required structures. So 64 bit arch needs 48 more bytes. */
-      source->alloc_total += (sizeof(void *) - 4) * 12;
     }
 
   return x;
@@ -132,6 +129,7 @@ handle_sink_type (SerialSink* sink, SerialType type, guint len, gboolean set_all
   if (! ssink->fh->table->table_handle_putui (ssink->fh, type))
     return FALSE;
 
+  /* Note: set_allocation is deprecated in 1.1.4 */
   if (set_allocation && ! ssink->fh->table->table_handle_putui (ssink->fh, len))
     return FALSE;
 

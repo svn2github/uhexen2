@@ -54,7 +54,7 @@
 // fix that!
 //////////////////////////////////////////////////////////////////////
 
-const char* cmd_data_source      = "/scratch/jmacd/source-code-data";
+const char* cmd_data_source      = "/zerostreet2/small-scratch-file";
 guint       cmd_size             = 1<<20;
 
 guint       cmd_warmups          = 2;

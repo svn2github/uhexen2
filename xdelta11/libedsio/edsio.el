@@ -869,8 +869,6 @@ replacement is as for replace-regexp."
 
     (insert (format "  if (! unserialize_%s_internal (source, result)) goto bail;\n" ent-downcase))
 
-    (insert (format "  if (! serializeio_source_object_received (source)) goto bail;\n"))
-
     (insert (format "  return TRUE;\n"))
     (insert (format "bail:\n"))
     (insert (format "  return FALSE;\n"))
@@ -1257,7 +1255,7 @@ replacement is as for replace-regexp."
 %s  for (i = 0; i < %s_len; i += 1)
 %s    {
 %s      print_spaces (indent_spaces);
-%s      g_print (\"%%d:\n\", i);
+%s      g_print (\"%%d:\\n\", i);
 %s%s      }
 %s}
 "

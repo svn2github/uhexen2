@@ -193,7 +193,7 @@ struct _XdFileHandle
 };
 
 /* $Format: "static const char xdelta_version[] = \"$ReleaseVersion$\"; " $ */
-static const char xdelta_version[] = "1.1.3"; 
+static const char xdelta_version[] = "1.1.4"; 
 
 typedef struct _Command Command;
 

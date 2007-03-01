@@ -19,7 +19,7 @@
  *
  * This file was AUTOMATICALLY GENERATED using:
  *
- * $Id: edsio_edsio.c,v 1.1 2007-02-12 09:22:42 sezero Exp $
+ * $Id: edsio_edsio.c,v 1.2 2007-03-01 11:26:19 sezero Exp $
  */
 
 #include "edsio.h"
@@ -325,7 +325,6 @@ unserialize_edsiouint (SerialSource *source, SerialEdsioUint** result)
 {
   if ( (* source->source_type) (source, TRUE) != ST_EdsioUint) goto bail;
   if (! unserialize_edsiouint_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -426,7 +425,6 @@ unserialize_edsiobytes (SerialSource *source, SerialEdsioBytes** result)
 {
   if ( (* source->source_type) (source, TRUE) != ST_EdsioBytes) goto bail;
   if (! unserialize_edsiobytes_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -527,7 +525,6 @@ unserialize_edsiostring (SerialSource *source, SerialEdsioString** result)
 {
   if ( (* source->source_type) (source, TRUE) != ST_EdsioString) goto bail;
   if (! unserialize_edsiostring_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
@@ -633,7 +630,6 @@ unserialize_generictime (SerialSource *source, SerialGenericTime** result)
 {
   if ( (* source->source_type) (source, TRUE) != ST_GenericTime) goto bail;
   if (! unserialize_generictime_internal (source, result)) goto bail;
-  if (! serializeio_source_object_received (source)) goto bail;
   return TRUE;
 bail:
   return FALSE;
