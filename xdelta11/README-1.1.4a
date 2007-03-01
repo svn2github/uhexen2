@@ -1,0 +1,25 @@
+A patched xdelta-1.1.4 version:
+
+When using with Hexen II: Hammer of Thyrion, configure the source with
+--disable-shared and rename the final binary to xdelta114.  e.g.:
+
+  ./autogen.sh
+  ./configure --disable-shared
+  make
+
+By default, it links against glib-2.x. If you want to build against
+glib-1.x, then add the --disable-glib2 switch to your configure command
+line, e.g.:
+
+  ./autogen.sh
+  ./configure --disable-shared --disable-glib2
+  make
+
+This customized version of xdelta began by patching the 1.1.3 version
+for compatibility with newer versions of gcc.  The former repository
+of xdelta 1.1 is still on sourceforge, but the newest official version
+1.1.4 was released through http://xdelta.org . This particular version
+still keeps parts of those older patches for xdelta-1.1.3 for silencing
+several compiler warnings, otherwise it sticks by the official 1.1.4
+release.
+
