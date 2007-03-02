@@ -80,10 +80,10 @@ XD_EXTRA_FLAGS=-D_XD_USE_GLIB1
 AC_SUBST(XD_EXTRA_FLAGS)
 AC_DEFINE(_XD_USE_GLIB1, 1, Use glib-1.2.x not glib-2.x)
 AM_PATH_GLIB(1.2.8,,
-  AC_MSG_ERROR(Test for GLIB failed. Download it from ftp://ftp.gtk.org/pub/gtk/v1.2/))
+  AC_MSG_ERROR(Test for GLIB failed.))
 else
 AM_PATH_GLIB_2_0(2.0.0,,
-  AC_MSG_ERROR(Test for GLIB failed. Download it from ftp://ftp.gtk.org/pub/gtk/v1.2/))
+  AC_MSG_ERROR(Test for GLIB failed.))
 fi
 
 AC_CHECK_LIB(z, gzsetparams, true,
