@@ -173,7 +173,6 @@ struct _XdFileHandle
   LRU       *lru_tail;  /* least recently used. */
   GMemChunk *lru_chunk;
   guint      lru_count;
-  guint      lru_outstanding_refs;
 
   guint    narrow_low;
   guint    narrow_high;
@@ -544,6 +543,10 @@ init_table (XdFileHandle* fh)
   fh->lru_tail = NULL;
 }
 
+/* Forward declaration for compilation */
+static gboolean
+really_free_all_pages (XdFileHandle* fh);
+
 static XdFileHandle*
 open_common (const char* name, const char* real_name)
 {
@@ -596,14 +599,15 @@ file_gzipped (const char* name, gboolean *is_compressed)
       return FALSE;
     }
 
-  if (fread (buf, 2, 1, f) != 1)
-    return TRUE;
+  if (fread (buf, 2, 1, f) == 1) {
 
 #define GZIP_MAGIC1 037
 #define GZIP_MAGIC2 0213
 
-  if (buf[0] == GZIP_MAGIC1 && buf[1] == GZIP_MAGIC2)
-    (* is_compressed) = TRUE;
+    if (buf[0] == GZIP_MAGIC1 && buf[1] == GZIP_MAGIC2)
+      (* is_compressed) = TRUE;
+  }
+  fclose(f);
 
   return TRUE;
 }
@@ -721,6 +725,8 @@ open_read_noseek_handle (const char* name, gboolean* is_compressed, gboolean wil
 static void
 xd_read_close (XdFileHandle* fh)
 {
+  really_free_all_pages(fh);
+
   /*
    * (richdawe@bigfoot.com): On Unix you can unlink a file while it is
    * still open. On MS-DOS this can lead to filesystem corruption. Close
@@ -1189,6 +1195,42 @@ really_free_one_page (XdFileHandle* fh)
   return TRUE;
 }
 
+static gboolean
+really_free_all_pages (XdFileHandle* fh)
+{
+  LRU *lru = fh->lru_head;
+
+  while(lru)
+    {
+      gint to_unmap;
+      LRU *lru_dead;
+
+      lru_dead = lru;
+      lru = lru->prev;
+
+      g_assert (lru_dead->buffer);
+
+      to_unmap = on_page (fh, lru_dead->page);
+
+      fh->lru_count -= 1;
+
+      if (to_unmap > 0)
+	{
+#ifdef WINHACK
+	  g_free (lru_dead->buffer);
+#else
+	  if (munmap (lru_dead->buffer, to_unmap))
+	    {
+	      xd_error ("munmap failed: %s\n", g_strerror (errno));
+	      return FALSE;
+	    }
+#endif /* WINHACK */
+	}
+    }
+
+  return TRUE;
+}
+
 #if 0
 static void
 print_lru (XdFileHandle* fh)
@@ -1325,7 +1367,6 @@ xd_handle_map_page (XdFileHandle *fh, guint pgno, const guint8** mem)
   (*mem) = lru->buffer;
 
   lru->refs += 1;
-  fh->lru_outstanding_refs += 1;
 
   return to_map;
 }
@@ -1352,16 +1393,17 @@ xd_handle_unmap_page (XdFileHandle *fh, guint pgno, const guint8** mem)
   (*mem) = NULL;
 
   lru->refs -= 1;
-  fh->lru_outstanding_refs += 1;
 
   if (lru->refs == 0 && fh->type == READ_NOSEEK_TYPE)
     {
+#if 0
       pull_lru (fh, lru);
 
       lru->next = fh->lru_tail;
       if (lru->next) lru->next->prev = lru;
       lru->prev = NULL;
       fh->lru_tail = lru;
+#endif
 
       if (! really_free_one_page (fh))
 	return FALSE;
