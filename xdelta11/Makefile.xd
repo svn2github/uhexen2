@@ -68,7 +68,6 @@ LIBEDSIO_OBJS = libedsio/library.o \
 		libedsio/simple.o \
 		libedsio/edsio.o \
 		libedsio/edsio_edsio.o \
-		libedsio/sha.o \
 		libedsio/md5c.o \
 		libedsio/fh.o \
 		libedsio/generic.o \
@@ -76,6 +75,8 @@ LIBEDSIO_OBJS = libedsio/library.o \
 		libedsio/base64.o \
 		libedsio/maketime.o \
 		libedsio/partime.o
+# SHA is unused in present code, removed it.
+#		libedsio/sha.o \
 
 LIBXDELTA_OBJS= xdelta.o \
 		xdapply.o \
