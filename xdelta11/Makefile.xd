@@ -1,0 +1,109 @@
+# this short Makefile is intended for skipping the autotools
+# support when building xdelta. You may have to play with a
+# few of the options below.  It will generate libedsio.a and
+# libxdelta.a, along with the xdelta binary.
+# By default, it will link against glib-2.x. If you want to
+# build against glib-1.2.x instead, run:  make GLIB1=yes
+
+# Path settings:
+# main uhexen2 relative path
+UHEXEN2_TOP=..
+
+# Names of the binaries
+BINARY=xdelta
+
+# whether we have ANSI C header files
+STDC_HEADERS=1
+# whether we can safely include both <sys/time.h> and <time.h>
+TIME_WITH_SYS_TIME=1
+# whether we have the <limits.h> header
+HAVE_LIMITS_H=1
+
+# Compiler flags
+
+CPUFLAGS:=
+INCLUDES:=-I./libedsio
+CFLAGS := $(CPUFLAGS) -O2 -Wall $(INCLUDES)
+
+ifdef GLIB1
+CFLAGS := $(CFLAGS) -D_XD_USE_GLIB1
+GLIB_CFLAGS:= $(shell glib-config --cflags)
+GLIB_LIBS:= $(shell glib-config --libs)
+else
+GLIB_CFLAGS:= $(shell pkg-config --cflags glib-2.0)
+GLIB_LIBS:= $(shell pkg-config --libs glib-2.0)
+endif
+
+ifeq ($(STDC_HEADERS),1)
+CFLAGS := $(CFLAGS) -DSTDC_HEADERS=1
+endif
+ifeq ($(HAVE_LIMITS_H),1)
+CFLAGS := $(CFLAGS) -DHAVE_LIMITS_H=1
+endif
+ifeq ($(TIME_WITH_SYS_TIME),1)
+CFLAGS := $(CFLAGS) -DTIME_WITH_SYS_TIME=1
+endif
+
+HOST_OS:=$(shell uname)
+
+CC_DEFAULT:=gcc
+ifeq ($(origin CC),environment)
+CC_OVERRIDE:=1
+ifeq ($(CC),)
+CC_OVERRIDE:=
+endif
+endif
+ifeq ($(origin CC),command line)
+CC_OVERRIDE:=1
+endif
+ifeq ($(CC_OVERRIDE),)
+CC := $(CC_DEFAULT)
+endif
+
+LINKER:= $(CC)
+CMD_CP:= cp -p
+
+# end of compiler flags
+
+# Rules for turning source files into .o files
+%.o: %.c
+	$(CC) -c $(CFLAGS) $(GLIB_CFLAGS) -o $@ $<
+libedsio/%.o: libedsio/%.c
+	$(CC) -c $(CFLAGS) $(GLIB_CFLAGS) -o $@ $<
+
+# Objects
+LIBEDSIO_OBJS = libedsio/library.o \
+		libedsio/simple.o \
+		libedsio/edsio.o \
+		libedsio/edsio_edsio.o \
+		libedsio/sha.o \
+		libedsio/md5c.o \
+		libedsio/fh.o \
+		libedsio/generic.o \
+		libedsio/default.o \
+		libedsio/base64.o \
+		libedsio/maketime.o \
+		libedsio/partime.o
+
+LIBXDELTA_OBJS= xdelta.o \
+		xdapply.o \
+		xd_edsio.o
+
+XDELTA_OBJS = xdmain.o getopt.o getopt1.o
+
+LDFLAGS := -lz $(GLIB_LIBS)
+
+# Targets
+default: xdelta
+all: default
+
+xdelta: $(LIBEDSIO_OBJS) $(LIBXDELTA_OBJS) $(XDELTA_OBJS)
+	$(LINKER) -o xdelta $(LIBXDELTA_OBJS) $(LIBEDSIO_OBJS) $(XDELTA_OBJS) $(LDFLAGS)
+	$(CMD_CP) xdelta xdelta114
+
+clean:
+	rm -f *.o libedsio/*.o
+
+cleaner:
+	rm -f *.o libedsio/*.o xdelta xdelta114
+
