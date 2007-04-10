@@ -22,7 +22,6 @@ libedsio_la_SOURCES =				\
 	simple.c				\
 	edsio.c					\
 	edsio_edsio.c				\
-	sha.c					\
 	md5c.c					\
 	fh.c					\
 	generic.c				\
@@ -30,6 +29,8 @@ libedsio_la_SOURCES =				\
 	base64.c				\
 	maketime.c				\
 	partime.c
+# SHA is unused in present code, removed it.
+#	sha.c					\
 
 EXTRA_DIST = edsio.el edsio.ser $(SER_OUT1) edsio-comp.in edsio.prj stamp-ser1
 

@@ -333,6 +333,7 @@ guint edsio_md5_hash  (gconstpointer   v);
 void      edsio_md5_to_string   (const guint8* md5, char buf[33]);
 gboolean  edsio_md5_from_string (guint8* md5,       const char buf[33]);
 
+#if 0	/* SHA is unused */
 /* NIST Secure Hash Algorithm */
 /* heavily modified from Peter C. Gutmann's implementation */
 /* then taken from from Uwe Hollerbach, */
@@ -354,6 +355,7 @@ void edsio_sha_final  (guint8 *, EdsioSHACtx *);
 gint  edsio_sha_equal (gconstpointer   v,
 		       gconstpointer   v2);
 guint edsio_sha_hash  (gconstpointer   v);
+#endif	/* SHA unused */
 
 /* Misc stuff.
  */
