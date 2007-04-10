@@ -1,16 +1,8 @@
 # this short Makefile is intended for skipping the autotools
 # support when building xdelta. You may have to play with a
-# few of the options below.  It will generate libedsio.a and
-# libxdelta.a, along with the xdelta binary.
+# few of the options below.
 # By default, it will link against glib-2.x. If you want to
 # build against glib-1.2.x instead, run:  make GLIB1=yes
-
-# Path settings:
-# main uhexen2 relative path
-UHEXEN2_TOP=..
-
-# Names of the binaries
-BINARY=xdelta
 
 # whether we have ANSI C header files
 STDC_HEADERS=1
