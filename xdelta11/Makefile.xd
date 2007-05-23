@@ -1,5 +1,5 @@
 # GNU Makefile for xdelta using GCC.
-# $Header: /home/ozzie/Download/0000/uhexen2/xdelta11/Makefile.xd,v 1.4 2007-05-15 14:25:27 sezero Exp $
+# $Header: /home/ozzie/Download/0000/uhexen2/xdelta11/Makefile.xd,v 1.5 2007-05-23 08:51:54 sezero Exp $
 #
 # this short Makefile is intended for skipping the autotools
 # support when building xdelta. You may have to play with a
@@ -13,6 +13,9 @@ STDC_HEADERS=1
 TIME_WITH_SYS_TIME=1
 # whether we have the <limits.h> header
 HAVE_LIMITS_H=1
+
+# copy command:
+CMD_CP:= cp -p
 
 # Compiler flags
 
@@ -56,7 +59,6 @@ CC := $(CC_DEFAULT)
 endif
 
 LINKER:= $(CC)
-CMD_CP:= cp -p
 
 # end of compiler flags
 
