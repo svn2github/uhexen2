@@ -32,7 +32,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#if defined(_WIN32) || defined(__DJGPP__)
+#if defined(_WIN32) || defined(_WIN64) || defined(__DJGPP__)
 #define WINHACK
 #endif
 
