@@ -50,13 +50,21 @@
 #include <dpmi.h>
 #endif
 
+#if !defined(STDOUT_FILENO)
 #define STDOUT_FILENO 1
-#define lstat stat
+#endif
 
-#ifndef __DJGPP__
+#if !defined(S_IFMT)
 #define S_IFMT _S_IFMT
+#endif
+#if !defined(S_IFREG)
 #define S_IFREG _S_IFREG
-#endif /* !__DJGPP__ */
+#endif
+#if !defined(S_ISREG)
+#define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#endif
+
+#define lstat stat
 
 #endif /* !WINHACK_ */
 
@@ -567,8 +575,7 @@ open_common (const char* name, const char* real_name)
       return NULL;
     }
 
-  /* S_ISREG() is not on Windows */
-  if ((buf.st_mode & S_IFMT) != S_IFREG)
+  if (! S_ISREG(buf.st_mode & S_IFMT))
     {
       xd_error ("%s is not a regular file\n", name);
       return NULL;
