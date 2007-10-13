@@ -37,6 +37,7 @@
 #endif
 
 #ifndef WINHACK
+#include <sys/param.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #define O_BINARY 0
@@ -48,6 +49,14 @@
 #ifdef __DJGPP__
 #include <unistd.h>
 #include <dpmi.h>
+#endif
+
+#if !defined(MAXPATHLEN)
+#if defined(PATH_MAX)
+#define MAXPATHLEN PATH_MAX
+#else
+#define MAXPATHLEN 256
+#endif
 #endif
 
 #if !defined(STDOUT_FILENO)
