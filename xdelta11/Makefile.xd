@@ -1,5 +1,5 @@
 # GNU Makefile for xdelta using GCC.
-# $Header: /home/ozzie/Download/0000/uhexen2/xdelta11/Makefile.xd,v 1.5 2007-05-23 08:51:54 sezero Exp $
+# $Header: /home/ozzie/Download/0000/uhexen2/xdelta11/Makefile.xd,v 1.6 2007-10-15 12:15:32 sezero Exp $
 #
 # this short Makefile is intended for skipping the autotools
 # support when building xdelta. You may have to play with a
@@ -42,7 +42,7 @@ ifeq ($(TIME_WITH_SYS_TIME),1)
 CFLAGS := $(CFLAGS) -DTIME_WITH_SYS_TIME=1
 endif
 
-HOST_OS:=$(shell uname)
+HOST_OS:=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]')
 
 CC_DEFAULT:=gcc
 ifeq ($(origin CC),environment)
