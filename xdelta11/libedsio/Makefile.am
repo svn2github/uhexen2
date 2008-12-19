@@ -30,7 +30,7 @@ libedsio_la_SOURCES =				\
 	maketime.c				\
 	partime.c
 # SHA is unused in present code, removed it.
-#	sha.c					\
+#	sha.c					
 
 EXTRA_DIST = edsio.el edsio.ser $(SER_OUT1) edsio-comp.in edsio.prj stamp-ser1
 
