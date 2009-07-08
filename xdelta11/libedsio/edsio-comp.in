@@ -22,6 +22,9 @@
 EMACS=@EMACS@
 TOP_SRCDIR=@top_srcdir_absolute@/libedsio
 
+if test x$TMPDIR = x; then
+   TMPDIR="/tmp"
+fi
 SCRIPT=$TMPDIR/script.$$
 
 trap "rm -f $SCRIPT" 0

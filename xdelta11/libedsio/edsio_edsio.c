@@ -19,7 +19,7 @@
  *
  * This file was AUTOMATICALLY GENERATED using:
  *
- * $Id: edsio_edsio.c,v 1.2 2007-03-01 11:26:19 sezero Exp $
+ * $Id: edsio_edsio.c,v 1.3 2009-07-08 12:29:04 sezero Exp $
  */
 
 #include "edsio.h"
@@ -89,7 +89,7 @@ edsio_edsio_init (void)
   edsio_library_register (6, "edsio");
   result = TRUE;
   return TRUE;
-};
+}
 
 gboolean edsio_new_proptest_edsiouint_property (const char* name, guint32 flags, EdsioPropTestEdsioUintProperty* prop)
 {

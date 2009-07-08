@@ -373,7 +373,7 @@ the definition file.")
 	(insert (format "  edsio_library_register (%d, \"%s\");\n" *library-id* *output-prefix*))
 	(insert "  result = TRUE;\n")
 	(insert "  return TRUE;\n")
-	(insert "};\n\n")
+	(insert "}\n\n")
 
  	(if *prophosttype-defs*
  	    (generate-properties))
