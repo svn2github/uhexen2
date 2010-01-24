@@ -572,13 +572,13 @@ open_common (const char* name, const char* real_name)
   gint fd;
   struct stat buf;
 
-  if ((fd = open (name, O_RDONLY | O_BINARY, 0)) < 0)
+  if ((fd = open (name, O_RDONLY | O_BINARY, 0)) == -1)
     {
       xd_error ("open %s failed: %s\n", name, g_strerror (errno));
       return NULL;
     }
 
-  if (stat (name, &buf) < 0)
+  if (stat (name, &buf) != 0)
     {
       xd_error ("stat %s failed: %s\n", name, g_strerror (errno));
       return NULL;
@@ -1591,7 +1591,7 @@ delta_command (gint argc, gchar** argv)
   // compression was added.  Sigh
   fd = open (argv[2], O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0666);
 
-  if (fd < 0)
+  if (fd == -1)
     {
       xd_error ("open %s failed: %s\n", argv[2], g_strerror (errno));
       return 2;
@@ -1944,7 +1944,7 @@ patch_command (gint argc, gchar** argv)
     {
       to_out_fd = open (patch->to_name, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0666);
 
-      if (to_out_fd < 0)
+      if (to_out_fd == -1)
 	{
 	  xd_error ("open %s failed: %s\n", patch->to_name, g_strerror (errno));
 	  return 2;

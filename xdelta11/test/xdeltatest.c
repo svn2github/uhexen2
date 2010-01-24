@@ -452,7 +452,7 @@ run_command (TestProfile *tp, int zlevel, int slevel, File* from, File* to, File
 	{
 	  outfd = open (out->name, O_CREAT | O_TRUNC | O_WRONLY, 0777);
 
-	  if (outfd < 0)
+	  if (outfd == -1)
 	    {
 	      perror ("open");
 	      fail ();
