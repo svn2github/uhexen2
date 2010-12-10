@@ -1,5 +1,5 @@
 # GNU Makefile for xdelta using GCC.
-# $Header: /home/ozzie/Download/0000/uhexen2/xdelta11/Makefile.xd,v 1.7 2007-10-25 09:06:56 sezero Exp $
+# $Header: /cvsroot/uhexen2/xdelta11/Makefile.xd,v 1.7 2007-10-25 09:06:56 sezero Exp $
 #
 # this short Makefile is intended for skipping the autotools
 # support when building xdelta. You may have to play with a
