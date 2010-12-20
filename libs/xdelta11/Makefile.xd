@@ -7,6 +7,17 @@
 # By default, it will link against glib-2.x. If you want to
 # build against glib-1.2.x instead, run:  make GLIB1=yes
 
+HOST_OS:=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]')
+
+CC ?= gcc
+ifeq ($(CC),)
+CC := gcc
+endif
+AR ?= ar
+RANLIB ?= ranlib
+
+LINKER= $(CC)
+
 # whether we have ANSI C header files
 STDC_HEADERS=1
 # whether we can safely include both <sys/time.h> and <time.h>
@@ -15,49 +26,46 @@ TIME_WITH_SYS_TIME=1
 HAVE_LIMITS_H=1
 
 # copy command:
-CMD_CP:= cp -p
+CMD_CP= cp -p
 
 # Compiler flags
 
-CPUFLAGS:=
-INCLUDES:=-I./libedsio
-CFLAGS := $(CPUFLAGS) -O2 -Wall $(INCLUDES)
+CPUFLAGS=
+CPPFLAGS=
+CFLAGS  =
+LDFLAGS =
+INCLUDES= -I. -I./libedsio
+
+CFLAGS += $(CPUFLAGS) -O2 -Wall
 
 ifdef GLIB1
-CFLAGS := $(CFLAGS) -D_XD_USE_GLIB1
-GLIB_CFLAGS:= $(shell glib-config --cflags)
-GLIB_LIBS:= $(shell glib-config --libs)
+CPPFLAGS += -D_XD_USE_GLIB1
+GLIB_CFLAGS=$(shell glib-config --cflags)
+GLIB_LIBS=$(shell glib-config --libs)
 else
-GLIB_CFLAGS:= $(shell pkg-config --cflags glib-2.0)
-GLIB_LIBS:= $(shell pkg-config --libs glib-2.0)
+GLIB_CFLAGS=$(shell pkg-config --cflags glib-2.0)
+GLIB_LIBS=$(shell pkg-config --libs glib-2.0)
 endif
 
 ifeq ($(STDC_HEADERS),1)
-CFLAGS := $(CFLAGS) -DSTDC_HEADERS=1
+CPPFLAGS += -DSTDC_HEADERS=1
 endif
 ifeq ($(HAVE_LIMITS_H),1)
-CFLAGS := $(CFLAGS) -DHAVE_LIMITS_H=1
+CPPFLAGS += -DHAVE_LIMITS_H=1
 endif
 ifeq ($(TIME_WITH_SYS_TIME),1)
-CFLAGS := $(CFLAGS) -DTIME_WITH_SYS_TIME=1
+CPPFLAGS += -DTIME_WITH_SYS_TIME=1
 endif
 
-HOST_OS:=$(shell uname|sed -e s/_.*//|tr '[:upper:]' '[:lower:]')
-
-CC ?= gcc
-ifeq ($(CC),)
-CC := gcc
-endif
-
-LINKER:= $(CC)
+LDFLAGS += -lz $(GLIB_LIBS)
 
 # end of compiler flags
 
 # Rules for turning source files into .o files
 %.o: %.c
-	$(CC) -c $(CFLAGS) $(GLIB_CFLAGS) -o $@ $<
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(INCLUDES) $(GLIB_CFLAGS) -o $@ $<
 libedsio/%.o: libedsio/%.c
-	$(CC) -c $(CFLAGS) $(GLIB_CFLAGS) -o $@ $<
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(INCLUDES) $(GLIB_CFLAGS) -o $@ $<
 
 # Objects
 LIBEDSIO_OBJS = libedsio/library.o \
@@ -72,7 +80,7 @@ LIBEDSIO_OBJS = libedsio/library.o \
 		libedsio/maketime.o \
 		libedsio/partime.o
 # SHA is unused in present code, removed it.
-#		libedsio/sha.o \
+#		libedsio/sha.o
 
 LIBXDELTA_OBJS= xdelta.o \
 		xdapply.o \
@@ -80,19 +88,25 @@ LIBXDELTA_OBJS= xdelta.o \
 
 XDELTA_OBJS = xdmain.o getopt.o getopt1.o
 
-LDFLAGS := -lz $(GLIB_LIBS)
-
 # Targets
-default: xdelta
-all: default
+
+default: xdelta114
+libxdelta: libxdelta.a
+all: default libxdelta
+
+libxdelta.a: $(LIBEDSIO_OBJS) $(LIBXDELTA_OBJS) $(XDELTA_OBJS)
+	$(AR) cru libxdelta.a $(LIBEDSIO_OBJS) $(LIBXDELTA_OBJS) $(XDELTA_OBJS)
+	$(RANLIB) libxdelta.a
+
+xdelta114: xdelta
+	$(CMD_CP) xdelta xdelta114
 
 xdelta: $(LIBEDSIO_OBJS) $(LIBXDELTA_OBJS) $(XDELTA_OBJS)
 	$(LINKER) -o xdelta $(LIBXDELTA_OBJS) $(LIBEDSIO_OBJS) $(XDELTA_OBJS) $(LDFLAGS)
-	$(CMD_CP) xdelta xdelta114
 
 clean:
 	rm -f *.o libedsio/*.o
 
 cleaner:
-	rm -f *.o libedsio/*.o xdelta xdelta114
+	rm -f *.o libedsio/*.o libxdelta.a xdelta xdelta114
 
