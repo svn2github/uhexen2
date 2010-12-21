@@ -31,24 +31,12 @@ CMD_CP= cp -p
 # Compiler flags
 
 CPUFLAGS=
-CPPFLAGS=
-CFLAGS  =
-LDFLAGS =
 INCLUDES= -I. -I./libedsio
 
 ifdef DEBUG
 CFLAGS += $(CPUFLAGS) -g -Wall -DDEBUG=1
 else
 CFLAGS += $(CPUFLAGS) -O2 -Wall -DNDEBUG
-endif
-
-ifeq ($(GLIB1),yes)
-CPPFLAGS += -D_XD_USE_GLIB1
-GLIB_CFLAGS=$(shell glib-config --cflags)
-GLIB_LIBS=$(shell glib-config --libs)
-else
-GLIB_CFLAGS=$(shell pkg-config --cflags glib-2.0)
-GLIB_LIBS=$(shell pkg-config --libs glib-2.0)
 endif
 
 ifeq ($(STDC_HEADERS),1)
@@ -61,9 +49,17 @@ ifeq ($(TIME_WITH_SYS_TIME),1)
 CPPFLAGS += -DTIME_WITH_SYS_TIME=1
 endif
 
+ifeq ($(GLIB1),yes)
+CPPFLAGS += -D_XD_USE_GLIB1
+GLIB_CFLAGS=$(shell glib-config --cflags)
+GLIB_LIBS=$(shell glib-config --libs)
+else
+GLIB_CFLAGS=$(shell pkg-config --cflags glib-2.0)
+GLIB_LIBS=$(shell pkg-config --libs glib-2.0)
+endif
+
 LDFLAGS += -lz $(GLIB_LIBS)
 
-# end of compiler flags
 
 # Rules for turning source files into .o files
 %.o: %.c
