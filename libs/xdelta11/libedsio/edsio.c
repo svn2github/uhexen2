@@ -976,7 +976,7 @@ edsio_property_unset (const char* ph, const char* t, guint32 code, gpointer obj)
       EdsioPropertyEntry* ent;
 
       ent = g_hash_table_lookup (table, & code);
-
+      (void)ent; /* variable set but not used */
       g_hash_table_remove (table, & code);
 
       if (g_hash_table_size (table) == 0)

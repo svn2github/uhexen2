@@ -176,7 +176,8 @@ generate_checksums (XdeltaStream    *stream,
   XdeltaChecksum cksum;
   XdeltaChecksum *result;
   const guint8* segment = NULL, *segment_pointer;
-  gint   segment_len, orig_segment_len;
+  gint   segment_len;
+/*gint   orig_segment_len;*/
   guint  segment_page = 0;
   guint pages;
 
@@ -200,8 +201,7 @@ generate_checksums (XdeltaStream    *stream,
       if (segment_len < 0)
 	return FALSE;
 
-      orig_segment_len = segment_len;
-
+   /* orig_segment_len = segment_len;*/
       segment_len >>= QUERY_SIZE;
 
       for (segment_pointer = segment;
