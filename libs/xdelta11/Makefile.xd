@@ -58,7 +58,8 @@ GLIB_CFLAGS=$(shell pkg-config --cflags glib-2.0)
 GLIB_LIBS=$(shell pkg-config --libs glib-2.0)
 endif
 
-LDFLAGS += -lz $(GLIB_LIBS)
+XD1LIBS := -L. -lxdelta
+LDFLAGS += -lz $(XD1LIBS) $(GLIB_LIBS)
 
 
 # Rules for turning source files into .o files
@@ -94,15 +95,15 @@ default: xdelta114
 libxdelta: libxdelta.a
 all: default libxdelta
 
-libxdelta.a: $(LIBEDSIO_OBJS) $(LIBXDELTA_OBJS) $(XDELTA_OBJS)
-	$(AR) cru libxdelta.a $(LIBEDSIO_OBJS) $(LIBXDELTA_OBJS) $(XDELTA_OBJS)
+libxdelta.a: $(LIBEDSIO_OBJS) $(LIBXDELTA_OBJS)
+	$(AR) cru libxdelta.a $(LIBEDSIO_OBJS) $(LIBXDELTA_OBJS)
 	$(RANLIB) libxdelta.a
 
 xdelta114: xdelta
 	$(CMD_CP) xdelta xdelta114
 
-xdelta: $(LIBEDSIO_OBJS) $(LIBXDELTA_OBJS) $(XDELTA_OBJS)
-	$(LINKER) -o xdelta $(LIBXDELTA_OBJS) $(LIBEDSIO_OBJS) $(XDELTA_OBJS) $(LDFLAGS)
+xdelta: libxdelta.a $(XDELTA_OBJS)
+	$(LINKER) -o xdelta $(XDELTA_OBJS) $(LDFLAGS)
 
 clean:
 	rm -f *.o libedsio/*.o
