@@ -115,6 +115,7 @@ static void R_AddDynamicLights (msurface_t *surf)
 				{
 					if (cl_dlights[lnum].dark)
 					{
+						brightness = (rad - dist);
 						// clamp to 0
 						bl[0] -= (int)(((brightness * cred) < bl[0]) ? (brightness * cred) : bl[0]);
 						bl[1] -= (int)(((brightness * cgreen) < bl[1]) ? (brightness * cgreen) : bl[1]);
