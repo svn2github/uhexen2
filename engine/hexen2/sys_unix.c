@@ -54,9 +54,9 @@
 // heapsize: minimum 16mb, standart 32 mb, max is 96 mb.
 // -heapsize argument will abide by these min/max settings
 // unless the -forcemem argument is used
-#define MIN_MEM_ALLOC	0x1000000
-#define STD_MEM_ALLOC	0x2000000
-#define MAX_MEM_ALLOC	0x6000000
+#define MIN_MEM_ALLOC	0x4000000
+#define STD_MEM_ALLOC	0xc000000
+#define MAX_MEM_ALLOC	0x28000000	//640mb ought to be enough for everyone... yay virtual memory, its not really a huge problem.
 
 cvar_t		sys_nostdout = {"sys_nostdout", "0", CVAR_NONE};
 cvar_t		sys_throttle = {"sys_throttle", "0.02", CVAR_ARCHIVE};

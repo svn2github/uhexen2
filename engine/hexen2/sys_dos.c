@@ -42,8 +42,8 @@
 #include "debuglog.h"
 #include "sys_dxe.h"
 
-#define MIN_MEM_ALLOC	0x1000000	/* minimum 16 mb */
-#define STD_MEM_ALLOC	0x2000000	/* standart 32 mb */
+#define MIN_MEM_ALLOC	0x4000000	/* minimum 16 mb */
+#define STD_MEM_ALLOC	0xc000000	/* standart 32 mb */
 
 /* 2000-07-16, DOSQuake/DJGPP mem detection fix by
  * Norberto Alfredo Bensa

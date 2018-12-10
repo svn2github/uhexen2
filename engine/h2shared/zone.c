@@ -35,9 +35,9 @@
 #define	ZONE_MINSIZE	0x40000
 #define	ZONE_MAXSIZE	0x200000
 #if defined(SERVERONLY)
-#define	ZONE_DEFSIZE	0x40000
+#define	ZONE_DEFSIZE	0x80000
 #else
-#define	ZONE_DEFSIZE	0x60000
+#define	ZONE_DEFSIZE	0x100000
 #endif	/* SERVERONLY */
 #define	ZMAGIC		0x1d4a11
 #define	ZMAGIC2		0xf382da
