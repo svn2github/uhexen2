@@ -78,8 +78,8 @@
 //#define	MAX_MSGLEN	16000		// max length of a reliable message
 #define	MAX_MSGLEN	NET_MAXMESSAGE//20000		// for mission pack tibet2
 
-//#define	MAX_DATAGRAM	2048		// max length of unreliable message  TEMP: This only for E3
-#define	MAX_DATAGRAM	1024		// max length of unreliable message
+#define	MAX_DATAGRAM	2048		// max length of unreliable message  TEMP: This only for E3
+//#define	MAX_DATAGRAM	1024		// max length of unreliable message
 
 #define MAX_PRINTMSG	4096		// maximum allowed print message length
 
