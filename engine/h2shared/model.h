@@ -46,6 +46,8 @@ BRUSH MODELS
 //
 // in memory representation
 //
+typedef dlclipnode_t mclipnode_t;
+
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct
 {
@@ -92,7 +94,7 @@ typedef struct texture_s
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct
 {
-	unsigned short	v[2];
+	unsigned int	v[2];
 	unsigned int	cachededgeoffset;
 } medge_t;
 
@@ -120,8 +122,8 @@ typedef struct msurface_s
 // surface generation data
 	struct surfcache_s	*cachespots[MIPLEVELS];
 
-	short		texturemins[2];
-	short		extents[2];
+	int		texturemins[2];
+	int		extents[2];
 
 	mtexinfo_t	*texinfo;
 
@@ -136,7 +138,7 @@ typedef struct mnode_s
 	int		contents;		// 0, to differentiate from leafs
 	int		visframe;		// node needs to be traversed if current
 
-	short		minmaxs[6];		// for bounding box culling
+	float		minmaxs[6];		// for bounding box culling
 
 	struct mnode_s	*parent;
 
@@ -144,8 +146,8 @@ typedef struct mnode_s
 	mplane_t	*plane;
 	struct mnode_s	*children[2];	
 
-	unsigned short	firstsurface;
-	unsigned short	numsurfaces;
+	unsigned int	firstsurface;
+	unsigned int	numsurfaces;
 } mnode_t;
 
 
@@ -155,7 +157,7 @@ typedef struct mleaf_s
 	int		contents;		// wil be a negative contents number
 	int		visframe;		// node needs to be traversed if current
 
-	short		minmaxs[6];		// for bounding box culling
+	float		minmaxs[6];		// for bounding box culling
 
 	struct mnode_s	*parent;
 
@@ -172,7 +174,7 @@ typedef struct mleaf_s
 // !!! if this is changed, it must be changed in asm_i386.h too !!!
 typedef struct
 {
-	dclipnode_t	*clipnodes;
+	mclipnode_t	*clipnodes;
 	mplane_t	*planes;
 	int		firstclipnode;
 	int		lastclipnode;
@@ -428,7 +430,7 @@ typedef struct qmodel_s
 	int		*surfedges;
 
 	int		numclipnodes;
-	dclipnode_t	*clipnodes;
+	mclipnode_t	*clipnodes;
 
 	int		nummarksurfaces;
 	msurface_t	**marksurfaces;

@@ -79,7 +79,7 @@ static sfx_t	*ambient_sfx[NUM_AMBIENTS];
 
 static qboolean	sound_started = false;
 
-int		desired_speed = 22050;
+int		desired_speed = 44100;
 int		desired_bits = 16;
 int		desired_channels = 2;
 const int	tryrates[] = { 11025, 22050, 44100, 48000, 96000, 16000, 24000, 8000 };

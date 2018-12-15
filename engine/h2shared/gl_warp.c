@@ -38,10 +38,12 @@ static void BoundPoly (int numverts, float *verts, vec3_t mins, vec3_t maxs)
 	int		i, j;
 	float	*v;
 
-	mins[0] = mins[1] = mins[2] = 999999999;
-	maxs[0] = maxs[1] = maxs[2] = -999999999;
+	i=0;
 	v = verts;
-	for (i = 0; i < numverts; i++)
+	VectorCopy(v, mins);
+	VectorCopy(v, maxs);
+	v+=3; i++;
+	for (; i < numverts; i++)
 	{
 		for (j = 0; j < 3; j++, v++)
 		{

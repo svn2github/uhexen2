@@ -76,20 +76,20 @@
 
 //#define	MAX_MSGLEN	8000		// max length of a reliable message
 //#define	MAX_MSGLEN	16000		// max length of a reliable message
-#define	MAX_MSGLEN	20000		// for mission pack tibet2
+#define	MAX_MSGLEN	NET_MAXMESSAGE//20000		// for mission pack tibet2
 
-//#define	MAX_DATAGRAM	2048		// max length of unreliable message  TEMP: This only for E3
-#define	MAX_DATAGRAM	1024		// max length of unreliable message
+#define	MAX_DATAGRAM	2048		// max length of unreliable message  TEMP: This only for E3
+//#define	MAX_DATAGRAM	1024		// max length of unreliable message
 
 #define MAX_PRINTMSG	4096		// maximum allowed print message length
 
 //
 // per-level limits
 //
-#define	MAX_EDICTS	600		// FIXME: ouch! ouch! ouch!
-#define	MAX_LIGHTSTYLES	64
+#define	MAX_EDICTS	10000//600		// FIXME: ouch! ouch! ouch!
+#define	MAX_LIGHTSTYLES	255
 
-#define	MAX_MODELS	512		/* Sent over the net as a word */
+#define	MAX_MODELS	4096//512		/* Sent over the net as a short */
 #define	MAX_SOUNDS_OLD	256		/* Hexen2 v1.11 (protocol 18) and older: sent as a byte	*/
 #define	MAX_SOUNDS_H2MP	512		/* Mission Pack (protocol 19), messy thing:		*/
 					/* SV_StartSound sends it as a byte, but PF_ambientsound

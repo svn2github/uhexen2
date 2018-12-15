@@ -31,7 +31,8 @@
 #define MAX_GLTEXTURES		2048
 #define MAX_EXTRA_TEXTURES	156	/* 255-100+1 */
 #define	MAX_CACHED_PICS		256
-#define	MAX_LIGHTMAPS		64
+#define	MAX_LIGHTMAPS		128
+#define MAX_SURFACE_LIGHTMAP	255 //maximum allowed size of a surface vanilla limit was 16+1(for linear sampling), although glquake used 18 for some reason. bigger values allow for less surfaces in certain places
 
 #define	GL_UNUSED_TEXTURE	(~(GLuint)0)
 

@@ -28,11 +28,11 @@ cvar_t		gl_lightmapfmt = {"gl_lightmapfmt", "GL_RGBA", CVAR_ARCHIVE};
 int		lightmap_bytes = 4;		// 1, 2, or 4. default is 4 for GL_RGBA
 GLuint		lightmap_textures[MAX_LIGHTMAPS];
 
-static unsigned int	blocklights[18*18];
-static unsigned int	blocklightscolor[18*18*3];	// colored light support. *3 for RGB to the definitions at the top
+static unsigned int	blocklights[MAX_SURFACE_LIGHTMAP*MAX_SURFACE_LIGHTMAP];
+static unsigned int	blocklightscolor[MAX_SURFACE_LIGHTMAP*MAX_SURFACE_LIGHTMAP*3];	// colored light support. *3 for RGB to the definitions at the top
 
-#define	BLOCK_WIDTH	128
-#define	BLOCK_HEIGHT	128
+#define	BLOCK_WIDTH	256
+#define	BLOCK_HEIGHT	256
 
 static glpoly_t	*lightmap_polys[MAX_LIGHTMAPS];
 static qboolean	lightmap_modified[MAX_LIGHTMAPS];
