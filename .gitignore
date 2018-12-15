@@ -82,6 +82,7 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
+*.o
 
 # Chutzpah Test files
 _Chutzpah*
@@ -321,3 +322,6 @@ ASALocalRun/
 *.sln
 *.vcxproj
 *.filters
+*.vcproj
+*.res
+*.exe
