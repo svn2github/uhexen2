@@ -1369,9 +1369,6 @@ void FS_Init (void)
 					break;
 			}
 		}
-		//Sys_Error("com_argc %d", com_argc);
-		//Sys_Error(com_argv[i + 3]);
-		Sys_Printf("what\n");
 	}
 }
 
