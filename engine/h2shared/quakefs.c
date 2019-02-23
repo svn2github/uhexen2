@@ -55,6 +55,7 @@ typedef struct searchpath_s
 
 static searchpath_t	*fs_searchpaths;
 static searchpath_t	*fs_base_searchpaths;	/* without gamedirs */
+static qboolean do_loadmulti;
 
 static const char	*fs_basedir;
 static char	fs_gamedir[MAX_OSPATH];
@@ -467,19 +468,21 @@ void FS_Gamedir (const char *dir)
  * since hexen2 doesn't use this during game execution there will be no
  * changes for it: it has portals or data1 at the top.
  */
-	while (fs_searchpaths != fs_base_searchpaths)
+	if (!do_loadmulti)
 	{
-		if (fs_searchpaths->pack)
+		while (fs_searchpaths != fs_base_searchpaths)
 		{
-			fclose (fs_searchpaths->pack->handle);
-			Z_Free (fs_searchpaths->pack->files);
-			Z_Free (fs_searchpaths->pack);
+			if (fs_searchpaths->pack)
+			{
+				fclose(fs_searchpaths->pack->handle);
+				Z_Free(fs_searchpaths->pack->files);
+				Z_Free(fs_searchpaths->pack);
+			}
+			next = fs_searchpaths->next;
+			Z_Free(fs_searchpaths);
+			fs_searchpaths = next;
 		}
-		next = fs_searchpaths->next;
-		Z_Free (fs_searchpaths);
-		fs_searchpaths = next;
 	}
-
 /* flush all data, so it will be forced to reload */
 #if !defined(SERVERONLY)
 	Cache_Flush ();
@@ -1351,7 +1354,24 @@ void FS_Init (void)
 			Sys_Error ("You must have the full version of Hexen II to play modified games");
 		/* add basedir/gamedir as an override game */
 		if (i < com_argc - 1)
-			FS_Gamedir (com_argv[i+1]);
+		{
+			do_loadmulti = false;
+			for (int j = 1; j < (com_argc - i); j++)
+			{
+				if ((com_argv[i + j][0] != '-') && (com_argv[i + j][0] != '+'))
+				{
+					if ((j > 1) && (do_loadmulti == false))
+						do_loadmulti = true;
+
+					FS_Gamedir(com_argv[i + j]);
+				}
+				else
+					break;
+			}
+		}
+		//Sys_Error("com_argc %d", com_argc);
+		//Sys_Error(com_argv[i + 3]);
+		Sys_Printf("what\n");
 	}
 }
 
