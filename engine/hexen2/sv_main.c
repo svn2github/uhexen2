@@ -442,6 +442,9 @@ static void SV_SendServerinfo (client_t *client)
 	int			i;
 	const char		**s;
 	char			message[2048];
+	const char *gamedir;
+
+	gamedir = Info_ValueForKey(svs.info, "*gamedir");
 
 	MSG_WriteByte (&client->message, svc_print);
 	sprintf (message, "%c\nVERSION %4.2f SERVER (%i CRC)", 2, ENGINE_VERSION, pr_crc);
@@ -450,6 +453,7 @@ static void SV_SendServerinfo (client_t *client)
 	MSG_WriteByte (&client->message, svc_serverinfo);
 	MSG_WriteLong (&client->message, sv_protocol);
 	MSG_WriteByte (&client->message, svs.maxclients);
+	//MSG_WriteString (&client->message, gamedir);
 
 	if (!coop.integer && deathmatch.integer)
 	{

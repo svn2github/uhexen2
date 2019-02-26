@@ -30,6 +30,7 @@ typedef struct
 	int			maxclientslimit;
 	struct client_s	*clients;		// [maxclients]
 	int			serverflags;	// episode completion information
+	char		info[MAX_SERVERINFO_STRING];
 	qboolean	changelevel_issued;	// cleared when at SV_SpawnServer
 } server_static_t;
 

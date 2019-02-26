@@ -292,9 +292,40 @@ static void CL_ParseServerInfo (void)
 	}
 	cl.scores = (scoreboard_t *) Hunk_AllocName (cl.maxclients*sizeof(*cl.scores), "scores");
 
-// parse gametype
-	cl.gametype = MSG_ReadByte ();
+// parse gamedir
+	//str = MSG_ReadString();
 
+	//if (q_strcasecmp(fs_gamedir_nopath, str))
+	{
+		//Con_Printf("Server set the gamedir to %s\n", str);
+/*
+		// save current config
+		//Host_WriteConfiguration("config.cfg");
+
+		// set the new gamedir and userdir
+		FS_Gamedir(str);
+
+		// ZOID - run autoexec.cfg in the gamedir if it exists
+		if (FS_FileInGamedir("config.cfg"))
+		{
+			// remove any weird mod specific key bindings / aliases
+			Cbuf_AddText("unbindall\n");
+			Cbuf_AddText("unaliasall\n");
+			Cbuf_AddText("exec autoexec.cfg\n");
+			Cbuf_AddText("exec config.cfg\n");
+		}
+		// gamespy crap
+		if (FS_FileInGamedir("frontend.cfg"))
+			Cbuf_AddText("exec frontend.cfg\n");
+
+		Cbuf_Execute();
+
+		// re-init draw
+		Draw_ReInit();
+		*/
+	}
+
+// parse gametype
 	if (cl.gametype == GAME_DEATHMATCH && cl_protocol > PROTOCOL_RAVEN_111)
 		sv_kingofhill = MSG_ReadShort ();
 

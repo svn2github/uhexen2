@@ -530,7 +530,7 @@ void FS_Gamedir (const char *dir)
 
 /* a new gamedir: let's set it here. */
 	FS_AddGameDirectory(dir, false);
-#if defined(H2W) && defined(SERVERONLY)
+#if defined(SERVERONLY)
 /* change the *gamedir serverinfo properly */
 	Info_SetValueForStarKey (svs.info, "*gamedir", dir, MAX_SERVERINFO_STRING);
 #endif
