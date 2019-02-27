@@ -403,7 +403,7 @@ void SV_StartSound (edict_t *entity, int channel, const char *sample, int volume
 		field_mask |= SND_ATTENUATION;
 	if (sound_num >= MAX_SOUNDS_OLD)
 	{
-		if (sv_protocol == PROTOCOL_RAVEN_111)
+		if ((sv_protocol == PROTOCOL_RAVEN_111) || (sv_protocol == PROTOCOL_RAVEN_114))
 		{
 			Con_DPrintf("%s: protocol 18 violation: %s sound_num == %i >= %i\n",
 					__thisfunc__, sample, sound_num, MAX_SOUNDS_OLD);
@@ -458,12 +458,13 @@ static void SV_SendServerinfo (client_t *client)
 	MSG_WriteByte (&client->message, svc_serverinfo);
 	MSG_WriteLong (&client->message, sv_protocol);
 	MSG_WriteByte (&client->message, svs.maxclients);
-	MSG_WriteString (&client->message, gamedir);
+	if (sv_protocol == PROTOCOL_RAVEN_114)
+		MSG_WriteString (&client->message, gamedir);
 
 	if (!coop.integer && deathmatch.integer)
 	{
 		MSG_WriteByte (&client->message, GAME_DEATHMATCH);
-		if (sv_protocol > PROTOCOL_RAVEN_111)
+		if ((sv_protocol > PROTOCOL_RAVEN_111) && (sv_protocol < PROTOCOL_RAVEN_114))
 			MSG_WriteShort (&client->message, sv_kingofhill);
 	}
 	else
@@ -488,7 +489,7 @@ static void SV_SendServerinfo (client_t *client)
 	MSG_WriteByte (&client->message, svc_midi_name);
 	MSG_WriteString (&client->message, sv.midi_name);
 
-	if (sv_protocol >= PROTOCOL_UQE_113)
+	if (sv_protocol == PROTOCOL_UQE_113)
 	{
 		MSG_WriteByte (&client->message, svc_mod_name);
 		MSG_WriteString (&client->message, "");	/* uqe-hexen2 sends sv.mod_name */
@@ -1386,7 +1387,7 @@ void SV_WriteClientdataToMessage (client_t *client, edict_t *ent, sizebuf_t *msg
 			sc2 |= SC2_FLAGS;
 
 		// mission pack, objectives
-		if (sv_protocol > PROTOCOL_RAVEN_111)
+		if ((sv_protocol > PROTOCOL_RAVEN_111) && (sv_protocol < PROTOCOL_RAVEN_114))
 		{
 			if (info_mask != client->info_mask)
 				sc2 |= SC2_OBJ;
@@ -1547,7 +1548,7 @@ void SV_WriteClientdataToMessage (client_t *client, edict_t *ent, sizebuf_t *msg
 		MSG_WriteFloat (&host_client->message, ent->v.flags);
 
 // mission pack, objectives
-	if (sv_protocol > PROTOCOL_RAVEN_111)
+	if ((sv_protocol > PROTOCOL_RAVEN_111) && (sv_protocol < PROTOCOL_RAVEN_114))
 	{
 		if (sc2 & SC2_OBJ)
 		{

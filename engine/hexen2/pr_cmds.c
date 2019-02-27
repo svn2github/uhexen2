@@ -714,7 +714,7 @@ static void PF_ambientsound (void)
 	attenuation = G_FLOAT(OFS_PARM3);
 
 // check to see if samp was properly precached
-	SOUNDS_MAX = (sv_protocol == PROTOCOL_RAVEN_111) ? MAX_SOUNDS_OLD : MAX_SOUNDS;
+	SOUNDS_MAX = ((sv_protocol == PROTOCOL_RAVEN_111) || (sv_protocol == PROTOCOL_RAVEN_114)) ? MAX_SOUNDS_OLD : MAX_SOUNDS;
 	for (soundnum = 0, check = sv.sound_precache;
 	     soundnum < SOUNDS_MAX && *check; soundnum++, check++)
 	{
@@ -733,7 +733,7 @@ static void PF_ambientsound (void)
 	for (i = 0; i < 3; i++)
 		MSG_WriteCoord(&sv.signon, pos[i]);
 
-	if (sv_protocol == PROTOCOL_RAVEN_111)
+	if ((sv_protocol == PROTOCOL_RAVEN_111) || (sv_protocol == PROTOCOL_RAVEN_114))
 		MSG_WriteByte (&sv.signon, soundnum);
 	else
 		MSG_WriteShort(&sv.signon, soundnum);
@@ -1768,7 +1768,7 @@ static void PF_precache_sound (void)
 	G_INT(OFS_RETURN) = G_INT(OFS_PARM0);
 	PR_CheckEmptyString (s);
 
-	SOUNDS_MAX = (sv_protocol == PROTOCOL_RAVEN_111) ? MAX_SOUNDS_OLD : MAX_SOUNDS;
+	SOUNDS_MAX = ((sv_protocol == PROTOCOL_RAVEN_111) || (sv_protocol == PROTOCOL_RAVEN_114)) ? MAX_SOUNDS_OLD : MAX_SOUNDS;
 	for (i = 0; i < SOUNDS_MAX; i++)
 	{
 		if (!sv.sound_precache[i])
