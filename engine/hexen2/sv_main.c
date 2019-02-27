@@ -39,6 +39,7 @@ static	cvar_t	sv_update_misc		= {"sv_update_misc", "1", CVAR_ARCHIVE};
 cvar_t	sv_ce_scale		= {"sv_ce_scale", "0", CVAR_ARCHIVE};
 cvar_t	sv_ce_max_size		= {"sv_ce_max_size", "0", CVAR_ARCHIVE};
 
+extern  cvar_t  sv_gamedir;
 extern	cvar_t	sv_maxvelocity;
 extern	cvar_t	sv_gravity;
 extern	cvar_t	sv_nostep;
@@ -76,6 +77,7 @@ void SV_Init (void)
 	int		i;
 	const char	*p;
 
+	Cvar_RegisterVariable (&sv_gamedir);
 	Cvar_RegisterVariable (&sv_maxvelocity);
 	Cvar_RegisterVariable (&sv_gravity);
 	Cvar_RegisterVariable (&sv_friction);
@@ -453,7 +455,7 @@ static void SV_SendServerinfo (client_t *client)
 	MSG_WriteByte (&client->message, svc_serverinfo);
 	MSG_WriteLong (&client->message, sv_protocol);
 	MSG_WriteByte (&client->message, svs.maxclients);
-	//MSG_WriteString (&client->message, gamedir);
+	MSG_WriteString (&client->message, gamedir);
 
 	if (!coop.integer && deathmatch.integer)
 	{

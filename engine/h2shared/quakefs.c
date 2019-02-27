@@ -61,6 +61,8 @@ static const char	*fs_basedir;
 static char	fs_gamedir[MAX_OSPATH];
 static char	fs_userdir[MAX_OSPATH];
 char	fs_gamedir_nopath[MAX_QPATH];
+cvar_t	sv_gamedir = { "*gamedir", "", CVAR_NOTIFY | CVAR_SERVERINFO };
+static char gamedirs[32];
 
 unsigned int	gameflags;
 
@@ -530,10 +532,21 @@ void FS_Gamedir (const char *dir)
 
 /* a new gamedir: let's set it here. */
 	FS_AddGameDirectory(dir, false);
-#if defined(SERVERONLY)
+//#if defined(SERVERONLY)
 /* change the *gamedir serverinfo properly */
-	Info_SetValueForStarKey (svs.info, "*gamedir", dir, MAX_SERVERINFO_STRING);
-#endif
+	//char gamedirs[32];
+	if (!do_loadmulti)
+	{
+		q_snprintf(gamedirs, sizeof(gamedirs), "%s", dir);
+		Cvar_Set(&sv_gamedir, dir);
+	}
+	else
+	{
+		q_snprintf(gamedirs, sizeof(gamedirs), "%s %s", gamedirs, dir);
+		Cvar_SetQuick(&sv_gamedir, gamedirs);
+	}
+	Info_SetValueForStarKey (svs.info, "*gamedir", gamedirs, MAX_SERVERINFO_STRING);
+//#endif
 }
 
 
@@ -1353,9 +1366,11 @@ void FS_Init (void)
 		if (! (gameflags & (GAME_REGISTERED|GAME_REGISTERED_OLD)))
 			Sys_Error ("You must have the full version of Hexen II to play modified games");
 		/* add basedir/gamedir as an override game */
+		char *tmp;
 		if (i < com_argc - 1)
 		{
 			do_loadmulti = false;
+			//tmp = "";
 			for (int j = 1; j < (com_argc - i); j++)
 			{
 				if ((com_argv[i + j][0] != '-') && (com_argv[i + j][0] != '+'))
@@ -1363,11 +1378,13 @@ void FS_Init (void)
 					if ((j > 1) && (do_loadmulti == false))
 						do_loadmulti = true;
 
-					FS_Gamedir(com_argv[i + j]);
+					//FS_Gamedir(com_argv[i + j]);
+					tmp = va("%s %s", tmp, com_argv[i + j]);
 				}
 				else
 					break;
 			}
+			do_loadmulti = false;
 		}
 	}
 }

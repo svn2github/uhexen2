@@ -250,7 +250,7 @@ CL_ParseServerInfo
 static void CL_ParseServerInfo (void)
 {
 	const char	*str;
-	int		i;
+	int		i, argc;
 	int		nummodels, numsounds;
 	char	model_precache[MAX_MODELS][MAX_QPATH];
 	char	sound_precache[MAX_SOUNDS][MAX_QPATH];
@@ -293,17 +293,46 @@ static void CL_ParseServerInfo (void)
 	cl.scores = (scoreboard_t *) Hunk_AllocName (cl.maxclients*sizeof(*cl.scores), "scores");
 
 // parse gamedir
-	//str = MSG_ReadString();
+	str = MSG_ReadString();
 
-	//if (q_strcasecmp(fs_gamedir_nopath, str))
+	if (q_strcasecmp(fs_gamedir_nopath, str))
 	{
-		//Con_Printf("Server set the gamedir to %s\n", str);
-/*
+		Con_Printf("Server set the gamedir to %s\n", str);
 		// save current config
 		//Host_WriteConfiguration("config.cfg");
 
-		// set the new gamedir and userdir
-		FS_Gamedir(str);
+		// set the new gamedirs and userdir
+		char	*argv[MAX_NUM_ARGVS];
+		char* tmp;
+
+		tmp = va("-game %s", str);
+
+		argc = 0;
+		while (*tmp && (argc < MAX_NUM_ARGVS))
+		{
+			while (*tmp && ((*tmp <= 32) || (*tmp > 126)))
+				tmp++;
+
+			if (*tmp)
+			{
+				argv[argc] = tmp;
+				argc++;
+
+				while (*tmp && ((*tmp > 32) && (*tmp <= 126)))
+					tmp++;
+
+				if (*tmp)
+				{
+					*tmp = 0;
+					tmp++;
+				}
+			}
+		}
+
+		for (i = 1; i < argc; i++)
+		{
+			FS_Gamedir(argv[i]);
+		}
 
 		// ZOID - run autoexec.cfg in the gamedir if it exists
 		if (FS_FileInGamedir("config.cfg"))
@@ -322,10 +351,10 @@ static void CL_ParseServerInfo (void)
 
 		// re-init draw
 		Draw_ReInit();
-		*/
 	}
 
 // parse gametype
+	cl.gametype = MSG_ReadByte();
 	if (cl.gametype == GAME_DEATHMATCH && cl_protocol > PROTOCOL_RAVEN_111)
 		sv_kingofhill = MSG_ReadShort ();
 

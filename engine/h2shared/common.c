@@ -561,3 +561,59 @@ void COM_Init (void)
 	safemode = COM_CheckParm ("-safe");
 }
 
+
+
+/*
+============
+COM_SplitString
+
+Parses the given string into command line tokens.
+============
+*/
+/*
+char **COM_SplitString(const char *text, const char *delim)
+{
+	char **result;
+	
+
+	int		i;
+
+	// clear the buffer from the last string
+	for (i = 0; i < cmd_argc; i++)
+		Z_Free(cmd_argv[i]);
+
+	cmd_argc = 0;
+	cmd_args = NULL;
+
+	while (1)
+	{
+		// skip whitespace up to a /n
+		while (*text && *text <= ' ' && *text != '\n')
+		{
+			text++;
+		}
+
+		if (*text == '\n')
+		{	// a newline seperates commands in the buffer
+			text++;
+			break;
+		}
+
+		if (!*text)
+			return;
+
+		if (cmd_argc == 1)
+			cmd_args = text;
+
+		text = COM_Parse(text);
+		if (!text)
+			return;
+
+		if (cmd_argc < MAX_ARGS)
+		{
+			cmd_argv[cmd_argc] = Z_Strdup(com_token);
+			cmd_argc++;
+		}
+	}
+}
+*/
