@@ -127,9 +127,12 @@ void SV_Init (void)
 	case PROTOCOL_UQE_113:
 		p = "UQE/1.13";
 		break;
+	case PROTOCOL_RAVEN_114:
+		p = "Raven/MP/1.14";
+		break;
 	default:
-		Sys_Error ("Bad protocol version request %i. Accepted values: %i, %i, %i.",
-				sv_protocol, PROTOCOL_RAVEN_111, PROTOCOL_RAVEN_112, PROTOCOL_UQE_113);
+		Sys_Error ("Bad protocol version request %i. Accepted values: %i, %i, %i, %i.",
+				sv_protocol, PROTOCOL_RAVEN_111, PROTOCOL_RAVEN_112, PROTOCOL_UQE_113, PROTOCOL_RAVEN_114 );
 		return; /* silence compiler */
 	}
 	Sys_Printf ("Server using protocol %i (%s)\n", sv_protocol, p);

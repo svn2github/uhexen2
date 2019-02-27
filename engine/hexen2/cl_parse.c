@@ -275,11 +275,12 @@ static void CL_ParseServerInfo (void)
 	case PROTOCOL_RAVEN_111:
 	case PROTOCOL_RAVEN_112:
 	case PROTOCOL_UQE_113:
+	case PROTOCOL_RAVEN_114:
 		Con_DPrintf ("\nServer using protocol %i\n", cl_protocol);
 		break;
 	default:
-		Con_Printf ("\nServer returned version %i, not %i or %i\n",
-				cl_protocol, PROTOCOL_RAVEN_112, PROTOCOL_UQE_113);
+		Con_Printf ("\nServer returned version %i, not %i, %i or %i\n",
+				cl_protocol, PROTOCOL_RAVEN_112, PROTOCOL_UQE_113, PROTOCOL_RAVEN_114);
 		return;
 	}
 
@@ -1241,12 +1242,13 @@ void CL_ParseServerMessage (void)
 			case PROTOCOL_RAVEN_111:
 			case PROTOCOL_RAVEN_112:
 			case PROTOCOL_UQE_113:
+			case PROTOCOL_RAVEN_114:
 				Con_Printf ("Server using protocol %i\n", cl_protocol);
 				break;
 			default:
-				Host_Error ("%s: Server is protocol %i instead of %i or %i",
+				Host_Error ("%s: Server is protocol %i instead of %i, %i or %i",
 						__thisfunc__, cl_protocol,
-						PROTOCOL_RAVEN_112, PROTOCOL_UQE_113);
+						PROTOCOL_RAVEN_112, PROTOCOL_UQE_113, PROTOCOL_RAVEN_114);
 			}
 			break;
 
