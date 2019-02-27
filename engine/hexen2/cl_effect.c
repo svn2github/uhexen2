@@ -291,7 +291,7 @@ void CL_ParseEffect (void)
 
 		cl.Effects[idx].ef.Smoke.framelength = MSG_ReadFloat ();
 		/* smoke frame is a mission pack thing only. */
-		if (cl_protocol > PROTOCOL_RAVEN_111)
+		if ((cl_protocol > PROTOCOL_RAVEN_111) && (cl_protocol < PROTOCOL_RAVEN_114))
 			cl.Effects[idx].ef.Smoke.frame = MSG_ReadFloat ();
 
 		if ((cl.Effects[idx].ef.Smoke.entity_index = NewEffectEntity()) != -1)
