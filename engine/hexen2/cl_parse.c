@@ -326,7 +326,7 @@ static void CL_ParseServerInfo (void)
 
 // parse gametype
 	cl.gametype = MSG_ReadByte();
-	if ((cl.gametype == GAME_DEATHMATCH) && ((cl_protocol > PROTOCOL_RAVEN_111) && (cl_protocol < PROTOCOL_RAVEN_114)))
+	if ((cl.gametype == GAME_DEATHMATCH) && (cl_protocol > PROTOCOL_RAVEN_111))
 		sv_kingofhill = MSG_ReadShort ();
 
 // parse signon message
@@ -1044,7 +1044,7 @@ static void CL_ParseStaticSound (void)
 	for (i = 0; i < 3; i++)
 		org[i] = MSG_ReadCoord ();
 
-	if ((cl_protocol == PROTOCOL_RAVEN_111) || (cl_protocol == PROTOCOL_RAVEN_114))
+	if (cl_protocol == PROTOCOL_RAVEN_111)
 		sound_num = MSG_ReadByte ();
 	else	sound_num = MSG_ReadShort();
 	vol = MSG_ReadByte ();
@@ -1777,7 +1777,7 @@ void CL_ParseServerMessage (void)
 			/* SC2_OBJ, SC2_OBJ2: mission pack objectives
 			 * With protocol 18 (PROTOCOL_RAVEN_111), these
 			 * bits get set somehow (?!): let's avoid them. */
-			if ((cl_protocol > PROTOCOL_RAVEN_111) && (cl_protocol < PROTOCOL_RAVEN_114))
+			if (cl_protocol > PROTOCOL_RAVEN_111)
 			{
 				if (sc2 & SC2_OBJ)
 					cl.info_mask = MSG_ReadLong();

@@ -1320,7 +1320,7 @@ void FS_Init (void)
 		Sys_Error ("Portal of Praevus requires registered version of Hexen II");
 #endif
 #if !defined(H2W)
-	if (((sv_protocol == PROTOCOL_RAVEN_111) || (sv_protocol == PROTOCOL_RAVEN_114)) && check_portals)
+	if ((sv_protocol == PROTOCOL_RAVEN_111) && check_portals)
 		Sys_Error ("Old protocol request not compatible with the Mission Pack");
 #endif
 

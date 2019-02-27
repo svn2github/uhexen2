@@ -403,7 +403,7 @@ void SV_StartSound (edict_t *entity, int channel, const char *sample, int volume
 		field_mask |= SND_ATTENUATION;
 	if (sound_num >= MAX_SOUNDS_OLD)
 	{
-		if ((sv_protocol == PROTOCOL_RAVEN_111) || (sv_protocol == PROTOCOL_RAVEN_114))
+		if (sv_protocol == PROTOCOL_RAVEN_111)
 		{
 			Con_DPrintf("%s: protocol 18 violation: %s sound_num == %i >= %i\n",
 					__thisfunc__, sample, sound_num, MAX_SOUNDS_OLD);
@@ -464,7 +464,7 @@ static void SV_SendServerinfo (client_t *client)
 	if (!coop.integer && deathmatch.integer)
 	{
 		MSG_WriteByte (&client->message, GAME_DEATHMATCH);
-		if ((sv_protocol > PROTOCOL_RAVEN_111) && (sv_protocol < PROTOCOL_RAVEN_114))
+		if (sv_protocol > PROTOCOL_RAVEN_111)
 			MSG_WriteShort (&client->message, sv_kingofhill);
 	}
 	else
@@ -1387,7 +1387,7 @@ void SV_WriteClientdataToMessage (client_t *client, edict_t *ent, sizebuf_t *msg
 			sc2 |= SC2_FLAGS;
 
 		// mission pack, objectives
-		if ((sv_protocol > PROTOCOL_RAVEN_111) && (sv_protocol < PROTOCOL_RAVEN_114))
+		if (sv_protocol > PROTOCOL_RAVEN_111)
 		{
 			if (info_mask != client->info_mask)
 				sc2 |= SC2_OBJ;
@@ -1548,7 +1548,7 @@ void SV_WriteClientdataToMessage (client_t *client, edict_t *ent, sizebuf_t *msg
 		MSG_WriteFloat (&host_client->message, ent->v.flags);
 
 // mission pack, objectives
-	if ((sv_protocol > PROTOCOL_RAVEN_111) && (sv_protocol < PROTOCOL_RAVEN_114))
+	if (sv_protocol > PROTOCOL_RAVEN_111)
 	{
 		if (sc2 & SC2_OBJ)
 		{
