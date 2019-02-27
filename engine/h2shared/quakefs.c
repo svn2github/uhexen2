@@ -55,7 +55,6 @@ typedef struct searchpath_s
 
 static searchpath_t	*fs_searchpaths;
 static searchpath_t	*fs_base_searchpaths;	/* without gamedirs */
-static qboolean do_loadmulti;
 
 static const char	*fs_basedir;
 static char	fs_gamedir[MAX_OSPATH];
@@ -450,15 +449,43 @@ static inline void set_hw_dir (void) { /* helper for FS_Gamedir () */
 
 void FS_Gamedir (const char *dir)
 {
+	int argc;
 	searchpath_t	*next;
 
 	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":"))
 	{
 		if (!host_initialized)
-			Sys_Error ("gamedir should be a single directory name, not a path\n");
+			Sys_Error ("gamedir should be a directory name list, not a path\n");
 		else {
-			Con_Printf("gamedir should be a single directory name, not a path\n");
+			Con_Printf("gamedir should be a directory name list, not a path\n");
 			return;
+		}
+	}
+
+	char	*argv[MAX_NUM_ARGVS];
+	char* tmp;
+
+	tmp = va("%s", dir);
+
+	argc = 0;
+	while (*tmp && (argc < MAX_NUM_ARGVS))
+	{
+		while (*tmp && ((*tmp <= 32) || (*tmp > 126)))
+			tmp++;
+
+		if (*tmp)
+		{
+			argv[argc] = tmp;
+			argc++;
+
+			while (*tmp && ((*tmp > 32) && (*tmp <= 126)))
+				tmp++;
+
+			if (*tmp)
+			{
+				*tmp = 0;
+				tmp++;
+			}
 		}
 	}
 
@@ -470,81 +497,75 @@ void FS_Gamedir (const char *dir)
  * since hexen2 doesn't use this during game execution there will be no
  * changes for it: it has portals or data1 at the top.
  */
-	if (!do_loadmulti)
+	while (fs_searchpaths != fs_base_searchpaths)
 	{
-		while (fs_searchpaths != fs_base_searchpaths)
+		if (fs_searchpaths->pack)
 		{
-			if (fs_searchpaths->pack)
-			{
-				fclose(fs_searchpaths->pack->handle);
-				Z_Free(fs_searchpaths->pack->files);
-				Z_Free(fs_searchpaths->pack);
-			}
-			next = fs_searchpaths->next;
-			Z_Free(fs_searchpaths);
-			fs_searchpaths = next;
+			fclose(fs_searchpaths->pack->handle);
+			Z_Free(fs_searchpaths->pack->files);
+			Z_Free(fs_searchpaths->pack);
 		}
+		next = fs_searchpaths->next;
+		Z_Free(fs_searchpaths);
+		fs_searchpaths = next;
 	}
 /* flush all data, so it will be forced to reload */
 #if !defined(SERVERONLY)
 	Cache_Flush ();
 #endif	/* SERVERONLY */
 
+
+	for (int i = 0; i < argc; i++)
+	{
+		//Something(argv[i]);
 /* check for reserved gamedirs */
-	if (!q_strcasecmp(dir, "hw"))
-	{
+		if (!q_strcasecmp(argv[i], "hw"))
+		{
 #if defined(H2W)
-	/* that we reached here means the hw server decided to abandon
-	 * whatever the previous mod it was running and went back to
-	 * pure hw. weird.. do as he wishes anyway and adjust our variables. */
-		set_hw_dir ();
+			/* that we reached here means the hw server decided to abandon
+			 * whatever the previous mod it was running and went back to
+			 * pure hw. weird.. do as he wishes anyway and adjust our variables. */
+			set_hw_dir();
 #else	/* hexen2 case: */
-	/* hw is reserved for hexenworld only. hexen2 shouldn't use it */
-		Con_Printf ("WARNING: Gamedir not set to hw :\n"
-			    "It is reserved for HexenWorld.\n");
+			/* hw is reserved for hexenworld only. hexen2 shouldn't use it */
+			Con_Printf("WARNING: Gamedir not set to hw :\n"
+				"It is reserved for HexenWorld.\n");
 #endif	/* H2W */
-		return;
+			return;
 	}
 
-	if (!q_strcasecmp(dir, "portals"))
-	{
-	/* no hw server is supposed to set gamedir to portals
-	 * and hw must be above portals in hierarchy. this is
-	 * actually a hypothetical case.
-	 * as for hexen2, it cannot reach here.  */
+		if (!q_strcasecmp(argv[i], "portals"))
+		{
+			/* no hw server is supposed to set gamedir to portals
+			 * and hw must be above portals in hierarchy. this is
+			 * actually a hypothetical case.
+			 * as for hexen2, it cannot reach here.  */
 #ifdef H2W
-		set_hw_dir ();
+			set_hw_dir();
 #endif
-		return;
-	}
+			return;
+		}
 
-	if (!q_strcasecmp(dir, "data1"))
-	{
-	/* another hypothetical case: no hw mod is supposed to
-	 * do this and hw must stay above data1 in hierarchy.
-	 * as for hexen2, it can only reach here by a silly
-	 * command line argument like -game data1, ignore it. */
+		if (!q_strcasecmp(argv[i], "data1"))
+		{
+			/* another hypothetical case: no hw mod is supposed to
+			 * do this and hw must stay above data1 in hierarchy.
+			 * as for hexen2, it can only reach here by a silly
+			 * command line argument like -game data1, ignore it. */
 #ifdef H2W
-		set_hw_dir ();
+			set_hw_dir();
 #endif
-		return;
+			return;
+		}
+
+		/* a new gamedir: let's set it here. */
+		FS_AddGameDirectory(argv[i], false);
 	}
 
-/* a new gamedir: let's set it here. */
-	FS_AddGameDirectory(dir, false);
 //#if defined(SERVERONLY)
 /* change the *gamedir serverinfo properly */
-	//char gamedirs[32];
-	if (!do_loadmulti)
-	{
-		q_snprintf(gamedirs, sizeof(gamedirs), "%s", dir);
-		Cvar_Set(&sv_gamedir, dir);
-	}
-	else
-	{
-		q_snprintf(gamedirs, sizeof(gamedirs), "%s %s", gamedirs, dir);
-		Cvar_SetQuick(&sv_gamedir, gamedirs);
-	}
+	q_snprintf(gamedirs, sizeof(gamedirs), "%s", dir);
+	Cvar_SetQuick(&sv_gamedir, dir);
 	Info_SetValueForStarKey (svs.info, "*gamedir", gamedirs, MAX_SERVERINFO_STRING);
 //#endif
 }
@@ -1369,22 +1390,19 @@ void FS_Init (void)
 		char *tmp;
 		if (i < com_argc - 1)
 		{
-			do_loadmulti = false;
-			//tmp = "";
 			for (int j = 1; j < (com_argc - i); j++)
 			{
 				if ((com_argv[i + j][0] != '-') && (com_argv[i + j][0] != '+'))
 				{
-					if ((j > 1) && (do_loadmulti == false))
-						do_loadmulti = true;
-
-					//FS_Gamedir(com_argv[i + j]);
-					tmp = va("%s %s", tmp, com_argv[i + j]);
+					if (j > 1)
+						tmp = va("%s %s", tmp, com_argv[i + j]);
+					else
+						tmp = va("%s", com_argv[i + j]);
 				}
 				else
 					break;
 			}
-			do_loadmulti = false;
+			FS_Gamedir(tmp);
 		}
 	}
 }

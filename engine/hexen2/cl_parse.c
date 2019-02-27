@@ -302,37 +302,7 @@ static void CL_ParseServerInfo (void)
 		//Host_WriteConfiguration("config.cfg");
 
 		// set the new gamedirs and userdir
-		char	*argv[MAX_NUM_ARGVS];
-		char* tmp;
-
-		tmp = va("-game %s", str);
-
-		argc = 0;
-		while (*tmp && (argc < MAX_NUM_ARGVS))
-		{
-			while (*tmp && ((*tmp <= 32) || (*tmp > 126)))
-				tmp++;
-
-			if (*tmp)
-			{
-				argv[argc] = tmp;
-				argc++;
-
-				while (*tmp && ((*tmp > 32) && (*tmp <= 126)))
-					tmp++;
-
-				if (*tmp)
-				{
-					*tmp = 0;
-					tmp++;
-				}
-			}
-		}
-
-		for (i = 1; i < argc; i++)
-		{
-			FS_Gamedir(argv[i]);
-		}
+		FS_Gamedir(str);
 
 		// ZOID - run autoexec.cfg in the gamedir if it exists
 		if (FS_FileInGamedir("config.cfg"))
