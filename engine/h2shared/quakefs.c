@@ -61,7 +61,7 @@ static char	fs_gamedir[MAX_OSPATH];
 static char	fs_userdir[MAX_OSPATH];
 char	fs_gamedir_nopath[MAX_QPATH];
 cvar_t	sv_gamedir = { "*gamedir", "", CVAR_NOTIFY | CVAR_SERVERINFO };
-static char gamedirs[32];
+static char gamedirs[MAX_QPATH];
 
 unsigned int	gameflags;
 
