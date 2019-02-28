@@ -29,8 +29,9 @@
 #define	PROTOCOL_RAVEN_111		18	/* official 1.11 update */
 #define	PROTOCOL_RAVEN_112		19	/* 1.12, mission pack */
 #define	PROTOCOL_UQE_113		20	/* Korax UQE patch 1.13 */
-/* the default protocol: */
-#define	PROTOCOL_VERSION		(PROTOCOL_RAVEN_112)
+#define	PROTOCOL_UH2_114		21	/* Shanjaq uHexen 1.14 update */
+ /* the default protocol: */
+#define	PROTOCOL_VERSION		(PROTOCOL_UH2_114)
 
 //=========================================
 

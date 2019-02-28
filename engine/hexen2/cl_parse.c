@@ -250,7 +250,7 @@ CL_ParseServerInfo
 static void CL_ParseServerInfo (void)
 {
 	const char	*str;
-	int		i;
+	int		i, argc;
 	int		nummodels, numsounds;
 	char	model_precache[MAX_MODELS][MAX_QPATH];
 	char	sound_precache[MAX_SOUNDS][MAX_QPATH];
@@ -275,11 +275,12 @@ static void CL_ParseServerInfo (void)
 	case PROTOCOL_RAVEN_111:
 	case PROTOCOL_RAVEN_112:
 	case PROTOCOL_UQE_113:
+	case PROTOCOL_RAVEN_114:
 		Con_DPrintf ("\nServer using protocol %i\n", cl_protocol);
 		break;
 	default:
-		Con_Printf ("\nServer returned version %i, not %i or %i\n",
-				cl_protocol, PROTOCOL_RAVEN_112, PROTOCOL_UQE_113);
+		Con_Printf ("\nServer returned version %i, not %i, %i or %i\n",
+				cl_protocol, PROTOCOL_RAVEN_112, PROTOCOL_UQE_113, PROTOCOL_RAVEN_114);
 		return;
 	}
 
@@ -292,10 +293,40 @@ static void CL_ParseServerInfo (void)
 	}
 	cl.scores = (scoreboard_t *) Hunk_AllocName (cl.maxclients*sizeof(*cl.scores), "scores");
 
-// parse gametype
-	cl.gametype = MSG_ReadByte ();
+// parse gamedir
+	str = MSG_ReadString();
 
-	if (cl.gametype == GAME_DEATHMATCH && cl_protocol > PROTOCOL_RAVEN_111)
+	if (q_strcasecmp(fs_gamedir_nopath, str))
+	{
+		Con_Printf("Server set the gamedir to %s\n", str);
+		// save current config
+		//Host_WriteConfiguration("config.cfg");
+
+		// set the new gamedirs and userdir
+		FS_Gamedir(str);
+
+		// ZOID - run autoexec.cfg in the gamedir if it exists
+		if (FS_FileInGamedir("config.cfg"))
+		{
+			// remove any weird mod specific key bindings / aliases
+			Cbuf_AddText("unbindall\n");
+			Cbuf_AddText("unaliasall\n");
+			Cbuf_AddText("exec autoexec.cfg\n");
+			Cbuf_AddText("exec config.cfg\n");
+		}
+		// gamespy crap
+		if (FS_FileInGamedir("frontend.cfg"))
+			Cbuf_AddText("exec frontend.cfg\n");
+
+		Cbuf_Execute();
+
+		// re-init draw
+		Draw_ReInit();
+	}
+
+// parse gametype
+	cl.gametype = MSG_ReadByte();
+	if ((cl.gametype == GAME_DEATHMATCH) && (cl_protocol > PROTOCOL_RAVEN_111))
 		sv_kingofhill = MSG_ReadShort ();
 
 // parse signon message
@@ -1211,12 +1242,13 @@ void CL_ParseServerMessage (void)
 			case PROTOCOL_RAVEN_111:
 			case PROTOCOL_RAVEN_112:
 			case PROTOCOL_UQE_113:
+			case PROTOCOL_RAVEN_114:
 				Con_Printf ("Server using protocol %i\n", cl_protocol);
 				break;
 			default:
-				Host_Error ("%s: Server is protocol %i instead of %i or %i",
+				Host_Error ("%s: Server is protocol %i instead of %i, %i or %i",
 						__thisfunc__, cl_protocol,
-						PROTOCOL_RAVEN_112, PROTOCOL_UQE_113);
+						PROTOCOL_RAVEN_112, PROTOCOL_UQE_113, PROTOCOL_RAVEN_114);
 			}
 			break;
 

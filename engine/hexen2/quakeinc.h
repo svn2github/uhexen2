@@ -48,6 +48,7 @@
 #include "printsys.h"
 #include "common.h"
 #include "quakefs.h"
+#include "info_str.h"
 #include "bspfile.h"
 #include "zone.h"
 #include "mathlib.h"

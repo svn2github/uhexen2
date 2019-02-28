@@ -39,6 +39,7 @@ static	cvar_t	sv_update_misc		= {"sv_update_misc", "1", CVAR_ARCHIVE};
 cvar_t	sv_ce_scale		= {"sv_ce_scale", "0", CVAR_ARCHIVE};
 cvar_t	sv_ce_max_size		= {"sv_ce_max_size", "0", CVAR_ARCHIVE};
 
+extern  cvar_t  sv_gamedir;
 extern	cvar_t	sv_maxvelocity;
 extern	cvar_t	sv_gravity;
 extern	cvar_t	sv_nostep;
@@ -76,6 +77,7 @@ void SV_Init (void)
 	int		i;
 	const char	*p;
 
+	Cvar_RegisterVariable (&sv_gamedir);
 	Cvar_RegisterVariable (&sv_maxvelocity);
 	Cvar_RegisterVariable (&sv_gravity);
 	Cvar_RegisterVariable (&sv_friction);
@@ -125,9 +127,12 @@ void SV_Init (void)
 	case PROTOCOL_UQE_113:
 		p = "UQE/1.13";
 		break;
+	case PROTOCOL_RAVEN_114:
+		p = "Raven/MP/1.14";
+		break;
 	default:
-		Sys_Error ("Bad protocol version request %i. Accepted values: %i, %i, %i.",
-				sv_protocol, PROTOCOL_RAVEN_111, PROTOCOL_RAVEN_112, PROTOCOL_UQE_113);
+		Sys_Error ("Bad protocol version request %i. Accepted values: %i, %i, %i, %i.",
+				sv_protocol, PROTOCOL_RAVEN_111, PROTOCOL_RAVEN_112, PROTOCOL_UQE_113, PROTOCOL_RAVEN_114 );
 		return; /* silence compiler */
 	}
 	Sys_Printf ("Server using protocol %i (%s)\n", sv_protocol, p);
@@ -442,6 +447,9 @@ static void SV_SendServerinfo (client_t *client)
 	int			i;
 	const char		**s;
 	char			message[2048];
+	const char *gamedir;
+
+	gamedir = Info_ValueForKey(svs.info, "*gamedir");
 
 	MSG_WriteByte (&client->message, svc_print);
 	sprintf (message, "%c\nVERSION %4.2f SERVER (%i CRC)", 2, ENGINE_VERSION, pr_crc);
@@ -450,6 +458,8 @@ static void SV_SendServerinfo (client_t *client)
 	MSG_WriteByte (&client->message, svc_serverinfo);
 	MSG_WriteLong (&client->message, sv_protocol);
 	MSG_WriteByte (&client->message, svs.maxclients);
+	if (sv_protocol == PROTOCOL_RAVEN_114)
+		MSG_WriteString (&client->message, gamedir);
 
 	if (!coop.integer && deathmatch.integer)
 	{
@@ -479,7 +489,7 @@ static void SV_SendServerinfo (client_t *client)
 	MSG_WriteByte (&client->message, svc_midi_name);
 	MSG_WriteString (&client->message, sv.midi_name);
 
-	if (sv_protocol >= PROTOCOL_UQE_113)
+	if (sv_protocol == PROTOCOL_UQE_113)
 	{
 		MSG_WriteByte (&client->message, svc_mod_name);
 		MSG_WriteString (&client->message, "");	/* uqe-hexen2 sends sv.mod_name */
