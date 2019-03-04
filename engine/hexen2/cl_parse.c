@@ -1150,6 +1150,7 @@ void CL_ParseServerMessage (void)
 {
 	int		cmd;
 	int		i, j, k;
+	float	l, m, n, o;
 	int		EntityCount = 0;
 	int		EntitySize = 0;
 	int		before;
@@ -1796,6 +1797,34 @@ void CL_ParseServerMessage (void)
 		case svc_skybox:
 			MSG_ReadString();
 			Con_DPrintf ("Ignored server msg %d (%s)\n", cmd, svc_strings[cmd]);
+			break;
+
+		case svc_set_extra_flags:
+			i = MSG_ReadShort();
+			j = MSG_ReadShort();
+			if (cl_entities[i].model != NULL)
+			{
+				cl_entities[i].model->ex_flags = j;
+				cl_entities[i].model->glow_color[0] = 0.2f;
+				cl_entities[i].model->glow_color[1] = 0.2f;
+				cl_entities[i].model->glow_color[2] = 0.2f;
+				cl_entities[i].model->glow_color[3] = 0.5f;
+			}
+			break;
+
+		case svc_set_glow_color:
+			i = MSG_ReadShort();
+			l = MSG_ReadCoord();
+			m = MSG_ReadCoord();
+			n = MSG_ReadCoord();
+			o = MSG_ReadCoord();
+			if (cl_entities[i].model != NULL)
+			{
+				cl_entities[i].model->glow_color[0] = l;
+				cl_entities[i].model->glow_color[1] = m;
+				cl_entities[i].model->glow_color[2] = n;
+				cl_entities[i].model->glow_color[3] = o;
+			}
 			break;
 		}
 	}
