@@ -477,9 +477,25 @@ static void SV_SendServerinfo (client_t *client)
 		MSG_WriteString (&client->message, *s);
 	MSG_WriteByte (&client->message, 0);
 
-	for (i = 1, s = sv.sound_precache + 1; i < MAX_SOUNDS && *s; s++)
+	for (i = 1, s = sv.sound_precache + 1; i < MAX_SOUNDS && *s; s++) //i is not incrementing, this can overflow
 		MSG_WriteString (&client->message, *s);
 	MSG_WriteByte (&client->message, 0);
+
+// send model effects
+	for (i = 1, s = sv.model_precache + 1; i < MAX_MODELS && *s; s++)
+	{
+		if (sv.models[i]->ex_flags != 0)
+		{
+			MSG_WriteString(&client->message, *s);
+			MSG_WriteShort(&client->message, sv.models[i]->ex_flags);
+			MSG_WriteFloat(&client->message, sv.models[i]->glow_color[0]);
+			MSG_WriteFloat(&client->message, sv.models[i]->glow_color[1]);
+			MSG_WriteFloat(&client->message, sv.models[i]->glow_color[2]);
+			MSG_WriteFloat(&client->message, sv.models[i]->glow_color[3]);
+		}
+		i++;
+	}
+	MSG_WriteByte(&client->message, 0);
 
 // send music
 	MSG_WriteByte (&client->message, svc_cdtrack);
