@@ -250,8 +250,7 @@ CL_ParseServerInfo
 static void CL_ParseServerInfo (void)
 {
 	const char	*str;
-	int		i, j, argc, intval;
-	float	floatval;
+	int		i, j, argc;
 	int		nummodels, numsounds, numfx;
 	char	model_precache[MAX_MODELS][MAX_QPATH];
 	char	sound_precache[MAX_SOUNDS][MAX_QPATH];
@@ -417,26 +416,29 @@ static void CL_ParseServerInfo (void)
 	player_models[3] = (qmodel_t *)Mod_FindName ("models/assassin.mdl");
 	player_models[4] = (gameflags & GAME_PORTALS) ? (qmodel_t *)Mod_FindName ("models/succubus.mdl") : NULL;
 
-// load model fx from server
-	for (numfx = 1; ; numfx++)
+	if (cl_protocol == PROTOCOL_UH2_114)
 	{
-		str = MSG_ReadString();
-		if (!str[0])
-			break;
-		if (numfx == MAX_MODELS)
+		// load model fx from server
+		for (numfx = 1; ; numfx++)
 		{
-			Con_Printf("Server sent too many model effects\n");
-			return;
-		}
-		for (j = 2; j < nummodels; j++)
-		{
-			if (!strcmp(sv.model_precache[j], str))
+			str = MSG_ReadString();
+			if (!str[0])
+				break;
+			if (numfx == MAX_MODELS)
 			{
-				cl.model_precache[j]->ex_flags = MSG_ReadShort();
-				cl.model_precache[j]->glow_color[0] = MSG_ReadFloat();
-				cl.model_precache[j]->glow_color[1] = MSG_ReadFloat();
-				cl.model_precache[j]->glow_color[2] = MSG_ReadFloat();
-				cl.model_precache[j]->glow_color[3] = MSG_ReadFloat();
+				Con_Printf("Server sent too many model effects\n");
+				return;
+			}
+			for (j = 2; j < nummodels; j++)
+			{
+				if (!strcmp(sv.model_precache[j], str))
+				{
+					cl.model_precache[j]->ex_flags = MSG_ReadShort();
+					cl.model_precache[j]->glow_color[0] = MSG_ReadFloat();
+					cl.model_precache[j]->glow_color[1] = MSG_ReadFloat();
+					cl.model_precache[j]->glow_color[2] = MSG_ReadFloat();
+					cl.model_precache[j]->glow_color[3] = MSG_ReadFloat();
+				}
 			}
 		}
 	}
@@ -1175,7 +1177,6 @@ void CL_ParseServerMessage (void)
 {
 	int		cmd;
 	int		i, j, k;
-	float	l, m, n, o;
 	int		EntityCount = 0;
 	int		EntitySize = 0;
 	int		before;
@@ -1822,34 +1823,6 @@ void CL_ParseServerMessage (void)
 		case svc_skybox:
 			MSG_ReadString();
 			Con_DPrintf ("Ignored server msg %d (%s)\n", cmd, svc_strings[cmd]);
-			break;
-
-		case svc_set_extra_flags:
-			i = MSG_ReadShort();
-			j = MSG_ReadShort();
-			if (cl_entities[i].model != NULL)
-			{
-				cl_entities[i].model->ex_flags = j;
-				cl_entities[i].model->glow_color[0] = 0.2f;
-				cl_entities[i].model->glow_color[1] = 0.2f;
-				cl_entities[i].model->glow_color[2] = 0.2f;
-				cl_entities[i].model->glow_color[3] = 0.5f;
-			}
-			break;
-
-		case svc_set_glow_color:
-			i = MSG_ReadShort();
-			l = MSG_ReadCoord();
-			m = MSG_ReadCoord();
-			n = MSG_ReadCoord();
-			o = MSG_ReadCoord();
-			if (cl_entities[i].model != NULL)
-			{
-				cl_entities[i].model->glow_color[0] = l;
-				cl_entities[i].model->glow_color[1] = m;
-				cl_entities[i].model->glow_color[2] = n;
-				cl_entities[i].model->glow_color[3] = o;
-			}
 			break;
 		}
 	}
