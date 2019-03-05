@@ -3227,9 +3227,9 @@ static void PF_set_extra_flags(void)
 	{
 		if (!strcmp(sv.model_precache[i], s))
 		{
-#if !defined(SERVERONLY)
+			#if !defined(SERVERONLY)
 			sv.models[i]->ex_flags = flags;
-#endif	/* SERVERONLY */
+			#endif	/* SERVERONLY */
 			return;
 		}
 	}
@@ -3258,12 +3258,12 @@ static void PF_set_fx_color(void)
 	{
 		if (!strcmp(sv.model_precache[i], s))
 		{
-#if !defined(SERVERONLY)
+			#if !defined(SERVERONLY)
 			sv.models[i]->glow_color[0] = j;
 			sv.models[i]->glow_color[1] = k;
 			sv.models[i]->glow_color[2] = l;
 			sv.models[i]->glow_color[3] = m;
-#endif	/* SERVERONLY */
+			#endif	/* SERVERONLY */
 			return;
 		}
 	}
