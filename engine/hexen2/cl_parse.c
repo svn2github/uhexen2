@@ -250,8 +250,8 @@ CL_ParseServerInfo
 static void CL_ParseServerInfo (void)
 {
 	const char	*str;
-	int		i, argc;
-	int		nummodels, numsounds;
+	int		i, j, argc;
+	int		nummodels, numsounds, numfx;
 	char	model_precache[MAX_MODELS][MAX_QPATH];
 	char	sound_precache[MAX_SOUNDS][MAX_QPATH];
 // rjr	edict_t		*ent;
@@ -415,6 +415,33 @@ static void CL_ParseServerInfo (void)
 	player_models[2] = !(gameflags & GAME_OLD_DEMO) ? (qmodel_t *)Mod_FindName ("models/necro.mdl") : NULL;
 	player_models[3] = (qmodel_t *)Mod_FindName ("models/assassin.mdl");
 	player_models[4] = (gameflags & GAME_PORTALS) ? (qmodel_t *)Mod_FindName ("models/succubus.mdl") : NULL;
+
+	if (cl_protocol == PROTOCOL_UH2_114)
+	{
+		// load model fx from server
+		for (numfx = 1; ; numfx++)
+		{
+			str = MSG_ReadString();
+			if (!str[0])
+				break;
+			if (numfx == MAX_MODELS)
+			{
+				Con_Printf("Server sent too many model effects\n");
+				return;
+			}
+			for (j = 2; j < nummodels; j++)
+			{
+				if (!strcmp(sv.model_precache[j], str))
+				{
+					cl.model_precache[j]->ex_flags = MSG_ReadShort();
+					cl.model_precache[j]->glow_color[0] = MSG_ReadFloat();
+					cl.model_precache[j]->glow_color[1] = MSG_ReadFloat();
+					cl.model_precache[j]->glow_color[2] = MSG_ReadFloat();
+					cl.model_precache[j]->glow_color[3] = MSG_ReadFloat();
+				}
+			}
+		}
+	}
 
 	S_BeginPrecaching ();
 	for (i = 1; i < numsounds; i++)

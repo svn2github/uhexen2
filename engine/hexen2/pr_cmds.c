@@ -3209,6 +3209,68 @@ static void PF_doWhiteFlash(void)
 }
 
 
+static void PF_set_extra_flags(void)
+{
+	const char	*s;
+	int		flags;
+	int		i;
+
+	if (sv.state != ss_loading && !ignore_precache)
+		PR_RunError("%s: Model Extra Flags can only be changed in spawn functions", __thisfunc__);
+
+	s = G_STRING(OFS_PARM0);
+	flags = (int)G_FLOAT(OFS_PARM1);
+	G_INT(OFS_RETURN) = G_INT(OFS_PARM1);
+	PR_CheckEmptyString(s);
+
+	for (i = 0; i < MAX_MODELS; i++)
+	{
+		if (!strcmp(sv.model_precache[i], s))
+		{
+			#if !defined(SERVERONLY)
+			sv.models[i]->ex_flags = flags;
+			#endif	/* SERVERONLY */
+			return;
+		}
+	}
+	//PR_RunError("%s: overflow", __thisfunc__);
+}
+
+
+static void PF_set_fx_color(void)
+{
+	const char	*s;
+	int		i;
+	float j, k, l, m;
+
+	if (sv.state != ss_loading && !ignore_precache)
+		PR_RunError("%s: Model Effect Color can only be set in spawn functions", __thisfunc__);
+
+	s = G_STRING(OFS_PARM0);
+	j = G_FLOAT(OFS_PARM1);
+	k = G_FLOAT(OFS_PARM2);
+	l = G_FLOAT(OFS_PARM3);
+	m = G_FLOAT(OFS_PARM4);
+	G_INT(OFS_RETURN) = G_INT(OFS_PARM4);
+	PR_CheckEmptyString(s);
+
+	for (i = 0; i < MAX_MODELS; i++)
+	{
+		if (!strcmp(sv.model_precache[i], s))
+		{
+			#if !defined(SERVERONLY)
+			sv.models[i]->glow_color[0] = j;
+			sv.models[i]->glow_color[1] = k;
+			sv.models[i]->glow_color[2] = l;
+			sv.models[i]->glow_color[3] = m;
+			#endif	/* SERVERONLY */
+			return;
+		}
+	}
+	//PR_RunError("%s: overflow", __thisfunc__);
+}
+
+
 static builtin_t pr_builtin[] =
 {
 	PF_Fixme,
@@ -3337,7 +3399,6 @@ static builtin_t pr_builtin[] =
 	PF_doWhiteFlash,	// 104
 	PF_UpdateSoundPos,	// 105
 	PF_StopSound,		// 106
-
 #ifdef QUAKE2
 	PF_sin,
 	PF_cos,
@@ -3347,8 +3408,8 @@ static builtin_t pr_builtin[] =
 	PF_etos,
 	PF_WaterMove,
 #else
-	PF_Fixme,
-	PF_Fixme,
+	PF_set_extra_flags,	// void(string model, int flags) set_extra_flags	= #107
+	PF_set_fx_color,	// void(string model, float r, float g, float b, float a) set_fx_color	= #108
 	PF_Fixme,
 	PF_Fixme,
 	PF_Fixme,
