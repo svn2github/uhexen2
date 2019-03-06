@@ -620,10 +620,10 @@ static void CL_RelinkEntities (void)
 #		ifdef GLQUAKE
 			if (gl_colored_dynamic_lights.integer)
 			{	// Make the dynamic light yellow
-				dl->color[0] = 1.0;
-				dl->color[1] = 1.0;
-				dl->color[2] = 0.5;
-				dl->color[3] = 0.7;
+				dl->color[0] = (ent->model->glow_color[0] != 0.0 ? ent->model->glow_color[0] : 1.0);
+				dl->color[1] = (ent->model->glow_color[1] != 0.0 ? ent->model->glow_color[1] : 1.0);
+				dl->color[2] = (ent->model->glow_color[2] != 0.0 ? ent->model->glow_color[2] : 0.5);
+				dl->color[3] = (ent->model->glow_color[3] != 0.0 ? ent->model->glow_color[3] : 0.7);
 			}
 #		endif
 		}
@@ -637,10 +637,10 @@ static void CL_RelinkEntities (void)
 #		ifdef GLQUAKE
 			if (gl_colored_dynamic_lights.integer)
 			{
-				dl->color[0] = 0.8;
-				dl->color[1] = 0.8;
-				dl->color[2] = 1.0;
-				dl->color[3] = 0.7;
+				dl->color[0] = (ent->model->glow_color[0] != 0.0 ? ent->model->glow_color[0] : 0.8);
+				dl->color[1] = (ent->model->glow_color[1] != 0.0 ? ent->model->glow_color[1] : 0.8);
+				dl->color[2] = (ent->model->glow_color[2] != 0.0 ? ent->model->glow_color[2] : 1.0);
+				dl->color[3] = (ent->model->glow_color[3] != 0.0 ? ent->model->glow_color[3] : 0.7);
 			}
 #		endif
 		}
@@ -653,10 +653,10 @@ static void CL_RelinkEntities (void)
 #		ifdef GLQUAKE
 			if (gl_colored_dynamic_lights.integer)
 			{
-				dl->color[0] = 0.8;
-				dl->color[1] = 0.6;
-				dl->color[2] = 0.2;
-				dl->color[3] = 0.7;
+				dl->color[0] = (ent->model->glow_color[0] != 0.0 ? ent->model->glow_color[0] : 0.8);
+				dl->color[1] = (ent->model->glow_color[1] != 0.0 ? ent->model->glow_color[1] : 0.6);
+				dl->color[2] = (ent->model->glow_color[2] != 0.0 ? ent->model->glow_color[2] : 0.2);
+				dl->color[3] = (ent->model->glow_color[3] != 0.0 ? ent->model->glow_color[3] : 0.7);
 			}
 #		endif
 		}
@@ -678,10 +678,10 @@ static void CL_RelinkEntities (void)
 #		ifdef GLQUAKE
 			if (gl_colored_dynamic_lights.integer)
 			{
-				dl->color[0] = 0.8;
-				dl->color[1] = 0.4;
-				dl->color[2] = 0.2;
-				dl->color[3] = 0.7;
+				dl->color[0] = (ent->model->glow_color[0] != 0.0 ? ent->model->glow_color[0] : 0.8);
+				dl->color[1] = (ent->model->glow_color[1] != 0.0 ? ent->model->glow_color[1] : 0.4);
+				dl->color[2] = (ent->model->glow_color[2] != 0.0 ? ent->model->glow_color[2] : 0.2);
+				dl->color[3] = (ent->model->glow_color[3] != 0.0 ? ent->model->glow_color[3] : 0.7);
 			}
 #		endif
 		}

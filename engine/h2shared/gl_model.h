@@ -344,6 +344,7 @@ extern	trivertx_t	*poseverts[MAXALIASFRAMES];
 #define	EF_DARKFIELD			0x00000020
 #define	EF_LIGHT			0x00000040
 #define	EF_NODRAW			0x00000080
+#define	EF_COLORLIGHT			0x00000400
 
 #ifdef H2W
 /* The only difference between Raven's hw-0.15 binary release and the

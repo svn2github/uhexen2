@@ -3225,13 +3225,18 @@ static void PF_set_extra_flags(void)
 
 	for (i = 0; i < MAX_MODELS; i++)
 	{
-		if (!strcmp(sv.model_precache[i], s))
+		if (sv.model_precache[i])
 		{
-			#if !defined(SERVERONLY)
-			sv.models[i]->ex_flags = flags;
-			#endif	/* SERVERONLY */
-			return;
+			if (!strcmp(sv.model_precache[i], s))
+			{
+#if !defined(SERVERONLY)
+				sv.models[i]->ex_flags = flags;
+#endif	/* SERVERONLY */
+				return;
+			}
 		}
+		else
+			return;
 	}
 	//PR_RunError("%s: overflow", __thisfunc__);
 }
@@ -3256,16 +3261,21 @@ static void PF_set_fx_color(void)
 
 	for (i = 0; i < MAX_MODELS; i++)
 	{
-		if (!strcmp(sv.model_precache[i], s))
+		if (sv.model_precache[i])
 		{
-			#if !defined(SERVERONLY)
-			sv.models[i]->glow_color[0] = j;
-			sv.models[i]->glow_color[1] = k;
-			sv.models[i]->glow_color[2] = l;
-			sv.models[i]->glow_color[3] = m;
-			#endif	/* SERVERONLY */
-			return;
+			if (!strcmp(sv.model_precache[i], s))
+			{
+				#if !defined(SERVERONLY)
+				sv.models[i]->glow_color[0] = j;
+				sv.models[i]->glow_color[1] = k;
+				sv.models[i]->glow_color[2] = l;
+				sv.models[i]->glow_color[3] = m;
+				#endif	/* SERVERONLY */
+				return;
+			}
 		}
+		else
+			return;
 	}
 	//PR_RunError("%s: overflow", __thisfunc__);
 }
