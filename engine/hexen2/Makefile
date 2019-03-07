@@ -1622,6 +1622,7 @@ COMMONOBJS = \
 	common.o \
 	debuglog.o \
 	quakefs.o \
+	info_str.o \
 	crc.o \
 	cvar.o \
 	cfgfile.o \
