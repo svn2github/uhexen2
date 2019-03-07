@@ -418,6 +418,7 @@ typedef enum {mod_brush, mod_sprite, mod_alias} modtype_t;
 #define XF_TORCH_GLOW_EGYPT	(1 << 30)	/* glowing torches, egypt			*/
 #define XF_GLOW			(1 << 1 )	/* other glows					*/
 #define XF_MISSILE_GLOW		(1 << 2 )	/* missile glows				*/
+#define XF_COLOR_LIGHT		(1 << 3 )	/* color dynamic light			*/
 
 typedef struct qmodel_s
 {

@@ -453,7 +453,7 @@ void FS_Gamedir (const char *dir)
 	int argc;
 	searchpath_t	*next;
 
-	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":"))
+	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":") || strstr(dir, "<") || strstr(dir, ">"))
 	{
 		if (!host_initialized)
 			Sys_Error ("gamedir should be a directory name list, not a path\n");
@@ -532,7 +532,7 @@ void FS_Gamedir (const char *dir)
 			Con_Printf("WARNING: Gamedir not set to hw :\n"
 				"It is reserved for HexenWorld.\n");
 #endif	/* H2W */
-			return;
+			break;
 	}
 
 		if (!q_strcasecmp(argv[i], "portals"))
@@ -544,7 +544,7 @@ void FS_Gamedir (const char *dir)
 #ifdef H2W
 			set_hw_dir();
 #endif
-			return;
+			break;
 		}
 
 		if (!q_strcasecmp(argv[i], "data1"))
@@ -556,7 +556,7 @@ void FS_Gamedir (const char *dir)
 #ifdef H2W
 			set_hw_dir();
 #endif
-			return;
+			break;
 		}
 
 		/* a new gamedir: let's set it here. */
