@@ -60,6 +60,7 @@ static const char	*fs_basedir;
 static char	fs_gamedir[MAX_OSPATH];
 static char	fs_userdir[MAX_OSPATH];
 char	fs_gamedir_nopath[MAX_QPATH];
+char	fs_gamedir_list[MAX_QPATH];
 cvar_t	sv_gamedir = { "*gamedir", "", CVAR_NOTIFY | CVAR_SERVERINFO };
 static char gamedirs[MAX_QPATH];
 
@@ -489,7 +490,7 @@ void FS_Gamedir (const char *dir)
 		}
 	}
 
-	if (!q_strcasecmp(fs_gamedir_nopath, dir))
+	if (!q_strcasecmp(fs_gamedir_list, dir))
 		return;		/* still the same */
 
 /* free up any current game dir info: our top searchpath dir will be hw
@@ -562,6 +563,7 @@ void FS_Gamedir (const char *dir)
 		FS_AddGameDirectory(argv[i], false);
 	}
 
+	q_snprintf(fs_gamedir_list, sizeof(fs_gamedir_list), "%s", dir);
 //#if defined(SERVERONLY)
 /* change the *gamedir serverinfo properly */
 	q_snprintf(gamedirs, sizeof(gamedirs), "%s", dir);

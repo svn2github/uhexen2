@@ -296,7 +296,7 @@ static void CL_ParseServerInfo (void)
 // parse gamedir
 	str = MSG_ReadString();
 
-	if (q_strcasecmp(fs_gamedir_nopath, str))
+	if (q_strcasecmp(fs_gamedir_list, str))
 	{
 		Con_Printf("Server set the gamedir to %s\n", str);
 		// save current config
