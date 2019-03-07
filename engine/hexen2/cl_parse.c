@@ -431,7 +431,7 @@ static void CL_ParseServerInfo (void)
 			}
 			for (j = 2; j < nummodels; j++)
 			{
-				if (!strcmp(sv.model_precache[j], str))
+				if (!strcmp(cl.model_precache[j], str))
 				{
 					cl.model_precache[j]->ex_flags = MSG_ReadShort();
 					cl.model_precache[j]->glow_color[0] = MSG_ReadFloat();
