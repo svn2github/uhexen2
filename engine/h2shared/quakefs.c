@@ -60,6 +60,7 @@ static const char	*fs_basedir;
 static char	fs_gamedir[MAX_OSPATH];
 static char	fs_userdir[MAX_OSPATH];
 char	fs_gamedir_nopath[MAX_QPATH];
+char	fs_gamedir_list[MAX_QPATH];
 cvar_t	sv_gamedir = { "*gamedir", "", CVAR_NOTIFY | CVAR_SERVERINFO };
 static char gamedirs[MAX_QPATH];
 
@@ -452,7 +453,7 @@ void FS_Gamedir (const char *dir)
 	int argc;
 	searchpath_t	*next;
 
-	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":"))
+	if (!*dir || !strcmp(dir, ".") || strstr(dir, "..") || strstr(dir, "/") || strstr(dir, "\\") || strstr(dir, ":") || strstr(dir, "<") || strstr(dir, ">"))
 	{
 		if (!host_initialized)
 			Sys_Error ("gamedir should be a directory name list, not a path\n");
@@ -489,7 +490,7 @@ void FS_Gamedir (const char *dir)
 		}
 	}
 
-	if (!q_strcasecmp(fs_gamedir_nopath, dir))
+	if (!q_strcasecmp(fs_gamedir_list, dir))
 		return;		/* still the same */
 
 /* free up any current game dir info: our top searchpath dir will be hw
@@ -531,7 +532,7 @@ void FS_Gamedir (const char *dir)
 			Con_Printf("WARNING: Gamedir not set to hw :\n"
 				"It is reserved for HexenWorld.\n");
 #endif	/* H2W */
-			return;
+			break;
 	}
 
 		if (!q_strcasecmp(argv[i], "portals"))
@@ -543,7 +544,7 @@ void FS_Gamedir (const char *dir)
 #ifdef H2W
 			set_hw_dir();
 #endif
-			return;
+			break;
 		}
 
 		if (!q_strcasecmp(argv[i], "data1"))
@@ -555,13 +556,14 @@ void FS_Gamedir (const char *dir)
 #ifdef H2W
 			set_hw_dir();
 #endif
-			return;
+			break;
 		}
 
 		/* a new gamedir: let's set it here. */
 		FS_AddGameDirectory(argv[i], false);
 	}
 
+	q_snprintf(fs_gamedir_list, sizeof(fs_gamedir_list), "%s", dir);
 //#if defined(SERVERONLY)
 /* change the *gamedir serverinfo properly */
 	q_snprintf(gamedirs, sizeof(gamedirs), "%s", dir);

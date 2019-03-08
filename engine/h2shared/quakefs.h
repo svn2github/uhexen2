@@ -48,6 +48,7 @@
 #define	GAME_MODIFIED		(1 << 16)
 
 extern	char	fs_gamedir_nopath[MAX_QPATH];
+extern	char	fs_gamedir_list[MAX_QPATH];
 
 const char *FS_GetBasedir (void);
 const char *FS_GetUserbase (void);
