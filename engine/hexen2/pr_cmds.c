@@ -3220,7 +3220,6 @@ static void PF_set_extra_flags(void)
 
 	s = G_STRING(OFS_PARM0);
 	flags = (int)G_FLOAT(OFS_PARM1);
-	G_INT(OFS_RETURN) = G_INT(OFS_PARM1);
 	PR_CheckEmptyString(s);
 
 	for (i = 0; i < MAX_MODELS; i++)
@@ -3256,7 +3255,6 @@ static void PF_set_fx_color(void)
 	k = G_FLOAT(OFS_PARM2);
 	l = G_FLOAT(OFS_PARM3);
 	m = G_FLOAT(OFS_PARM4);
-	G_INT(OFS_RETURN) = G_INT(OFS_PARM4);
 	PR_CheckEmptyString(s);
 
 	for (i = 0; i < MAX_MODELS; i++)

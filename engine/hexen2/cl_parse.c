@@ -441,6 +441,11 @@ static void CL_ParseServerInfo (void)
 				}
 			}
 		}
+
+		if (precache.integer)
+		{
+			total_loading_size = nummodels + numsounds + numfx;
+		}
 	}
 
 	S_BeginPrecaching ();
