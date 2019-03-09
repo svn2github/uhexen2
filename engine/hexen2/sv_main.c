@@ -486,6 +486,7 @@ static void SV_SendServerinfo (client_t *client)
 		// send model effects
 		for (i = 1, s = sv.model_precache + 1; i < MAX_MODELS && *s; s++)
 		{
+			#ifndef SERVERONLY
 			if (sv.models[i]->ex_flags != 0)
 			{
 				MSG_WriteString(&client->message, *s);
@@ -495,6 +496,7 @@ static void SV_SendServerinfo (client_t *client)
 				MSG_WriteFloat(&client->message, sv.models[i]->glow_color[2]);
 				MSG_WriteFloat(&client->message, sv.models[i]->glow_color[3]);
 			}
+			#endif
 			i++;
 		}
 		MSG_WriteByte(&client->message, 0);

@@ -55,6 +55,7 @@
 #define TE_STREAM_GAZE			31
 #define TE_STREAM_FAMINE		32
 #define TE_STREAM_LIGHTNING_SMALL	24
+#define TE_LIGHT_PULSE		33
 
 // TYPES -------------------------------------------------------------------
 
@@ -144,8 +145,10 @@ void CL_ClearTEnts(void)
 
 void CL_ParseTEnt(void)
 {
-	int type;
+	int type, entnum;
 	vec3_t pos;
+	entity_t	*ent;
+
 #ifdef QUAKE2
 	vec3_t endpos;
 #endif
@@ -277,6 +280,24 @@ void CL_ParseTEnt(void)
 		pos[1] = MSG_ReadCoord ();
 		pos[2] = MSG_ReadCoord ();
 		R_TeleportSplash (pos);
+		break;
+	case TE_LIGHT_PULSE:	// colored light pulse
+		entnum = MSG_ReadShort();
+		ent = CL_EntityNum(entnum);
+		dl = CL_AllocDlight(0);
+		VectorCopy(ent->origin, dl->origin);
+		dl->radius = 250;
+		dl->die = cl.time + 0.5;
+		dl->decay = 300;
+#	ifdef GLQUAKE
+		if ((gl_colored_dynamic_lights.integer) && (ent->model))
+		{
+			dl->color[0] = ent->model->glow_color[0];
+			dl->color[1] = ent->model->glow_color[1];
+			dl->color[2] = ent->model->glow_color[2];
+			dl->color[3] = ent->model->glow_color[3];
+		}
+#	endif
 		break;
 	default:
 		Sys_Error ("%s: bad type", __thisfunc__);
