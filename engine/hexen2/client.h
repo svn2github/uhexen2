@@ -300,6 +300,7 @@ extern	dlight_t	cl_dlights[MAX_DLIGHTS];
 //
 // cl_main
 //
+entity_t *CL_EntityNum(int num);
 dlight_t *CL_AllocDlight (int key);
 void	CL_DecayLights (void);
 

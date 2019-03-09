@@ -63,6 +63,29 @@ entity_t	*cl_visedicts[MAX_VISEDICTS];
 
 
 /*
+===============
+CL_EntityNum
+
+This error checks and tracks the total number of entities
+===============
+*/
+entity_t *CL_EntityNum(int num)
+{
+	if (num >= cl.num_entities)
+	{
+		if (num >= MAX_EDICTS)
+			Host_Error("%s: %i is an invalid number", __thisfunc__, num);
+		while (cl.num_entities <= num)
+		{
+			cl_entities[cl.num_entities].colormap = vid.colormap;
+			cl.num_entities++;
+		}
+	}
+
+	return &cl_entities[num];
+}
+
+/*
 =====================
 CL_ClearState
 
