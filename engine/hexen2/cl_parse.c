@@ -226,7 +226,7 @@ CL_ParseServerInfo
 static void CL_ParseServerInfo (void)
 {
 	const char	*str;
-	int		i, j, argc;
+	int		i, j;
 	int		nummodels, numsounds, numfx;
 	char	model_precache[MAX_MODELS][MAX_QPATH];
 	char	sound_precache[MAX_SOUNDS][MAX_QPATH];
@@ -407,7 +407,7 @@ static void CL_ParseServerInfo (void)
 			}
 			for (j = 2; j < nummodels; j++)
 			{
-				if (!strcmp(cl.model_precache[j], str))
+				if (!strcmp(cl.model_precache[j]->name, str))
 				{
 					cl.model_precache[j]->ex_flags = MSG_ReadShort();
 					cl.model_precache[j]->glow_color[0] = MSG_ReadFloat();

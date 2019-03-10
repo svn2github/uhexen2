@@ -221,12 +221,14 @@ void Info_SetValueForStarKey (char *s, const char *key, const char *value, size_
 				c = q_tolower(c);
 		}
 #else
+#ifdef H2W
 		if (!sv_highchars.integer)
 		{
 			c &= 127;
 			if (c < 32 || c > 127)
 				continue;
 		}
+#endif
 #endif
 //		c &= 127;		// strip high bits
 		if (c > 13) // && c < 127)
