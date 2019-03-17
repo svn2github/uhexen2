@@ -256,7 +256,7 @@ sys_socket_t WIPX_CheckNewConnections (void)
 //=============================================================================
 
 //static byte netpacketBuffer[NET_DATAGRAMSIZE + 4];
-static byte netpacketBuffer[NET_MAXMESSAGE + 4]; //shan
+static byte netpacketBuffer[NET_MAXMESSAGE + 4];
 //_Datagram_SearchForHosts calls this with net_message.maxsize as len!
 
 int WIPX_Read (sys_socket_t handle, byte *buf, int len, struct qsockaddr *addr)
