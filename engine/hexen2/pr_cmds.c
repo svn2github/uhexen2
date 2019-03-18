@@ -3293,7 +3293,7 @@ static void PF_strhash(void)
 	//	hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
 	//sdbm
-	while (c = *s++)
+	while ((c = *s++))
 		hash = c + (hash << 6) + (hash << 16) - hash;
 
 	G_FLOAT(OFS_RETURN) = hash;
