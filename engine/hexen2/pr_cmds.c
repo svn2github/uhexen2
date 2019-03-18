@@ -3278,6 +3278,28 @@ static void PF_set_fx_color(void)
 	//PR_RunError("%s: overflow", __thisfunc__);
 }
 
+static void PF_strhash(void)
+{
+	const char	*s;
+	unsigned long hash = 5381;
+
+	s = G_STRING(OFS_PARM0);
+	PR_CheckEmptyString(s);
+
+	int c;
+
+	//djb2
+	//while (c = *s++)
+	//	hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+	//sdbm
+	while (c = *s++)
+		hash = c + (hash << 6) + (hash << 16) - hash;
+
+	G_FLOAT(OFS_RETURN) = hash;
+	//PR_RunError("%s: overflow", __thisfunc__);
+}
+
 
 static builtin_t pr_builtin[] =
 {
@@ -3418,7 +3440,7 @@ static builtin_t pr_builtin[] =
 #else
 	PF_set_extra_flags,	// void(string model, int flags) set_extra_flags	= #107
 	PF_set_fx_color,	// void(string model, float r, float g, float b, float a) set_fx_color	= #108
-	PF_Fixme,
+	PF_strhash,		// float(string s1) strhash = #109
 	PF_Fixme,
 	PF_Fixme,
 	PF_Fixme,
