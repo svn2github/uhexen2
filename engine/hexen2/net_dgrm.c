@@ -52,6 +52,13 @@ static struct
 	byte	data[MAX_DATAGRAM];
 } packetBuffer;
 
+static struct
+{
+	unsigned int	length;
+	unsigned int	sequence;
+	byte	data[MAX_DATAGRAM_114];
+} packetBuffer114;
+
 #if !defined(SERVERONLY)
 static int myDriverLevel;
 
@@ -157,27 +164,38 @@ int Datagram_SendMessage (qsocket_t *sock, sizebuf_t *data)
 	memcpy(sock->sendMessage, data->data, data->cursize);
 	sock->sendMessageLength = data->cursize;
 
-	if (data->cursize <= MAX_DATAGRAM)
+	if (data->cursize <= (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM))
 	{
 		dataLen = data->cursize;
 		eom = NETFLAG_EOM;
 	}
 	else
 	{
-		dataLen = MAX_DATAGRAM;
+		dataLen = (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM);
 		eom = 0;
 	}
 	packetLen = NET_HEADERSIZE + dataLen;
 
-	packetBuffer.length = BigLong(packetLen | (NETFLAG_DATA | eom));
-	packetBuffer.sequence = BigLong(sock->sendSequence++);
-	memcpy (packetBuffer.data, sock->sendMessage, dataLen);
+	if (sv_protocol == PROTOCOL_UH2_114)
+	{
+		packetBuffer114.length = BigLong(packetLen | (NETFLAG_DATA | eom));
+		packetBuffer114.sequence = BigLong(sock->sendSequence++);
+		memcpy(packetBuffer114.data, sock->sendMessage, dataLen);
+		sock->canSend = false;
 
-	sock->canSend = false;
+		if (sfunc.Write(sock->socket, (byte *)&packetBuffer114, packetLen, &sock->addr) == -1)
+			return -1;
+	}
+	else
+	{
+		packetBuffer.length = BigLong(packetLen | (NETFLAG_DATA | eom));
+		packetBuffer.sequence = BigLong(sock->sendSequence++);
+		memcpy(packetBuffer.data, sock->sendMessage, dataLen);
+		sock->canSend = false;
 
-	if (sfunc.Write (sock->socket, (byte *)&packetBuffer, packetLen, &sock->addr) == -1)
-		return -1;
-
+		if (sfunc.Write(sock->socket, (byte *)&packetBuffer, packetLen, &sock->addr) == -1)
+			return -1;
+	}
 	sock->lastSendTime = net_time;
 	packetsSent++;
 	return 1;
@@ -190,26 +208,40 @@ static int SendMessageNext (qsocket_t *sock)
 	unsigned int	dataLen;
 	unsigned int	eom;
 
-	if (sock->sendMessageLength <= MAX_DATAGRAM)
+	if (sock->sendMessageLength <= (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM))
 	{
 		dataLen = sock->sendMessageLength;
 		eom = NETFLAG_EOM;
 	}
 	else
 	{
-		dataLen = MAX_DATAGRAM;
+		dataLen = (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM);
 		eom = 0;
 	}
 	packetLen = NET_HEADERSIZE + dataLen;
 
-	packetBuffer.length = BigLong(packetLen | (NETFLAG_DATA | eom));
-	packetBuffer.sequence = BigLong(sock->sendSequence++);
-	memcpy (packetBuffer.data, sock->sendMessage, dataLen);
+	if (sv_protocol == PROTOCOL_UH2_114)
+	{
+		packetBuffer114.length = BigLong(packetLen | (NETFLAG_DATA | eom));
+		packetBuffer114.sequence = BigLong(sock->sendSequence++);
+		memcpy(packetBuffer114.data, sock->sendMessage, dataLen);
 
-	sock->sendNext = false;
+		sock->sendNext = false;
 
-	if (sfunc.Write (sock->socket, (byte *)&packetBuffer, packetLen, &sock->addr) == -1)
-		return -1;
+		if (sfunc.Write(sock->socket, (byte *)&packetBuffer114, packetLen, &sock->addr) == -1)
+			return -1;
+	}
+	else
+	{
+		packetBuffer.length = BigLong(packetLen | (NETFLAG_DATA | eom));
+		packetBuffer.sequence = BigLong(sock->sendSequence++);
+		memcpy(packetBuffer.data, sock->sendMessage, dataLen);
+
+		sock->sendNext = false;
+
+		if (sfunc.Write(sock->socket, (byte *)&packetBuffer, packetLen, &sock->addr) == -1)
+			return -1;
+	}
 
 	sock->lastSendTime = net_time;
 	packetsSent++;
@@ -223,27 +255,40 @@ static int ReSendMessage (qsocket_t *sock)
 	unsigned int	dataLen;
 	unsigned int	eom;
 
-	if (sock->sendMessageLength <= MAX_DATAGRAM)
+	if (sock->sendMessageLength <= (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM))
 	{
 		dataLen = sock->sendMessageLength;
 		eom = NETFLAG_EOM;
 	}
 	else
 	{
-		dataLen = MAX_DATAGRAM;
+		dataLen = (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM);
 		eom = 0;
 	}
 	packetLen = NET_HEADERSIZE + dataLen;
 
-	packetBuffer.length = BigLong(packetLen | (NETFLAG_DATA | eom));
-	packetBuffer.sequence = BigLong(sock->sendSequence - 1);
-	memcpy (packetBuffer.data, sock->sendMessage, dataLen);
+	if (sv_protocol == PROTOCOL_UH2_114)
+	{
+		packetBuffer114.length = BigLong(packetLen | (NETFLAG_DATA | eom));
+		packetBuffer114.sequence = BigLong(sock->sendSequence - 1);
+		memcpy(packetBuffer114.data, sock->sendMessage, dataLen);
 
-	sock->sendNext = false;
+		sock->sendNext = false;
 
-	if (sfunc.Write (sock->socket, (byte *)&packetBuffer, packetLen, &sock->addr) == -1)
-		return -1;
+		if (sfunc.Write(sock->socket, (byte *)&packetBuffer114, packetLen, &sock->addr) == -1)
+			return -1;
+	}
+	else
+	{
+		packetBuffer.length = BigLong(packetLen | (NETFLAG_DATA | eom));
+		packetBuffer.sequence = BigLong(sock->sendSequence - 1);
+		memcpy(packetBuffer.data, sock->sendMessage, dataLen);
 
+		sock->sendNext = false;
+
+		if (sfunc.Write(sock->socket, (byte *)&packetBuffer, packetLen, &sock->addr) == -1)
+			return -1;
+	}
 	sock->lastSendTime = net_time;
 	packetsReSent++;
 	return 1;
@@ -273,19 +318,30 @@ int Datagram_SendUnreliableMessage (qsocket_t *sock, sizebuf_t *data)
 	if (data->cursize == 0)
 		Sys_Error("%s: zero length message", __thisfunc__);
 
-	if (data->cursize > MAX_DATAGRAM)
+	if (data->cursize > (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM))
 		Sys_Error("%s: message too big: %u", __thisfunc__, data->cursize);
 #endif
 
 	packetLen = NET_HEADERSIZE + data->cursize;
 
-	packetBuffer.length = BigLong(packetLen | NETFLAG_UNRELIABLE);
-	packetBuffer.sequence = BigLong(sock->unreliableSendSequence++);
-	memcpy (packetBuffer.data, data->data, data->cursize);
+	if (sv_protocol == PROTOCOL_UH2_114)
+	{
+		packetBuffer114.length = BigLong(packetLen | NETFLAG_UNRELIABLE);
+		packetBuffer114.sequence = BigLong(sock->unreliableSendSequence++);
+		memcpy(packetBuffer114.data, data->data, data->cursize);
 
-	if (sfunc.Write (sock->socket, (byte *)&packetBuffer, packetLen, &sock->addr) == -1)
-		return -1;
+		if (sfunc.Write(sock->socket, (byte *)&packetBuffer114, packetLen, &sock->addr) == -1)
+			return -1;
+	}
+	else
+	{
+		packetBuffer.length = BigLong(packetLen | NETFLAG_UNRELIABLE);
+		packetBuffer.sequence = BigLong(sock->unreliableSendSequence++);
+		memcpy(packetBuffer.data, data->data, data->cursize);
 
+		if (sfunc.Write(sock->socket, (byte *)&packetBuffer, packetLen, &sock->addr) == -1)
+			return -1;
+	}
 	packetsSent++;
 	return 1;
 }
@@ -306,9 +362,16 @@ int	Datagram_GetMessage (qsocket_t *sock)
 
 	while (1)
 	{
-		length = (unsigned int) sfunc.Read(sock->socket, (byte *)&packetBuffer,
-							NET_DATAGRAMSIZE, &readaddr);
-
+		if (sv_protocol == PROTOCOL_UH2_114)
+		{
+			length = (unsigned int)sfunc.Read(sock->socket, (byte *)&packetBuffer114,
+				NET_DATAGRAMSIZE, &readaddr);
+		}
+		else
+		{
+			length = (unsigned int)sfunc.Read(sock->socket, (byte *)&packetBuffer,
+				NET_DATAGRAMSIZE, &readaddr);
+		}
 	//	if ((rand() & 255) > 220)
 	//		continue;
 
@@ -335,14 +398,14 @@ int	Datagram_GetMessage (qsocket_t *sock)
 			continue;
 		}
 
-		length = BigLong(packetBuffer.length);
+		length = BigLong((sv_protocol == PROTOCOL_UH2_114 ? packetBuffer114.length : packetBuffer.length));
 		flags = length & (~NETFLAG_LENGTH_MASK);
 		length &= NETFLAG_LENGTH_MASK;
 
 		if (flags & NETFLAG_CTL)
 			continue;
 
-		sequence = BigLong(packetBuffer.sequence);
+		sequence = BigLong((sv_protocol == PROTOCOL_UH2_114 ? packetBuffer114.sequence : packetBuffer.sequence));
 		packetsReceived++;
 
 		if (flags & NETFLAG_UNRELIABLE)
@@ -364,7 +427,7 @@ int	Datagram_GetMessage (qsocket_t *sock)
 			length -= NET_HEADERSIZE;
 
 			SZ_Clear (&net_message);
-			SZ_Write (&net_message, packetBuffer.data, length);
+			SZ_Write (&net_message, (sv_protocol == PROTOCOL_UH2_114 ? packetBuffer114.data : packetBuffer.data), length);
 
 			ret = 2;
 			break;
@@ -388,10 +451,10 @@ int	Datagram_GetMessage (qsocket_t *sock)
 				Con_DPrintf("Duplicate ACK received\n");
 				continue;
 			}
-			sock->sendMessageLength -= MAX_DATAGRAM;
+			sock->sendMessageLength -= (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM);
 			if (sock->sendMessageLength > 0)
 			{
-				memmove (sock->sendMessage, sock->sendMessage + MAX_DATAGRAM, sock->sendMessageLength);
+				memmove (sock->sendMessage, sock->sendMessage + (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM), sock->sendMessageLength);
 				sock->sendNext = true;
 			}
 			else
@@ -404,10 +467,18 @@ int	Datagram_GetMessage (qsocket_t *sock)
 
 		if (flags & NETFLAG_DATA)
 		{
-			packetBuffer.length = BigLong(NET_HEADERSIZE | NETFLAG_ACK);
-			packetBuffer.sequence = BigLong(sequence);
-			sfunc.Write (sock->socket, (byte *)&packetBuffer, NET_HEADERSIZE, &readaddr);
-
+			if (sv_protocol == PROTOCOL_UH2_114)
+			{
+				packetBuffer114.length = BigLong(NET_HEADERSIZE | NETFLAG_ACK);
+				packetBuffer114.sequence = BigLong(sequence);
+				sfunc.Write(sock->socket, (byte *)&packetBuffer114, NET_HEADERSIZE, &readaddr);
+			}
+			else
+			{
+				packetBuffer.length = BigLong(NET_HEADERSIZE | NETFLAG_ACK);
+				packetBuffer.sequence = BigLong(sequence);
+				sfunc.Write(sock->socket, (byte *)&packetBuffer, NET_HEADERSIZE, &readaddr);
+			}
 			if (sequence != sock->receiveSequence)
 			{
 				receivedDuplicateCount++;
@@ -421,14 +492,14 @@ int	Datagram_GetMessage (qsocket_t *sock)
 			{
 				SZ_Clear(&net_message);
 				SZ_Write(&net_message, sock->receiveMessage, sock->receiveMessageLength);
-				SZ_Write(&net_message, packetBuffer.data, length);
+				SZ_Write(&net_message, (sv_protocol == PROTOCOL_UH2_114 ? packetBuffer114.data : packetBuffer.data), length);
 				sock->receiveMessageLength = 0;
 
 				ret = 1;
 				break;
 			}
 
-			memcpy(sock->receiveMessage + sock->receiveMessageLength, packetBuffer.data, length);
+			memcpy(sock->receiveMessage + sock->receiveMessageLength, (sv_protocol == PROTOCOL_UH2_114 ? packetBuffer114.data : packetBuffer.data), length);
 			sock->receiveMessageLength += length;
 			continue;
 		}

@@ -209,7 +209,7 @@ void SV_StartParticle (vec3_t org, vec3_t dir, int color, int count)
 {
 	int		i, v;
 
-	if (sv.datagram.cursize > MAX_DATAGRAM-16)
+	if (sv.datagram.cursize > (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM)-16)
 		return;
 	MSG_WriteByte (&sv.datagram, svc_particle);
 	MSG_WriteCoord (&sv.datagram, org[0]);
@@ -237,7 +237,7 @@ Make sure the event gets sent to all clients
 */
 void SV_StartParticle2 (vec3_t org, vec3_t dmin, vec3_t dmax, int color, int effect, int count)
 {
-	if (sv.datagram.cursize > MAX_DATAGRAM-36)
+	if (sv.datagram.cursize > (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM)-36)
 		return;
 	MSG_WriteByte (&sv.datagram, svc_particle2);
 	MSG_WriteCoord (&sv.datagram, org[0]);
@@ -264,7 +264,7 @@ Make sure the event gets sent to all clients
 */
 void SV_StartParticle3 (vec3_t org, vec3_t box, int color, int effect, int count)
 {
-	if (sv.datagram.cursize > MAX_DATAGRAM-15)
+	if (sv.datagram.cursize > (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM)-15)
 		return;
 	MSG_WriteByte (&sv.datagram, svc_particle3);
 	MSG_WriteCoord (&sv.datagram, org[0]);
@@ -288,7 +288,7 @@ Make sure the event gets sent to all clients
 */
 void SV_StartParticle4 (vec3_t org, float radius, int color, int effect, int count)
 {
-	if (sv.datagram.cursize > MAX_DATAGRAM-13)
+	if (sv.datagram.cursize > (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM)-13)
 		return;
 	MSG_WriteByte (&sv.datagram, svc_particle4);
 	MSG_WriteCoord (&sv.datagram, org[0]);
@@ -310,7 +310,7 @@ void SV_StopSound (edict_t *entity, int channel)
 {
 	int			ent;
 
-	if (sv.datagram.cursize > MAX_DATAGRAM-4)
+	if (sv.datagram.cursize > (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM)-4)
 		return;
 
 	ent = NUM_FOR_EDICT(entity);
@@ -330,7 +330,7 @@ void SV_UpdateSoundPos (edict_t *entity, int channel)
 	int			ent;
 	int			i;
 
-	if (sv.datagram.cursize > MAX_DATAGRAM-4)
+	if (sv.datagram.cursize > (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM)-4)
 		return;
 
 	ent = NUM_FOR_EDICT(entity);
@@ -376,7 +376,7 @@ void SV_StartSound (edict_t *entity, int channel, const char *sample, int volume
 	if (channel < 0 || channel > 7)
 		Host_Error ("%s: channel = %i", __thisfunc__, channel);
 
-	if (sv.datagram.cursize > MAX_DATAGRAM-16)
+	if (sv.datagram.cursize > (sv_protocol == PROTOCOL_UH2_114 ? MAX_DATAGRAM_114 : MAX_DATAGRAM)-16)
 		return;
 
 // find precache number for sound
