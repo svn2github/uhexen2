@@ -1328,20 +1328,16 @@ void FS_Init (void)
 
 	if (check_portals)
 	{
-#if defined(H2W)
 		searchpath_t	*mark = fs_searchpaths;
-#endif
 		FS_AddGameDirectory ("portals", true);
 		if (! (gameflags & GAME_PORTALS))
 		{
-#if !defined(H2W)
-			Sys_Error ("Missing or invalid mission pack installation\n");
-#else
 			/* back out searchpaths from invalid mission pack
 			 * installations because the portals directory is
 			 * reserved for the mission pack */
 			searchpath_t	*next;
 			Sys_Printf ("Missing or invalid mission pack installation\n");
+			Con_Printf("Missing or invalid mission pack installation\n");
 			while (fs_searchpaths != mark)
 			{
 				if (fs_searchpaths->pack)
@@ -1363,7 +1359,6 @@ void FS_Init (void)
 			/* back to data1 */
 			FS_MakePath_BUF (FS_BASEDIR, NULL, fs_gamedir, sizeof(fs_gamedir), "data1");
 			FS_MakePath_BUF (FS_USERBASE,NULL, fs_userdir, sizeof(fs_userdir), "data1");
-#endif	/* H2W */
 		}
 	}
 
