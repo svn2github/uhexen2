@@ -10,7 +10,7 @@ pool:
   vmImage: 'Ubuntu-16.04'
 
 variables:
-  engineDir: '$(build.artifactStagingDirectory)/uhexen2/engine/hexen2'
+  engineDir: '$(build.artifactStagingDirectory)/engine/hexen2'
 
 steps:
 - script: |
