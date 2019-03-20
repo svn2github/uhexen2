@@ -2003,7 +2003,7 @@ static void PF_lightstyle (void)
 	val = G_STRING(OFS_PARM1);
 
 // bounds check to avoid clobbering sv struct
-	if (style < 0 || style >= MAX_LIGHTSTYLES)
+	if (style < 0 || style >= (mod_bsp2 ? MAX_LIGHTSTYLES : MAX_LIGHTSTYLES_OLD))
 		Host_Error("%s: style = %d", __thisfunc__, style);
 
 // change the string in sv
@@ -2037,7 +2037,7 @@ static void PF_lightstylevalue(void)
 	int style;
 
 	style = G_FLOAT(OFS_PARM0);
-	if (style < 0 || style >= MAX_LIGHTSTYLES)
+	if (style < 0 || style >= (mod_bsp2 ? MAX_LIGHTSTYLES : MAX_LIGHTSTYLES_OLD))
 	{
 		G_FLOAT(OFS_RETURN) = 0;
 		return;

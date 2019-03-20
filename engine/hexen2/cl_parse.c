@@ -1342,8 +1342,9 @@ void CL_ParseServerMessage (void)
 
 		case svc_lightstyle:
 			i = MSG_ReadByte ();
-			if (i >= MAX_LIGHTSTYLES)
-				Sys_Error ("svc_lightstyle > MAX_LIGHTSTYLES");
+			if (i >= (mod_bsp2 ? MAX_LIGHTSTYLES : MAX_LIGHTSTYLES_OLD))
+				Sys_Error("svc_lightstyle > MAX_LIGHTSTYLES");
+
 			q_strlcpy (cl_lightstyle[i].map, MSG_ReadString(), MAX_STYLESTRING);
 			cl_lightstyle[i].length = strlen(cl_lightstyle[i].map);
 			break;

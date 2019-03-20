@@ -1771,8 +1771,10 @@ static void Mod_LoadBrushModel (qmodel_t *mod, void *buffer)
 	i = LittleLong (header->version);
 	if (i == BSP2VERSION)
 		lm = true;
-	else 	if (i != BSPVERSION)
+	else if (i != BSPVERSION)
 		Sys_Error ("%s: %s has wrong version number (%i should be %i or %i)", __thisfunc__, mod->name, i, BSPVERSION, BSP2VERSION);
+
+	mod_bsp2 = lm;
 
 // swap all the lumps
 	mod_base = (byte *)header;

@@ -89,6 +89,7 @@
 //
 #define	MAX_EDICTS	10000//600		// FIXME: ouch! ouch! ouch!
 #define	MAX_LIGHTSTYLES	255
+#define	MAX_LIGHTSTYLES_OLD	64
 
 #define	MAX_MODELS	4096//512		/* Sent over the net as a short */
 #define	MAX_SOUNDS_OLD	256		/* Hexen2 v1.11 (protocol 18) and older: sent as a byte	*/
