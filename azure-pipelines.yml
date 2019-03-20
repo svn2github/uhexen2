@@ -14,5 +14,5 @@ variables:
 
 steps:
 - script: |
-    make glh2 W32BUILD=1 -C $(engineDir)
+    make -C $(engineDir) glh2 W32BUILD=1
   displayName: 'make'
