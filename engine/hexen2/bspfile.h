@@ -286,6 +286,8 @@ typedef struct
 	byte		ambient_level[NUM_AMBIENTS];
 } dlleaf_t;
 
+extern qboolean mod_bsp2;
+
 
 //============================================================================
 

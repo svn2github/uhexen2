@@ -894,7 +894,7 @@ int SaveGamestate (qboolean ClientsOnly)
 		fprintf (f, "%f\n", sv.time);
 
 	// write the light styles
-		for (i = 0; i < MAX_LIGHTSTYLES; i++)
+		for (i = 0; i < (mod_bsp2 ? MAX_LIGHTSTYLES : MAX_LIGHTSTYLES_OLD); i++)
 		{
 			if (sv.lightstyles[i])
 				fprintf (f, "%s\n", sv.lightstyles[i]);
@@ -1063,7 +1063,7 @@ static int LoadGamestate (const char *level, const char *startspot, int ClientsM
 		}
 
 	// load the light styles
-		for (i = 0; i < MAX_LIGHTSTYLES; i++)
+		for (i = 0; i < (mod_bsp2 ? MAX_LIGHTSTYLES : MAX_LIGHTSTYLES_OLD); i++)
 		{
 			fscanf (f, "%s\n", str);
 			sv.lightstyles[i] = (const char *)Hunk_Strdup (str, "lightstyles");
@@ -1706,7 +1706,7 @@ static void Host_Spawn_f (void)
 	}
 
 // send all current light styles
-	for (i = 0; i < MAX_LIGHTSTYLES; i++)
+	for (i = 0; i < (mod_bsp2 ? MAX_LIGHTSTYLES : MAX_LIGHTSTYLES_OLD); i++)
 	{
 		MSG_WriteByte (&host_client->message, svc_lightstyle);
 		MSG_WriteByte (&host_client->message, (char)i);

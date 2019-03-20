@@ -61,6 +61,8 @@ dlight_t	cl_dlights[MAX_DLIGHTS];
 int		cl_numvisedicts;
 entity_t	*cl_visedicts[MAX_VISEDICTS];
 
+qboolean		mod_bsp2;		// bsp version used
+
 
 /*
 ===============
