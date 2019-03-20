@@ -56,7 +56,6 @@ efrag_t		cl_efrags[MAX_EFRAGS];
 entity_t	cl_entities[MAX_EDICTS];
 entity_t	cl_static_entities[MAX_STATIC_ENTITIES];
 lightstyle_t	cl_lightstyle[MAX_LIGHTSTYLES];
-lightstyle_t	cl_lightstyle_old[MAX_LIGHTSTYLES_OLD];
 dlight_t	cl_dlights[MAX_DLIGHTS];
 
 int		cl_numvisedicts;

@@ -293,7 +293,6 @@ extern	efrag_t		cl_efrags[MAX_EFRAGS];
 extern	entity_t	cl_entities[MAX_EDICTS];
 extern	entity_t	cl_static_entities[MAX_STATIC_ENTITIES];
 extern	lightstyle_t	cl_lightstyle[MAX_LIGHTSTYLES];
-extern	lightstyle_t	cl_lightstyle_old[MAX_LIGHTSTYLES_OLD];
 extern	dlight_t	cl_dlights[MAX_DLIGHTS];
 
 //=============================================================================

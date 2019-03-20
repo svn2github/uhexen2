@@ -65,7 +65,6 @@ typedef struct
 	struct qmodel_s	*models[MAX_MODELS];
 	const char	*sound_precache[MAX_SOUNDS];	// NULL terminated
 	const char	*lightstyles[MAX_LIGHTSTYLES];
-	const char	*lightstyles_old[MAX_LIGHTSTYLES_OLD];
 	struct EffectT	Effects[MAX_EFFECTS];
 
 	client_state2_t	*states;
