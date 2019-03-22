@@ -486,7 +486,7 @@ static void SV_SendServerinfo (client_t *client)
 		// send model effects
 		for (i = 1, s = sv.model_precache + 1; i < MAX_MODELS && *s; s++)
 		{
-			#ifndef SERVERONLY
+			#if !defined(SERVERONLY) && defined(GLQUAKE)
 			if (sv.models[i]->ex_flags != 0)
 			{
 				MSG_WriteString(&client->message, *s);
