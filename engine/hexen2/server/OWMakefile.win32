@@ -103,6 +103,7 @@ OBJECTS = &
 	common.obj &
 	debuglog.obj &
 	quakefs.obj &
+	info_str.obj &
 	cmd.obj &
 	crc.obj &
 	cvar.obj &
