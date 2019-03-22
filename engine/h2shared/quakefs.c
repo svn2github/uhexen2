@@ -68,6 +68,7 @@ unsigned int	gameflags;
 
 cvar_t	oem = {"oem", "0", CVAR_ROM};
 cvar_t	registered = {"registered", "0", CVAR_ROM};
+qboolean		mod_bsp2;		// bsp version used
 
 typedef struct
 {
