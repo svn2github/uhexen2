@@ -389,6 +389,7 @@ OBJECTS = \
 	common.o \
 	debuglog.o \
 	quakefs.o \
+	info_str.o \
 	cmd.o \
 	crc.o \
 	cvar.o \
