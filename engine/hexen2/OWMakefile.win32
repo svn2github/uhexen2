@@ -477,6 +477,7 @@ COMMONOBJS = &
 	common.obj &
 	debuglog.obj &
 	quakefs.obj &
+	info_str.obj &
 	crc.obj &
 	cvar.obj &
 	cfgfile.obj &
