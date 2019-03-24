@@ -365,7 +365,7 @@ int	Datagram_GetMessage (qsocket_t *sock)
 		if (sv_protocol == PROTOCOL_UH2_114)
 		{
 			length = (unsigned int)sfunc.Read(sock->socket, (byte *)&packetBuffer114,
-				NET_DATAGRAMSIZE, &readaddr);
+				NET_DATAGRAMSIZE_114, &readaddr);
 		}
 		else
 		{
