@@ -56,7 +56,7 @@ typedef struct
 
 #define	SIGNONS			4	// signon messages to receive before connected
 
-#define	MAX_DLIGHTS		32
+#define	MAX_DLIGHTS		64
 typedef struct
 {
 	vec3_t		origin;
@@ -75,7 +75,7 @@ typedef struct
 	char		map[MAX_STYLESTRING];
 } lightstyle_t;
 
-#define	MAX_EFRAGS		640
+#define	MAX_EFRAGS		1024
 
 #define	MAX_MAPSTRING		2048
 #define	MAX_DEMOS		8
@@ -222,6 +222,7 @@ typedef struct
 // refresh related state
 	struct qmodel_s	*worldmodel;		// cl_entitites[0].model
 	struct efrag_s	*free_efrags;
+	int			num_efrags;
 	int		num_entities;		// held in cl_entities array
 	int		num_statics;		// held in cl_staticentities array
 	entity_t	viewent;		// the gun model
@@ -284,7 +285,7 @@ extern	cvar_t	m_forward;
 extern	cvar_t	m_side;
 
 
-#define	MAX_STATIC_ENTITIES	256		// torches, etc
+#define	MAX_STATIC_ENTITIES	512		// torches, etc
 
 extern	client_state_t	cl;
 
@@ -317,7 +318,7 @@ void CL_Disconnect (void);
 void CL_Disconnect_f (void);
 void CL_NextDemo (void);
 
-#define	MAX_VISEDICTS		256
+#define	MAX_VISEDICTS		1024
 extern	int		cl_numvisedicts;
 extern	entity_t	*cl_visedicts[MAX_VISEDICTS];
 

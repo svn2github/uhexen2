@@ -396,7 +396,7 @@ loc0:
 
 	if (node->contents < 0)
 	{
-		if (ent->num_leafs == MAX_ENT_LEAFS)
+		//if (ent->num_leafs == MAX_ENT_LEAFS)
 			return;
 
 		leaf = (mleaf_t *)node;
