@@ -206,9 +206,7 @@ void R_AddEfrags(entity_t *ent)
 
 /*
 ================
-R_StoreEfrags
-
-// FIXME: a lot of this goes away with edge-based
+R_StoreEfrags -- johnfitz -- pointless switch statement removed.
 ================
 */
 void R_StoreEfrags(efrag_t **ppefrag)
@@ -220,7 +218,7 @@ void R_StoreEfrags(efrag_t **ppefrag)
 	{
 		pent = pefrag->entity;
 
-		//if ((pent->visframe != r_framecount) && (cl_numvisedicts < MAX_VISEDICTS))
+		if ((pent->visframe != r_framecount) && (cl_numvisedicts < MAX_VISEDICTS))
 		{
 			cl_visedicts[cl_numvisedicts++] = pent;
 			pent->visframe = r_framecount;

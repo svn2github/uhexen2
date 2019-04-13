@@ -394,9 +394,9 @@ loc0:
 
 	// add an efrag if the node is a leaf
 
-	if (node->contents < 0)
+	//if (node->contents < 0) //shan woohoo!
 	{
-		//if (ent->num_leafs == MAX_ENT_LEAFS)
+		if (ent->num_leafs == MAX_ENT_LEAFS)
 			return;
 
 		leaf = (mleaf_t *)node;
