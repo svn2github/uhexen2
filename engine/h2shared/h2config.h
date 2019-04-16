@@ -197,7 +197,7 @@
    Support for loading external wal mip textures instead of the ones
    embedded in the mdl. (cvar: r_texture_external.)
    ================================================================== */
-#undef	WAL_TEXTURES
+#define	WAL_TEXTURES
 
 
 /* ====================================================================

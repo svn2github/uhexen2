@@ -57,8 +57,8 @@ typedef struct areanode_s
 	link_t	solid_edicts;
 } areanode_t;
 
-#define	AREA_DEPTH	4
-#define	AREA_NODES	32
+#define	AREA_DEPTH	8
+#define	AREA_NODES	512
 
 
 
