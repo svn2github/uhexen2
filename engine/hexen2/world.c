@@ -396,8 +396,8 @@ loc0:
 		return;
 
 	// add an efrag if the node is a leaf
-
-	if (node->contents < 0) //shan woohoo!
+	// statics in walls cause efrag overflow, comment out to show over-culled ents in this case - shan
+	if (node->contents < 0)
 	{
 		if (ent->num_leafs == MAX_ENT_LEAFS)
 			return;
