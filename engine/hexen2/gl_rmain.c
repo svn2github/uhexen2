@@ -1462,7 +1462,7 @@ static void R_MarkLeaves (void)
 	byte	*vis;
 	mnode_t	*node;
 	int		i;
-	byte	solid[4096];
+	byte	solid[8192];
 
 	if (r_oldviewleaf == r_viewleaf && !r_novis.integer)
 		return;

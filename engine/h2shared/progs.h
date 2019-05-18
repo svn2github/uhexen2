@@ -37,7 +37,7 @@ typedef union eval_s
 	int		edict;
 } eval_t;
 
-#define	MAX_ENT_LEAFS	16
+#define	MAX_ENT_LEAFS	32
 typedef struct edict_s
 {
 	qboolean	free;

@@ -214,6 +214,7 @@ ENTITY AREA CHECKING
 */
 
 static	areanode_t	sv_areanodes[AREA_NODES];
+static	int			areanodedepth;
 static	int			sv_numareanodes;
 
 /*
@@ -234,14 +235,15 @@ static areanode_t *SV_CreateAreaNode (int depth, vec3_t mins, vec3_t maxs)
 	ClearLink (&anode->trigger_edicts);
 	ClearLink (&anode->solid_edicts);
 
-	if (depth == AREA_DEPTH)
+	VectorSubtract(maxs, mins, size);
+
+	if (depth == AREA_DEPTH || (size[0] < 512 && size[1] < 512))
 	{
 		anode->axis = -1;
 		anode->children[0] = anode->children[1] = NULL;
 		return anode;
 	}
 
-	VectorSubtract (maxs, mins, size);
 	if (size[0] > size[1])
 		anode->axis = 0;
 	else
@@ -274,6 +276,7 @@ void SV_ClearWorld (void)
 	memset (sv_areanodes, 0, sizeof(sv_areanodes));
 	sv_numareanodes = 0;
 	SV_CreateAreaNode (0, sv.worldmodel->mins, sv.worldmodel->maxs);
+	areanodedepth = 0;
 }
 
 
@@ -393,7 +396,7 @@ loc0:
 		return;
 
 	// add an efrag if the node is a leaf
-
+	// statics in walls cause efrag overflow, comment out to show over-culled ents in this case - shan
 	if (node->contents < 0)
 	{
 		if (ent->num_leafs == MAX_ENT_LEAFS)
@@ -726,8 +729,7 @@ loc0: // optimized recursion
 #endif
 
 // put the crosspoint DIST_EPSILON pixels on the near side
-	side = (t1 < 0);
-	if (side)
+	if (t1 < 0)
 		frac = (t1 + DIST_EPSILON)/(t1-t2);
 	else
 		frac = (t1 - DIST_EPSILON)/(t1-t2);
@@ -740,10 +742,11 @@ loc0: // optimized recursion
 	for (i = 0; i < 3; i++)
 		mid[i] = p1[i] + frac*(p2[i] - p1[i]);
 
+	side = (t1 < 0);
+
 // move up to the node
 	if (!SV_RecursiveHullCheck (hull, node->children[side], p1f, midf, p1, mid, trace) )
 		return false;
-
 #ifdef PARANOID
 	if (SV_HullPointContents (hull, node->children[side], mid) == CONTENTS_SOLID)
 	{

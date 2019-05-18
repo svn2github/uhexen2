@@ -316,7 +316,7 @@ typedef struct
 	byte	abslight;
 } entity_state3_t;
 
-#define MAX_CLIENT_STATES	150
+#define MAX_CLIENT_STATES	512
 #define MAX_FRAMES		5
 #define CLEAR_LIMIT		2
 

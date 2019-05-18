@@ -37,6 +37,41 @@ static efrag_t		**lastlink;
 static entity_t		*r_addent;
 static vec3_t		r_emins, r_emaxs;
 
+#define EXTRA_EFRAGS	512
+
+// based on RMQEngine
+static efrag_t *R_GetEfrag(void)
+{
+	// we could just Hunk_Alloc a single efrag_t and return it, but since
+	// the struct is so small (2 pointers) allocate groups of them
+	// to avoid wasting too much space on the hunk allocation headers.
+
+	if (cl.free_efrags)
+	{
+		efrag_t *ef = cl.free_efrags;
+		cl.free_efrags = ef->leafnext;
+		ef->leafnext = NULL;
+
+		cl.num_efrags++;
+
+		return ef;
+	}
+	else
+	{
+		int i;
+
+		cl.free_efrags = (efrag_t *)Hunk_AllocName(EXTRA_EFRAGS * sizeof(efrag_t), "efrags");
+
+		for (i = 0; i < EXTRA_EFRAGS - 1; i++)
+			cl.free_efrags[i].leafnext = &cl.free_efrags[i + 1];
+
+		cl.free_efrags[i].leafnext = NULL;
+
+		// call recursively to get a newly allocated free efrag
+		return R_GetEfrag();
+	}
+}
+
 /*
 ================
 R_RemoveEfrags
@@ -44,7 +79,7 @@ R_RemoveEfrags
 Call when removing an object from the world or moving it to another position
 ================
 */
-void R_RemoveEfrags (entity_t *ent)
+void R_RemoveEfrags(entity_t *ent)
 {
 	efrag_t		*ef, *old, *walk, **prev;
 
@@ -70,7 +105,7 @@ void R_RemoveEfrags (entity_t *ent)
 		old = ef;
 		ef = ef->entnext;
 
-	// put it on the free list
+		// put it on the free list
 		old->entnext = cl.free_efrags;
 		cl.free_efrags = old;
 	}
@@ -83,7 +118,7 @@ void R_RemoveEfrags (entity_t *ent)
 R_SplitEntityOnNode
 ===================
 */
-static void R_SplitEntityOnNode (mnode_t *node)
+static void R_SplitEntityOnNode(mnode_t *node)
 {
 	efrag_t		*ef;
 	mplane_t	*splitplane;
@@ -95,7 +130,7 @@ static void R_SplitEntityOnNode (mnode_t *node)
 		return;
 	}
 
-// add an efrag if the node is a leaf
+	// add an efrag if the node is a leaf
 
 	if (node->contents < 0)
 	{
@@ -104,58 +139,44 @@ static void R_SplitEntityOnNode (mnode_t *node)
 
 		leaf = (mleaf_t *)node;
 
-// grab an efrag off the free list
-		ef = cl.free_efrags;
-		if (!ef)
-		{
-			Con_Printf ("Too many efrags!\n");
-			return;		// no free fragments...
-		}
-		cl.free_efrags = cl.free_efrags->entnext;
-
+		// grab an efrag off the free list
+		ef = R_GetEfrag(); //shan
 		ef->entity = r_addent;
 
-// add the entity link
-		*lastlink = ef;
-		lastlink = &ef->entnext;
-		ef->entnext = NULL;
-
-// set the leaf links
-		ef->leaf = leaf;
+		// set the leaf links
 		ef->leafnext = leaf->efrags;
 		leaf->efrags = ef;
 
 		return;
 	}
 
-// NODE_MIXED
+	// NODE_MIXED
 
 	splitplane = node->plane;
 	sides = BOX_ON_PLANE_SIDE(r_emins, r_emaxs, splitplane);
 
 	if (sides == 3)
 	{
-	// split on this plane
-	// if this is the first splitter of this bmodel, remember it
+		// split on this plane
+		// if this is the first splitter of this bmodel, remember it
 		if (!r_pefragtopnode)
 			r_pefragtopnode = node;
 	}
 
-// recurse down the contacted sides
+	// recurse down the contacted sides
 	if (sides & 1)
-		R_SplitEntityOnNode (node->children[0]);
+		R_SplitEntityOnNode(node->children[0]);
 
 	if (sides & 2)
-		R_SplitEntityOnNode (node->children[1]);
+		R_SplitEntityOnNode(node->children[1]);
 }
-
 
 /*
 ===========
 R_AddEfrags
 ===========
 */
-void R_AddEfrags (entity_t *ent)
+void R_AddEfrags(entity_t *ent)
 {
 	qmodel_t	*entmodel;
 	int			i;
@@ -165,7 +186,6 @@ void R_AddEfrags (entity_t *ent)
 
 	r_addent = ent;
 
-	lastlink = &ent->efrag;
 	r_pefragtopnode = NULL;
 
 	entmodel = ent->model;
@@ -176,57 +196,34 @@ void R_AddEfrags (entity_t *ent)
 		r_emaxs[i] = ent->origin[i] + entmodel->maxs[i];
 	}
 
-	R_SplitEntityOnNode (cl.worldmodel->nodes);
+	R_SplitEntityOnNode(cl.worldmodel->nodes);
 
 	ent->topnode = r_pefragtopnode;
+
+	//R_CheckEfrags(); //johnfitz
 }
 
 
 /*
 ================
-R_StoreEfrags
-
-// FIXME: a lot of this goes away with edge-based
+R_StoreEfrags -- johnfitz -- pointless switch statement removed.
 ================
 */
-void R_StoreEfrags (efrag_t **ppefrag)
+void R_StoreEfrags(efrag_t **ppefrag)
 {
 	entity_t	*pent;
-	qmodel_t	*clmodel;
 	efrag_t		*pefrag;
 
 	while ((pefrag = *ppefrag) != NULL)
 	{
 		pent = pefrag->entity;
-		clmodel = pent->model;
 
-		switch (clmodel->type)
+		if ((pent->visframe != r_framecount) && (cl_numvisedicts < MAX_VISEDICTS))
 		{
-		case mod_alias:
-		case mod_brush:
-		case mod_sprite:
-			pent = pefrag->entity;
-
-			if ((pent->visframe != r_framecount) &&
-				(cl_numvisedicts < MAX_VISEDICTS))
-			{
-
-#if defined (H2W)
-				cl_visedicts[cl_numvisedicts++] = *pent;
-#else
-				cl_visedicts[cl_numvisedicts++] = pent;
-#endif
-
-			// mark that we've recorded this entity for this frame
-				pent->visframe = r_framecount;
-			}
-
-			ppefrag = &pefrag->leafnext;
-			break;
-
-		default:
-			Sys_Error ("%s: Bad entity type %d\n", __thisfunc__, clmodel->type);
+			cl_visedicts[cl_numvisedicts++] = pent;
+			pent->visframe = r_framecount;
 		}
+
+		ppefrag = &pefrag->leafnext;
 	}
 }
-
