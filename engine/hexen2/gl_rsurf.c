@@ -706,6 +706,10 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 		return;
 	}
 
+	if (fa->flags & SURF_DRAWFENCE)
+		glEnable_fp(GL_ALPHA_TEST); // Flip alpha test back off
+
+
 	if (gl_mtexable)
 	{
 		if ((e->drawflags & DRF_TRANSLUCENT) ||
@@ -749,7 +753,10 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 			DrawGLPoly (fa->polys);
 	}
 
-	// add the poly to the proper lightmap chain
+	if (fa->flags & SURF_DRAWFENCE)
+		glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
+
+// add the poly to the proper lightmap chain
 	fa->polys->chain = lightmap_polys[fa->lightmaptexturenum];
 	lightmap_polys[fa->lightmaptexturenum] = fa->polys;
 

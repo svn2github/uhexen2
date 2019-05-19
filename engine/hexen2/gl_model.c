@@ -470,6 +470,8 @@ static void Mod_LoadTextures (lump_t *l)
 		{	// load internal bsp pixel data
 bsp_tex_internal:
 #endif /* WAL_TEXTURES */
+
+			
 			if ( (mt->width & 15) || (mt->height & 15) )
 				Sys_Error ("Texture %s is not 16 aligned", mt->name);
 			pixels = mt->width*mt->height/64*85;
@@ -492,10 +494,18 @@ bsp_tex_internal:
 			continue;
 #endif	/* H2W */
 
+		// ericw -- fence textures
+		int	extraflags;
+
+		extraflags = 0;
+		if (tx->name[0] == '{')
+			extraflags |= TEX_ALPHA;
+		// ericw
+
 		if (!strncmp(mt->name,"sky",3))
 			R_InitSky (tx);
 		else
-			tx->gl_texturenum = GL_LoadTexture (mt->name, (byte *)(tx+1), tx->width, tx->height, TEX_MIPMAP);
+			tx->gl_texturenum = GL_LoadTexture (mt->name, (byte *)(tx+1), tx->width, tx->height, (TEX_MIPMAP | extraflags));
 	}
 
 //
@@ -1253,6 +1263,11 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 				out->flags |= SURF_TRANSLUCENT;
 
 			continue;
+		}
+
+		if (out->texinfo->texture->name[0] == '{') // ericw -- fence textures
+		{
+			out->flags |= SURF_DRAWFENCE;
 		}
 	}
 }
