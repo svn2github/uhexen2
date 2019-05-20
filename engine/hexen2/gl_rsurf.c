@@ -709,7 +709,6 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 	if (fa->flags & SURF_DRAWFENCE)
 	{
 		glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
-		glEnable_fp(GL_BLEND);
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		//glColor4f_fp(128.0f, 0.0f, 240.0f, 0.7f);
 	}
@@ -760,7 +759,6 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 
 	if (fa->flags & SURF_DRAWFENCE)
 	{
-		glDisable_fp(GL_BLEND);
 		glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
 	}
 

@@ -499,7 +499,7 @@ bsp_tex_internal:
 
 		extraflags = 0;
 		if (tx->name[0] == '{')
-			extraflags |= (TEX_ALPHA | TEX_HOLEY);
+			extraflags |= TEX_HOLEY;
 		// ericw
 
 		if (!strncmp(mt->name,"sky",3))
