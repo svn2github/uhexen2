@@ -1741,8 +1741,16 @@ static void GL_Upload8 (byte *data, gltexture_t *glt)
 			else if (glt->flags & TEX_HOLEY)
 			{
 				p = data[i];
-				if (p == 0)
-					trans[i] &= MASK_rgb;
+				if (glt->identifier[0] == '{')
+				{
+					if (p == 255)
+						trans[i] &= MASK_rgb;
+				}
+				else
+				{
+					if (p == 0)
+						trans[i] &= MASK_rgb;
+				}
 			}
 			else if (glt->flags & TEX_SPECIAL_TRANS)
 			{

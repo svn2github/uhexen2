@@ -707,7 +707,12 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 	}
 
 	if (fa->flags & SURF_DRAWFENCE)
-		glEnable_fp(GL_ALPHA_TEST); // Flip alpha test back off
+	{
+		glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
+		glEnable_fp(GL_BLEND);
+		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		//glColor4f_fp(128.0f, 0.0f, 240.0f, 0.7f);
+	}
 
 
 	if (gl_mtexable)
@@ -754,7 +759,10 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 	}
 
 	if (fa->flags & SURF_DRAWFENCE)
+	{
+		glDisable_fp(GL_BLEND);
 		glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
+	}
 
 // add the poly to the proper lightmap chain
 	fa->polys->chain = lightmap_polys[fa->lightmaptexturenum];
@@ -1025,6 +1033,14 @@ static void DrawTextureChains (entity_t *e)
 			if ((s->flags & SURF_DRAWTURB) && r_wateralpha.value != 1.0)
 				continue;	// draw translucent water later
 
+			qboolean drawFence = false;
+
+			if (s->flags & SURF_DRAWFENCE)
+			{
+				drawFence = true;
+				glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
+			}
+
 			if (((e->drawflags & DRF_TRANSLUCENT) ||
 				(e->drawflags & MLS_ABSLIGHT) == MLS_ABSLIGHT))
 			{
@@ -1058,6 +1074,9 @@ static void DrawTextureChains (entity_t *e)
 				for ( ; s ; s = s->texturechain)
 					R_RenderBrushPoly (e, s, false);
 			}
+			if (drawFence)
+				glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
+
 		}
 
 		t->texturechain = NULL;
