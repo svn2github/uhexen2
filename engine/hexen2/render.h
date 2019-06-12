@@ -58,6 +58,7 @@ typedef struct entity_s
 	float			syncbase;	// for client-side animations
 	byte			*colormap, *sourcecolormap;
 	byte			colorshade;
+	byte			alpha;			//johnfitz -- alpha
 	int			effects;	// light, particals, etc
 	int			skinnum;	// for Alias models
 	int			scale;		// for Alias models

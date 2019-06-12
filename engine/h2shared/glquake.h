@@ -61,6 +61,8 @@
 #define	SKYSIZE			(1 << SKYSHIFT)
 #define SKYMASK			(SKYSIZE - 1)
 
+extern int gl_warpimagesize; //johnfitz -- for water warp
+
 
 /* ====================================================================
    ENDIANNESS: RGBA
@@ -124,6 +126,7 @@ typedef struct cachepic_s
 	byte		padding[32];	/* for appended glpic */
 } cachepic_t;
 
+/*
 typedef struct
 {
 	GLuint		texnum;
@@ -132,6 +135,7 @@ typedef struct
 	int		flags;
 	unsigned short	crc;
 } gltexture_t;
+*/
 
 /* texture filters */
 typedef struct
@@ -152,11 +156,12 @@ typedef struct
 /* gl texture objects */
 extern	GLuint		currenttexture;
 extern	GLuint		particletexture;
-extern	GLuint		lightmap_textures[MAX_LIGHTMAPS];
+extern gltexture_t *lightmap_textures[MAX_LIGHTMAPS]; //johnfitz -- changed to an array
 extern	GLuint		playertextures[MAX_CLIENTS];
 extern	GLuint		gl_extra_textures[MAX_EXTRA_TEXTURES];	// generic textures for models
 
 /* the GL_Bind macro */
+/*
 #define GL_Bind(texnum)							\
 	do {								\
 		if (currenttexture != (texnum))				\
@@ -165,7 +170,7 @@ extern	GLuint		gl_extra_textures[MAX_EXTRA_TEXTURES];	// generic textures for mo
 			glBindTexture_fp(GL_TEXTURE_2D,currenttexture);	\
 		}							\
 	} while (0)
-
+*/
 extern	int		gl_texlevel;
 extern	int		numgltextures;
 extern	qboolean	flush_textures;

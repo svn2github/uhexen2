@@ -93,6 +93,8 @@
 #include "world.h"
 
 #include "r_part.h"
+#include "image.h"	//johnfitz
+#include "gl_texmgr.h"	//johnfitz
 #include "input.h"
 #include "keys.h"
 #include "menu.h"

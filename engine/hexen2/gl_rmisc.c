@@ -399,6 +399,8 @@ void R_NewMap (void)
 		if (!strncmp(cl.worldmodel->textures[i]->name,"window02_1",10) )
 			mirrortexturenum = i;
 	}
+
+	Sky_NewMap(); //johnfitz -- skybox in worldspawn
 #ifdef QUAKE2
 	R_LoadSkys ();
 #endif
