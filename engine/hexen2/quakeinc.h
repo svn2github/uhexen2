@@ -85,6 +85,8 @@
 #if defined(GLQUAKE)
 #include "glheader.h"
 #include "gl_model.h"
+#include "image.h"	//johnfitz
+#include "gl_texmgr.h"	//johnfitz
 #include "glquake.h"
 #else	/* sw client */
 #include "model.h"
@@ -93,8 +95,6 @@
 #include "world.h"
 
 #include "r_part.h"
-#include "image.h"	//johnfitz
-#include "gl_texmgr.h"	//johnfitz
 #include "input.h"
 #include "keys.h"
 #include "menu.h"
