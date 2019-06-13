@@ -135,14 +135,13 @@ typedef struct
 	int		flags;
 	unsigned short	crc;
 } gltexture_t;
-*/
 
-/* texture filters */
 typedef struct
 {
 	const char	*name;
 	int	minimize, maximize;
 } glmode_t;
+*/
 
 /* particle enums and types: note that hexen2 and
    hexenworld versions of these are different!! */
@@ -180,10 +179,7 @@ extern	int		gl_filter_idx;
 extern	float		gldepthmin, gldepthmax;
 extern	int		glx, gly, glwidth, glheight;
 
-extern	glmode_t	gl_texmodes[NUM_GL_FILTERS];
-
 /* hardware-caps related globals */
-extern	GLint		gl_max_size;
 extern	GLfloat		gl_max_anisotropy;
 extern	qboolean	gl_tex_NPOT;
 extern	qboolean	is_3dfx;

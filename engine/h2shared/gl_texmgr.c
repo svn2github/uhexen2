@@ -41,6 +41,7 @@ int numgltextures;
 ================================================================================
 */
 
+/* texture filters */
 typedef struct
 {
 	int	magfilter;

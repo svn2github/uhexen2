@@ -281,16 +281,6 @@ qpic_t	*Draw_CacheLoadingPic (void)
 }
 #endif	/* !DRAW_PROGRESSBARS */
 
-glmode_t gl_texmodes[NUM_GL_FILTERS] =
-{
-	{ "GL_NEAREST",			GL_NEAREST,			GL_NEAREST },	/* point sampled	*/
-	{ "GL_NEAREST_MIPMAP_NEAREST",	GL_NEAREST_MIPMAP_NEAREST,	GL_NEAREST },	/* nearest, 1 mipmap	*/
-	{ "GL_NEAREST_MIPMAP_LINEAR",	GL_NEAREST_MIPMAP_LINEAR,	GL_NEAREST },	/* nearest, 2 mipmaps	*/
-	{ "GL_LINEAR",			GL_LINEAR,			GL_LINEAR  },	/* Bilinear, no mipmaps	*/
-	{ "GL_LINEAR_MIPMAP_NEAREST",	GL_LINEAR_MIPMAP_NEAREST,	GL_LINEAR  },	/* Bilinear, 1 mipmap	*/
-	{ "GL_LINEAR_MIPMAP_LINEAR",	GL_LINEAR_MIPMAP_LINEAR,	GL_LINEAR  }	/* Trilinear: 2 mipmaps	*/
-};
-
 /*
 ===============
 Draw_TextureMode_f
@@ -1741,7 +1731,7 @@ static void GL_Upload8 (byte *data, gltexture_t *glt)
 			else if (glt->flags & TEX_HOLEY)
 			{
 				p = data[i];
-				if (glt->identifier[0] == '{')
+				if (glt->name[0] == '{')
 				{
 					if (p == 255)
 						trans[i] &= MASK_rgb;
@@ -1809,9 +1799,9 @@ GLuint GL_LoadTexture (const char *identifier, byte *data, int width, int height
 		/* texture already present? */
 		for (i = 0, glt = gltextures; i < numgltextures; i++, glt++)
 		{
-			if (!strcmp (identifier, glt->identifier))
+			if (!strcmp (identifier, glt->name))
 			{
-				if (crc != glt->crc ||
+				if (crc != glt->source_crc ||
 				    (glt->flags & TEX_MIPMAP) != (flags & TEX_MIPMAP) ||
 				    width  != glt->width || height != glt->height)
 				{ /* not the same, delete and rebind to new image */
@@ -1830,14 +1820,14 @@ GLuint GL_LoadTexture (const char *identifier, byte *data, int width, int height
 
 	glt = &gltextures[numgltextures];
 	numgltextures++;
-	q_strlcpy (glt->identifier, identifier, MAX_QPATH);
+	q_strlcpy (glt->name, identifier, MAX_QPATH);
 
 gl_rebind:
 	glGenTextures_fp(1, &glt->texnum);
 	glt->width = width;
 	glt->height = height;
 	glt->flags = flags;
-	glt->crc = crc;
+	glt->source_crc = crc;
 
 	GL_Bind (glt->texnum);
 	if (flags & TEX_RGBA)
