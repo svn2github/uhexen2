@@ -142,6 +142,23 @@ typedef struct
 	int	minimize, maximize;
 } glmode_t;
 */
+/* texture filters */
+typedef struct
+{
+	int	magfilter;
+	int minfilter;
+	char *name;
+} glmode_t;
+static glmode_t gl_modes[] = {
+	{GL_NEAREST, GL_NEAREST,				"GL_NEAREST"},
+	{GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST,	"GL_NEAREST_MIPMAP_NEAREST"},
+	{GL_NEAREST, GL_NEAREST_MIPMAP_LINEAR,	"GL_NEAREST_MIPMAP_LINEAR"},
+	{GL_LINEAR,  GL_LINEAR,					"GL_LINEAR"},
+	{GL_LINEAR,  GL_LINEAR_MIPMAP_NEAREST,	"GL_LINEAR_MIPMAP_NEAREST"},
+	{GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,	"GL_LINEAR_MIPMAP_LINEAR"},
+};
+#define NUM_GLMODES 6
+
 
 /* particle enums and types: note that hexen2 and
    hexenworld versions of these are different!! */
@@ -261,6 +278,7 @@ extern	cvar_t	gl_coloredlight;
 extern	cvar_t	gl_colored_dynamic_lights;
 extern	cvar_t	gl_extra_dynamic_lights;
 extern	cvar_t	gl_lightmapfmt;
+static	cvar_t	gl_max_size;
 
 /* other globals */
 extern	int		gl_coloredstatic;	/* value of gl_coloredlight stored at level start */

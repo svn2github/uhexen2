@@ -23,7 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 
 cvar_t		gl_texture_anisotropy = {"gl_texture_anisotropy", "1", true};
-cvar_t		gl_max_size = {"gl_max_size", "0"};
+//cvar_t		gl_max_size = {"gl_max_size", "0"};
+static cvar_t	gl_max_size = { "gl_max_size", "0", CVAR_NONE };
 cvar_t		gl_picmip = {"gl_picmip", "0"};
 int			gl_hardware_maxsize;
 //const int	gl_solid_format = 3;
@@ -41,22 +42,6 @@ int numgltextures;
 ================================================================================
 */
 
-/* texture filters */
-typedef struct
-{
-	int	magfilter;
-	int minfilter;
-	char *name;
-} glmode_t;
-glmode_t modes[] = {
-	{GL_NEAREST, GL_NEAREST,				"GL_NEAREST"},
-	{GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST,	"GL_NEAREST_MIPMAP_NEAREST"},
-	{GL_NEAREST, GL_NEAREST_MIPMAP_LINEAR,	"GL_NEAREST_MIPMAP_LINEAR"},
-	{GL_LINEAR,  GL_LINEAR,					"GL_LINEAR"},
-	{GL_LINEAR,  GL_LINEAR_MIPMAP_NEAREST,	"GL_LINEAR_MIPMAP_NEAREST"},
-	{GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,	"GL_LINEAR_MIPMAP_LINEAR"},
-};
-#define NUM_GLMODES 6
 int gl_texturemode = 5; // bilinear
 
 /*
@@ -69,7 +54,7 @@ void TexMgr_DescribeTextureModes_f (void)
 	int i;
 
 	for (i=0; i<NUM_GLMODES; i++)
-		Con_SafePrintf ("   %2i: %s\n", i + 1, modes[i].name);
+		Con_SafePrintf ("   %2i: %s\n", i + 1, gl_modes[i].name);
 
 	Con_Printf ("%i modes\n", i);
 }
@@ -95,13 +80,13 @@ void TexMgr_SetFilterModes (gltexture_t *glt)
 	}
 	else if (glt->flags & TEXPREF_MIPMAP)
 	{
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, modes[gl_texturemode].magfilter);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, modes[gl_texturemode].minfilter);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_texturemode].magfilter);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_texturemode].minfilter);
 	}
 	else
 	{
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, modes[gl_texturemode].magfilter);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, modes[gl_texturemode].magfilter);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_texturemode].magfilter);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_texturemode].magfilter);
 	}
 
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
@@ -121,14 +106,14 @@ void TexMgr_TextureMode_f (void)
 	switch (Cmd_Argc())
 	{
 	case 1:
-		Con_Printf ("\"gl_texturemode\" is \"%s\"\n", modes[gl_texturemode].name);
+		Con_Printf ("\"gl_texturemode\" is \"%s\"\n", gl_modes[gl_texturemode].name);
 		break;
 	case 2:
 		arg = Cmd_Argv(1);
 		if (arg[0] == 'G' || arg[0] == 'g')
 		{
 			for (i=0; i<NUM_GLMODES; i++)
-				if (!stricmp (modes[i].name, arg))
+				if (!stricmp (gl_modes[i].name, arg))
 				{
 					gl_texturemode = i;
 					goto stuff;
@@ -424,7 +409,7 @@ void TexMgr_LoadPalette (void)
 	int i, mark;
 	FILE *f;
 
-	COM_FOpenFile ("gfx/palette.lmp", &f);
+	FS_OpenFile ("gfx/palette.lmp", &f, NULL);
 	if (!f)
 		Sys_Error ("Couldn't load gfx/palette.lmp");
 

@@ -201,7 +201,7 @@ static const char	*gl_version;
 static const char	*gl_extensions;
 qboolean	is_3dfx = false;
 
-GLint		gl_max_size = 256;
+//GLint		gl_max_size = 256;
 static qboolean	have_NPOT = false;
 qboolean	gl_tex_NPOT = false;
 static cvar_t	gl_texture_NPOT = {"gl_texture_NPOT", "0", CVAR_ARCHIVE};
@@ -1033,7 +1033,7 @@ static void GL_Init (void)
 	Con_SafeDPrintf ("GL_EXTENSIONS: %s\n", gl_extensions);
 
 	glGetIntegerv_fp(GL_MAX_TEXTURE_SIZE, &gl_max_size);
-	if (gl_max_size < 256)	// Refuse to work when less than 256
+	if (gl_max_size.integer < 256)	// Refuse to work when less than 256
 		Sys_Error ("hardware capable of min. 256k opengl texture size needed");
 	Con_SafePrintf("OpenGL max.texture size: %i\n", gl_max_size);
 

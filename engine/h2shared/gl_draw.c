@@ -296,14 +296,14 @@ static void Draw_TouchAllFilterModes (void)
 		if (glt->flags & (TEX_NEAREST|TEX_LINEAR))	/* TEX_MIPMAP mustn't be set in this case */
 			continue;
 		GL_Bind (glt->texnum);
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_texmodes[gl_filter_idx].maximize);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
 		if (glt->flags & TEX_MIPMAP)
 		{
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_texmodes[gl_filter_idx].minimize);
+			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].minfilter);
 			if (gl_max_anisotropy >= 2)
 				glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
 		}
-		else	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_texmodes[gl_filter_idx].maximize);
+		else	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].magfilter);
 	}
 }
 
@@ -313,7 +313,7 @@ static void Draw_TextureMode_f (cvar_t *var)
 
 	for (i = 0; i < NUM_GL_FILTERS; i++)
 	{
-		if (!strcmp (gl_texmodes[i].name, var->string))
+		if (!strcmp (gl_modes[i].name, var->string))
 		{
 			if (gl_filter_idx != i)
 			{
@@ -327,15 +327,15 @@ static void Draw_TextureMode_f (cvar_t *var)
 
 	for (i = 0; i < NUM_GL_FILTERS; i++)
 	{
-		if (!q_strcasecmp (gl_texmodes[i].name, var->string))
+		if (!q_strcasecmp (gl_modes[i].name, var->string))
 		{
-			Cvar_SetQuick (var, gl_texmodes[i].name);
+			Cvar_SetQuick (var, gl_modes[i].name);
 			return;
 		}
 	}
 
 	Con_Printf ("bad filter name\n");
-	Cvar_SetQuick (var, gl_texmodes[gl_filter_idx].name);
+	Cvar_SetQuick (var, gl_modes[gl_filter_idx].name);
 }
 
 static void Draw_TouchMipmapFilterModes (void)
@@ -348,8 +348,8 @@ static void Draw_TouchMipmapFilterModes (void)
 		if (glt->flags & TEX_MIPMAP)
 		{
 			GL_Bind (glt->texnum);
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_texmodes[gl_filter_idx].maximize);
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_texmodes[gl_filter_idx].minimize);
+			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
+			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].minfilter);
 			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
 		}
 	}
@@ -487,7 +487,7 @@ void Draw_Init (void)
 	{
 		Cvar_RegisterVariable (&gl_picmip);
 		Cvar_RegisterVariable (&gl_constretch);
-		gl_texturemode.string = gl_texmodes[gl_filter_idx].name;
+		gl_texturemode.string = gl_modes[gl_filter_idx].name;
 		Cvar_RegisterVariable (&gl_texturemode);
 		Cvar_RegisterVariable (&gl_texture_anisotropy);
 		Cvar_SetCallback (&gl_texturemode, Draw_TextureMode_f);
@@ -1566,11 +1566,11 @@ static void GL_Upload32 (unsigned int *data, gltexture_t *glt)
 	if (scaled_height < 1)
 		scaled_height = 1;
 
-	if (scaled_width > gl_max_size)
-		scaled_width = gl_max_size;
+	if (scaled_width > gl_max_size.integer)
+		scaled_width = gl_max_size.integer;
 
-	if (scaled_height > gl_max_size)
-		scaled_height = gl_max_size;
+	if (scaled_height > gl_max_size.integer)
+		scaled_height = gl_max_size.integer;
 
 	// 3dfx has some aspect ratio constraints.
 	// can't go beyond 8 to 1 or below 1 to 8.
@@ -1638,15 +1638,15 @@ static void GL_Upload32 (unsigned int *data, gltexture_t *glt)
 	}
 	else if (glt->flags & TEX_MIPMAP)
 	{
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_texmodes[gl_filter_idx].minimize);
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_texmodes[gl_filter_idx].maximize);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].minfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
 		if (gl_max_anisotropy >= 2)
 			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
 	}
 	else
 	{
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_texmodes[gl_filter_idx].maximize);
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_texmodes[gl_filter_idx].maximize);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].minfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
 	}
 
 	if (mark)

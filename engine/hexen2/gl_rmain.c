@@ -1923,10 +1923,10 @@ static void R_Mirror (void)
 	glLoadMatrixf_fp (r_base_world_matrix);
 
 	glColor4f_fp (1,1,1,r_mirroralpha.value);
-	s = cl.worldmodel->textures[mirrortexturenum]->texturechain;
+	s = cl.worldmodel->textures[mirrortexturenum]->texturechains[0];
 	for ( ; s ; s = s->texturechain)
 		R_RenderBrushPoly (&r_worldentity, s, true);
-	cl.worldmodel->textures[mirrortexturenum]->texturechain = NULL;
+	cl.worldmodel->textures[mirrortexturenum]->texturechains[0] = NULL;
 	glDisable_fp (GL_BLEND);
 	glColor4f_fp (1,1,1,1);
 }

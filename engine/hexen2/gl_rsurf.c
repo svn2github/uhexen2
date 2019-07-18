@@ -972,7 +972,7 @@ void R_DrawWaterSurfaces (void)
 		t = cl.worldmodel->textures[i];
 		if (!t)
 			continue;
-		s = t->texturechain;
+		s = t->texturechains[0];
 		if (!s)
 			continue;
 		if (!(s->flags & SURF_DRAWTURB))
@@ -990,7 +990,7 @@ void R_DrawWaterSurfaces (void)
 		for ( ; s ; s = s->texturechain)
 			EmitWaterPolys (s);
 
-		t->texturechain = NULL;
+		t->texturechains[0] = NULL;
 	}
 
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -1016,7 +1016,7 @@ static void DrawTextureChains (entity_t *e)
 		t = cl.worldmodel->textures[i];
 		if (!t)
 			continue;
-		s = t->texturechain;
+		s = t->texturechains[0];
 		if (!s)
 			continue;
 		if (i == skytexturenum)
@@ -1077,7 +1077,7 @@ static void DrawTextureChains (entity_t *e)
 
 		}
 
-		t->texturechain = NULL;
+		t->texturechains[0] = NULL;
 	}
 }
 
@@ -1326,8 +1326,8 @@ static void R_RecursiveWorldNode (mnode_t *node)
 			if (!mirror
 				|| surf->texinfo->texture != cl.worldmodel->textures[mirrortexturenum])
 			{
-				surf->texturechain = surf->texinfo->texture->texturechain;
-				surf->texinfo->texture->texturechain = surf;
+				surf->texturechain = surf->texinfo->texture->texturechains[0];
+				surf->texinfo->texture->texturechains[0] = surf;
 			}
 		}
 	}

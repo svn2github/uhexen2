@@ -32,7 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
 #define LODEPNG_NO_COMPILE_ERROR_TEXT
 #include "lodepng.h"
-#include "lodepng.c"
+//#include "lodepng.c"
 
 static char loadfilename[MAX_OSPATH]; //file scope so that error messages can use it
 
@@ -83,12 +83,12 @@ byte *Image_LoadImage (const char *name, int *width, int *height)
 	FILE	*f;
 
 	q_snprintf (loadfilename, sizeof(loadfilename), "%s.tga", name);
-	COM_FOpenFile (loadfilename, &f, NULL);
+	FS_OpenFile(loadfilename, &f, NULL);
 	if (f)
 		return Image_LoadTGA (f, width, height);
 
 	q_snprintf (loadfilename, sizeof(loadfilename), "%s.pcx", name);
-	COM_FOpenFile (loadfilename, &f, NULL);
+	FS_OpenFile(loadfilename, &f, NULL);
 	if (f)
 		return Image_LoadPCX (f, width, height);
 
