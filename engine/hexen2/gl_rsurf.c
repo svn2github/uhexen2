@@ -1096,7 +1096,7 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent)
 	qmodel_t	*clmodel;
 	qboolean	rotated;
 
-	currenttexture = GL_UNUSED_TEXTURE;
+	currenttexture[0] = GL_UNUSED_TEXTURE;
 
 	clmodel = e->model;
 
@@ -1345,7 +1345,7 @@ void R_DrawWorld (void)
 {
 	VectorCopy (r_refdef.vieworg, modelorg);
 
-	currenttexture = GL_UNUSED_TEXTURE;
+	currenttexture[0] = GL_UNUSED_TEXTURE;
 
 	glColor4f_fp (1.0f,1.0f,1.0f,1.0f);
 	memset (lightmap_polys, 0, sizeof(lightmap_polys));

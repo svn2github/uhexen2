@@ -40,6 +40,8 @@
 #define	TYP_SOUND		67
 #define	TYP_MIPTEX		68
 
+#define	WADFILENAME "gfx.wad" //johnfitz -- filename is now hard-coded for honesty
+
 typedef struct
 {
 	int			width, height;

@@ -179,6 +179,8 @@ static cvar_t	_vid_default_mode_win = {"_vid_default_mode_win", "3", CVAR_ARCHIV
 static cvar_t	vid_stretch_by_2 = {"vid_stretch_by_2", "1", CVAR_ARCHIVE};
 static cvar_t	vid_config_x = {"vid_config_x", "800", CVAR_ARCHIVE};
 static cvar_t	vid_config_y = {"vid_config_y", "600", CVAR_ARCHIVE};
+static cvar_t	vid_bpp = { "vid_bpp", "16", CVAR_ARCHIVE };
+
 
 byte		globalcolormap[VID_GRADES*256];
 float		RTint[256], GTint[256], BTint[256];
@@ -205,6 +207,7 @@ qboolean	is_3dfx = false;
 static qboolean	have_NPOT = false;
 qboolean	gl_tex_NPOT = false;
 static cvar_t	gl_texture_NPOT = {"gl_texture_NPOT", "0", CVAR_ARCHIVE};
+
 GLfloat		gl_max_anisotropy;
 float		gldepthmin, gldepthmax;
 
@@ -2315,6 +2318,8 @@ void	VID_Init (const unsigned char *palette)
 	Cvar_RegisterVariable (&vid_stretch_by_2);
 	Cvar_RegisterVariable (&vid_maxpages);
 	Cvar_RegisterVariable (&vid_nopageflip);
+	Cvar_RegisterVariable(&vid_bpp); //johnfitz
+
 
 	Cmd_AddCommand ("vid_nummodes", VID_NumModes_f);
 	Cmd_AddCommand ("vid_describecurrentmode", VID_DescribeCurrentMode_f);

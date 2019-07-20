@@ -428,8 +428,8 @@ void D_ClearOpenGLTextures (int last_tex)
 	memset(&(gltextures[last_tex]), 0, (numgltextures - last_tex) * sizeof(gltexture_t));
 	numgltextures = last_tex;
 
-	if (currenttexture >= (GLuint)last_tex)
-		currenttexture = GL_UNUSED_TEXTURE;
+	if (currenttexture[0] >= (GLuint)last_tex)
+		currenttexture[0] = GL_UNUSED_TEXTURE;
 
 	// Clear menu pic cache
 	memset(menu_cachepics, 0, menu_numcachepics * sizeof(cachepic_t));

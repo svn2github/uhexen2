@@ -158,6 +158,7 @@ static glmode_t gl_modes[] = {
 	{GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,	"GL_LINEAR_MIPMAP_LINEAR"},
 };
 #define NUM_GLMODES 6
+static int glmode_idx = NUM_GLMODES - 1; /* trilinear */
 
 
 /* particle enums and types: note that hexen2 and
@@ -170,11 +171,13 @@ static glmode_t gl_modes[] = {
    ================================================================== */
 
 /* gl texture objects */
-extern	GLuint		currenttexture;
+//extern	GLuint		currenttexture;
+static GLuint	currenttexture[3] = { GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE }; // to avoid unnecessary texture sets
 extern	GLuint		particletexture;
 extern gltexture_t *lightmap_textures[MAX_LIGHTMAPS]; //johnfitz -- changed to an array
 extern	GLuint		playertextures[MAX_CLIENTS];
 extern	GLuint		gl_extra_textures[MAX_EXTRA_TEXTURES];	// generic textures for models
+extern int gl_lightmap_format, lightmap_bytes;
 
 /* the GL_Bind macro */
 /*

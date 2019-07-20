@@ -35,7 +35,7 @@ int			c_brush_polys, c_alias_polys;
 
 qboolean	r_cache_thrash;			// compatability
 
-GLuint			currenttexture = GL_UNUSED_TEXTURE;	// to avoid unnecessary texture sets
+//GLuint			currenttexture = GL_UNUSED_TEXTURE;	// to avoid unnecessary texture sets
 
 GLuint			particletexture;	// little dot for particles
 GLuint			playertextures[MAX_CLIENTS];	// up to MAX_CLIENTS color translated skins
