@@ -278,6 +278,10 @@ void R_TranslatePlayerSkin (int playernum)
 	int		playerclass = (int)cl.scores[playernum].playerclass;
 	int		s;
 //	char		texname[20];
+	char		name[64];
+	int		skinnum;
+
+	gl_max_size.integer = 256; //shan?
 
 	for (i = 0; i < 256; i++)
 		translate[i] = i;
@@ -318,7 +322,23 @@ void R_TranslatePlayerSkin (int playernum)
 		original = player_8bit_texels[playerclass-1];
 	else	original = player_8bit_texels[0];
 
+	//get correct texture pixels
+	currententity = &cl_entities[1 + playernum];
+
+	if (!currententity->model || currententity->model->type != mod_alias)
+		return;
+
 	paliashdr = (aliashdr_t *)Mod_Extradata (model);
+
+	skinnum = currententity->skinnum;
+	//TODO: move these tests to the place where skinnum gets received from the server
+	if (skinnum < 0 || skinnum >= paliashdr->numskins)
+	{
+		Con_DPrintf("(%d): Invalid player skin #%d\n", playernum, skinnum);
+		skinnum = 0;
+	}
+
+
 	s = paliashdr->skinwidth * paliashdr->skinheight;
 	if (s & 3)
 		Sys_Error ("%s: s&3", __thisfunc__);
@@ -357,11 +377,16 @@ void R_TranslatePlayerSkin (int playernum)
 // call, not sure why for now, so I have to do this the old way until I figure it out.
 //	q_snprintf(texname, 19, "player%i", playernum);
 //	playertextures[playernum] = GL_LoadTexture(texname, (byte *)pixels, scaled_width, scaled_height, TEX_RGBA|TEX_LINEAR);
-	GL_Bind(playertextures[playernum]);
-	glTexImage2D_fp(GL_TEXTURE_2D, 0, gl_solid_format, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//GL_Bind(playertextures[playernum]);
+	//glTexImage2D_fp(GL_TEXTURE_2D, 0, gl_solid_format, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	//glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	q_snprintf(name, sizeof(name), "player_%i", playernum);
+	playertextures[playernum] = TexMgr_LoadImage(currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
+		SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
+
 }
 
 /*

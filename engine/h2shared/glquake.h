@@ -173,7 +173,8 @@ static int glmode_idx = NUM_GLMODES - 1; /* trilinear */
 /* gl texture objects */
 //extern	GLuint		currenttexture;
 static GLuint	currenttexture[3] = { GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE }; // to avoid unnecessary texture sets
-extern	GLuint		particletexture;
+//extern	GLuint		particletexture;
+extern gltexture_t *particletexture, *particletexture1, *particletexture2, *particletexture3, *particletexture4; //johnfitz
 extern gltexture_t *lightmap_textures[MAX_LIGHTMAPS]; //johnfitz -- changed to an array
 extern	gltexture_t *playertextures[MAX_CLIENTS];
 extern	gltexture_t *gl_extra_textures[MAX_EXTRA_TEXTURES];	// generic textures for models
@@ -229,6 +230,7 @@ extern	vrect_t		scr_vrect;
 extern	mleaf_t		*r_viewleaf, *r_oldviewleaf;
 extern	float		r_world_matrix[16];
 extern	entity_t	r_worldentity;
+extern	entity_t	*currententity;
 extern	qboolean	r_cache_thrash;		// compatability
 extern	vec3_t		modelorg, r_entorigin;
 extern	int		r_visframecount;	// ??? what difs?

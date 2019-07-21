@@ -1576,6 +1576,8 @@ void GL_BuildLightmaps (void)
 {
 	int		i, j;
 	qmodel_t	*m;
+	char	name[16];
+	byte	*data;
 
 	memset (allocated, 0, sizeof(allocated));
 
@@ -1621,6 +1623,8 @@ void GL_BuildLightmaps (void)
 	{
 		if (!allocated[i][0])
 			break;		// no more used
+
+		/*
 		lightmap_modified[i] = false;
 		GL_Bind(lightmap_textures[i]);
 		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1628,6 +1632,14 @@ void GL_BuildLightmaps (void)
 		glTexImage2D_fp (GL_TEXTURE_2D, 0, lightmap_bytes, BLOCK_WIDTH,
 				BLOCK_HEIGHT, 0, gl_lightmap_format, GL_UNSIGNED_BYTE,
 				lightmaps + i*BLOCK_WIDTH*BLOCK_HEIGHT*lightmap_bytes);
+				*/
+
+		//johnfitz -- use texture manager
+		sprintf(name, "lightmap%03i", i);
+		data = lightmaps + i * BLOCK_WIDTH*BLOCK_HEIGHT*lightmap_bytes;
+		lightmap_textures[i] = TexMgr_LoadImage(cl.worldmodel, name, BLOCK_WIDTH, BLOCK_HEIGHT,
+			SRC_LIGHTMAP, data, "", (src_offset_t)data, TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+		//johnfitz
 	}
 
 	if (gl_mtexable)

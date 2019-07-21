@@ -1183,7 +1183,7 @@ static void SCR_TileClear (void)
 		Draw_TileClear (r_refdef.vrect.x + r_refdef.vrect.width, 0,
 			vid.width - r_refdef.vrect.x + r_refdef.vrect.width, vid.height);
 	}
-//	if (r_refdef.vrect.y > 0) // if (r_refdef.vrect.height < vid.height - 44)
+	if (r_refdef.vrect.y > 0) // if (r_refdef.vrect.height < vid.height - 44)
 	{
 		// top
 		Draw_TileClear (r_refdef.vrect.x, 0,

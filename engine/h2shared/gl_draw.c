@@ -1194,31 +1194,35 @@ void Draw_TransPicTranslate (int x, int y, qpic_t *pic, byte *translation, int p
 /*
 ================
 Draw_ConsoleBackground
-
 ================
 */
-static void Draw_ConsolePic (int lines, float ofs, GLuint num, float alpha)
+static void Draw_ConsolePic(int lines, float ofs, gltexture_t *pic, float alpha)
 {
+	//glpic_t			*gl;
+
+	//gl = (glpic_t *)pic->data;
+
 	glDisable_fp(GL_ALPHA_TEST);
-	glEnable_fp (GL_BLEND);
+	glEnable_fp(GL_BLEND);
 	glCullFace_fp(GL_FRONT);
-	glColor4f_fp (1,1,1,alpha);
-	GL_Bind (num);
+	glColor4f_fp(1, 1, 1, alpha);
+	//GL_Bind(gl->gltexture);
+	GL_Bind(pic);
 
-	glBegin_fp (GL_QUADS);
-	glTexCoord2f_fp (0, 0 + ofs);
-	glVertex2f_fp (0, 0);
-	glTexCoord2f_fp (1, 0 + ofs);
-	glVertex2f_fp (vid.conwidth, 0);
-	glTexCoord2f_fp (1, 1);
-	glVertex2f_fp (vid.conwidth, lines);
-	glTexCoord2f_fp (0, 1);
-	glVertex2f_fp (0, lines);
-	glEnd_fp ();
+	glBegin_fp(GL_QUADS);
+	glTexCoord2f_fp(0, 0 + ofs);
+	glVertex2f_fp(0, 0);
+	glTexCoord2f_fp(1, 0 + ofs);
+	glVertex2f_fp(vid.conwidth, 0);
+	glTexCoord2f_fp(1, 1);
+	glVertex2f_fp(vid.conwidth, lines);
+	glTexCoord2f_fp(0, 1);
+	glVertex2f_fp(0, lines);
+	glEnd_fp();
 
-	glColor4f_fp (1,1,1,1);
+	glColor4f_fp(1, 1, 1, 1);
 	glEnable_fp(GL_ALPHA_TEST);
-	glDisable_fp (GL_BLEND);
+	glDisable_fp(GL_BLEND);
 }
 
 static void Draw_ConsoleVersionInfo (int lines)

@@ -2169,6 +2169,7 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 	int	groupskins;
 	daliasskingroup_t	*pinskingroup;
 	daliasskininterval_t	*pinskinintervals;
+	src_offset_t		offset; //johnfitz
 
 	skin = (byte *)(pskintype + 1);
 
@@ -2223,12 +2224,16 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 			memcpy (player_8bit_texels[4], (byte *)(pskintype + 1), s);
 		}
 
+		offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
 		q_snprintf (name, sizeof(name), "%s_%i", loadmodel->name, i);
-		pheader->gl_texturenum[i][0] =
-		pheader->gl_texturenum[i][1] =
-		pheader->gl_texturenum[i][2] =
-		pheader->gl_texturenum[i][3] = GL_LoadTexture (name, (byte *)(pskintype + 1),
-						pheader->skinwidth, pheader->skinheight, tex_mode);
+		pheader->gltextures[i][0] =
+		pheader->gltextures[i][1] =
+		pheader->gltextures[i][2] =
+		pheader->gltextures[i][3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+			SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+			
+			//GL_LoadTexture (name, (byte *)(pskintype + 1),
+			//pheader->skinwidth, pheader->skinheight, tex_mode);
 		pskintype = (daliasskintype_t *)((byte *)(pskintype+1) + s);
 
 	    } else /*if (k == ALIAS_SKIN_GROUP)*/
@@ -2242,13 +2247,17 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 		for (j = 0; j < groupskins; j++)
 		{
 			Mod_FloodFillSkin (skin, pheader->skinwidth, pheader->skinheight);
+			offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
 			q_snprintf (name, sizeof(name), "%s_%i_%i", loadmodel->name, i, j);
-			pheader->gl_texturenum[i][j&3] = GL_LoadTexture (name, (byte *)(pskintype),
-						pheader->skinwidth, pheader->skinheight, tex_mode);
+			pheader->gltextures[i][j&3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+				SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+				
+				//GL_LoadTexture (name, (byte *)(pskintype),
+				//	pheader->skinwidth, pheader->skinheight, tex_mode);
 			pskintype = (daliasskintype_t *)((byte *)(pskintype) + s);
 		}
 		for (k = j; j < 4; j++)
-			pheader->gl_texturenum[i][j&3] = pheader->gl_texturenum[i][j - k];
+			pheader->gltextures[i][j&3] = pheader->gltextures[i][j - k];
 	    }
 	}
 
@@ -2901,7 +2910,9 @@ static void *Mod_LoadSpriteFrame (void *pin, mspriteframe_t **ppframe, int frame
 	pspriteframe->right = width + origin[0];
 
 	q_snprintf (name, sizeof(name), "%s_%i", loadmodel->name, framenum);
-	pspriteframe->gltexture = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);
+	//pspriteframe->gltexture = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);
+	pspriteframe->gltexture = TexMgr_LoadImage(NULL, name, width, height, SRC_INDEXED, (byte *)(pinframe + 1),
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 
 	return (void *)((byte *)pinframe + sizeof (dspriteframe_t) + size);
 }

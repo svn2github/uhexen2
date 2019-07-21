@@ -25,6 +25,8 @@
 
 entity_t	r_worldentity;
 vec3_t		modelorg, r_entorigin;
+entity_t	*currententity;
+
 
 int			r_visframecount;	// bumped when going to a new PVS
 int			r_framecount;		// used for dlight push checking
@@ -42,9 +44,10 @@ qboolean	r_cache_thrash;			// compatability
 
 //GLuint			currenttexture = GL_UNUSED_TEXTURE;	// to avoid unnecessary texture sets
 
-GLuint			particletexture;	// little dot for particles
+//GLuint			particletexture;	// little dot for particles
 //GLuint			playertextures[MAX_CLIENTS];	// up to MAX_CLIENTS color translated skins
 //GLuint			gl_extra_textures[MAX_EXTRA_TEXTURES];   // generic textures for models
+gltexture_t *particletexture, *particletexture1, *particletexture2, *particletexture3, *particletexture4; //johnfitz
 gltexture_t *playertextures[MAX_CLIENTS]; //johnfitz -- changed to an array of pointers
 gltexture_t *gl_extra_textures[MAX_EXTRA_TEXTURES];   // generic textures for models
 
@@ -988,7 +991,7 @@ static void R_DrawAliasModel (entity_t *e)
 			Con_DPrintf ("%s: no such skin # %d\n", __thisfunc__, skinnum);
 			skinnum = 0;
 		}
-		GL_Bind(paliashdr->gl_texturenum[skinnum][anim]);
+		GL_Bind(paliashdr->gltextures[skinnum][anim]);
 
 		// we can't dynamically colormap textures, so they are cached
 		// seperately for the players.  Heads are just uncolored.
