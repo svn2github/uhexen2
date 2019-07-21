@@ -82,7 +82,7 @@ typedef struct texture_s
 {
 	char		name[16];
 	unsigned int	width, height;
-	GLuint			gl_texturenum;
+	//GLuint			gl_texturenum;
 	struct gltexture_s	*gltexture; //johnfitz -- pointer to gltexture
 	//struct msurface_s	*texturechain;	// for gl_texsort drawing
 	struct msurface_s	*texturechains[2];	// for texture chains

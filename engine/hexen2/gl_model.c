@@ -518,7 +518,9 @@ bsp_tex_internal:
 		if (!strncmp(mt->name,"sky",3))
 			R_InitSky (tx);
 		else
-			tx->gl_texturenum = GL_LoadTexture (mt->name, (byte *)(tx+1), tx->width, tx->height, (TEX_MIPMAP | extraflags));
+			tx->gltexture = TexMgr_LoadImage(NULL, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
+				WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
+			//tx->gl_texturenum = GL_LoadTexture (mt->name, (byte *)(tx+1), tx->width, tx->height, (TEX_MIPMAP | extraflags));
 	}
 
 //
@@ -644,7 +646,9 @@ void Mod_ReloadTextures (void)
 				if (!strncmp(tx->name, "sky", 3))
 					R_InitSky(tx);
 				else
-					tx->gl_texturenum = GL_LoadTexture (tx->name, (byte *)(tx+1), tx->width, tx->height, TEX_MIPMAP);
+					tx->gltexture = TexMgr_LoadImage(NULL, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
+						WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
+					//tx->gl_texturenum = GL_LoadTexture (tx->name, (byte *)(tx+1), tx->width, tx->height, TEX_MIPMAP);
 			}
 		}
 	}

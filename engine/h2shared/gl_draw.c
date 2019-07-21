@@ -48,6 +48,7 @@ static cvar_t	gl_texture_anisotropy = {"gl_texture_anisotropy", "1", CVAR_ARCHIV
 
 static GLuint		menuplyr_textures[MAX_PLAYER_CLASS];	// player textures in multiplayer config screens
 static GLuint		draw_backtile;
+//qpic_t		*draw_backtile;
 static gltexture_t		*conback;
 static gltexture_t		*char_texture;
 static gltexture_t		*cs_texture;	// crosshair texture
@@ -586,10 +587,10 @@ void Draw_Init (void)
 		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 
 	// load the backtile
-	p = (qpic_t *)FS_LoadTempFile ("gfx/menu/backtile.lmp", NULL);
-	Draw_PicCheckError (p, "gfx/menu/backtile.lmp");
-	SwapPic (p);
-	draw_backtile = GL_LoadPicTexture (p);
+	p = (qpic_t *)FS_LoadTempFile("gfx/menu/backtile.lmp", NULL);
+	Draw_PicCheckError(p, "gfx/menu/backtile.lmp");
+	SwapPic(p);
+	draw_backtile = GL_LoadPicTexture(p);
 
 	// load the crosshair texture
 	cs_texture = GL_LoadPixmap ("crosshair", cs_data);
@@ -1260,8 +1261,13 @@ refresh window.
 */
 void Draw_TileClear (int x, int y, int w, int h)
 {
+	//glpic_t	*gl;
+
+	//gl = (glpic_t *)draw_backtile->data;
+
 	glColor3f_fp (1,1,1);
 	GL_Bind (draw_backtile);
+	//GL_Bind(gl->gltexture);
 	glBegin_fp (GL_QUADS);
 	glTexCoord2f_fp (x/64.0, y/64.0);
 	glVertex2f_fp (x, y);
@@ -1937,6 +1943,8 @@ GL_LoadPicTexture
 */
 GLuint GL_LoadPicTexture (qpic_t *pic)
 {
-	return GL_LoadTexture ("", pic->data, pic->width, pic->height, TEX_ALPHA|TEX_LINEAR);
+	//return GL_LoadTexture ("", pic->data, pic->width, pic->height, TEX_ALPHA|TEX_LINEAR);
+	return TexMgr_LoadImage(NULL, "", pic->width, pic->height, SRC_INDEXED, pic->data,
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 }
 
