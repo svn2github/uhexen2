@@ -70,6 +70,14 @@ cvar_t	oem = {"oem", "0", CVAR_ROM};
 cvar_t	registered = {"registered", "0", CVAR_ROM};
 qboolean		mod_bsp2;		// bsp version used
 
+#define	MAX_HANDLES		32	/* johnfitz -- was 10 */
+static FILE		*sys_handles[MAX_HANDLES];
+
+static HANDLE findhandle = INVALID_HANDLE_VALUE;
+static WIN32_FIND_DATA finddata;
+static char	findstr[MAX_OSPATH];
+
+
 typedef struct
 {
 	int	numfiles;
@@ -616,6 +624,45 @@ int FS_CopyFile (const char *frompath, const char *topath)
 
 	err = Sys_CopyFile (frompath, topath);
 	return err;
+}
+
+static int findhandle2(void)
+{
+	int i;
+
+	for (i = 1; i < MAX_HANDLES; i++)
+	{
+		if (!sys_handles[i])
+			return i;
+	}
+	Sys_Error("out of handles");
+	return -1;
+}
+
+int FS_FileOpenWrite(const char *path)
+{
+	FILE	*f;
+	int		i;
+
+	i = findhandle2();
+	f = fopen(path, "wb");
+
+	if (!f)
+		Sys_Error("Error opening %s: %s", path, strerror(errno));
+
+	sys_handles[i] = f;
+	return i;
+}
+
+void Sys_FileClose(int handle)
+{
+	fclose(sys_handles[handle]);
+	sys_handles[handle] = NULL;
+}
+
+int FS_FileWrite(int handle, const void *data, int count)
+{
+	return fwrite(data, 1, count, sys_handles[handle]);
 }
 
 #define	COPY_READ_BUFSIZE		8192	/* BUFSIZ */

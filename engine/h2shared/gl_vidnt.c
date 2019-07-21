@@ -245,6 +245,41 @@ static void ClearAllStates (void);
 static int	enable_mouse;
 cvar_t		_enable_mouse = {"_enable_mouse", "0", CVAR_ARCHIVE};
 
+// SDL stuff
+PFNGLMULTITEXCOORD2FARBPROC GL_MTexCoord2fFunc = NULL; //johnfitz
+PFNGLACTIVETEXTUREARBPROC GL_SelectTextureFunc = NULL; //johnfitz
+PFNGLCLIENTACTIVETEXTUREARBPROC GL_ClientActiveTextureFunc = NULL; //ericw
+PFNGLBINDBUFFERARBPROC GL_BindBufferFunc = NULL; //ericw
+PFNGLBUFFERDATAARBPROC GL_BufferDataFunc = NULL; //ericw
+PFNGLBUFFERSUBDATAARBPROC GL_BufferSubDataFunc = NULL; //ericw
+PFNGLDELETEBUFFERSARBPROC GL_DeleteBuffersFunc = NULL; //ericw
+PFNGLGENBUFFERSARBPROC GL_GenBuffersFunc = NULL; //ericw
+
+/*
+QS_PFNGLCREATESHADERPROC GL_CreateShaderFunc = NULL; //ericw
+QS_PFNGLDELETESHADERPROC GL_DeleteShaderFunc = NULL; //ericw
+QS_PFNGLDELETEPROGRAMPROC GL_DeleteProgramFunc = NULL; //ericw
+QS_PFNGLSHADERSOURCEPROC GL_ShaderSourceFunc = NULL; //ericw
+QS_PFNGLCOMPILESHADERPROC GL_CompileShaderFunc = NULL; //ericw
+QS_PFNGLGETSHADERIVPROC GL_GetShaderivFunc = NULL; //ericw
+QS_PFNGLGETSHADERINFOLOGPROC GL_GetShaderInfoLogFunc = NULL; //ericw
+QS_PFNGLGETPROGRAMIVPROC GL_GetProgramivFunc = NULL; //ericw
+QS_PFNGLGETPROGRAMINFOLOGPROC GL_GetProgramInfoLogFunc = NULL; //ericw
+QS_PFNGLCREATEPROGRAMPROC GL_CreateProgramFunc = NULL; //ericw
+QS_PFNGLATTACHSHADERPROC GL_AttachShaderFunc = NULL; //ericw
+QS_PFNGLLINKPROGRAMPROC GL_LinkProgramFunc = NULL; //ericw
+QS_PFNGLBINDATTRIBLOCATIONFUNC GL_BindAttribLocationFunc = NULL; //ericw
+QS_PFNGLUSEPROGRAMPROC GL_UseProgramFunc = NULL; //ericw
+QS_PFNGLGETATTRIBLOCATIONPROC GL_GetAttribLocationFunc = NULL; //ericw
+QS_PFNGLVERTEXATTRIBPOINTERPROC GL_VertexAttribPointerFunc = NULL; //ericw
+QS_PFNGLENABLEVERTEXATTRIBARRAYPROC GL_EnableVertexAttribArrayFunc = NULL; //ericw
+QS_PFNGLDISABLEVERTEXATTRIBARRAYPROC GL_DisableVertexAttribArrayFunc = NULL; //ericw
+QS_PFNGLGETUNIFORMLOCATIONPROC GL_GetUniformLocationFunc = NULL; //ericw
+QS_PFNGLUNIFORM1IPROC GL_Uniform1iFunc = NULL; //ericw
+QS_PFNGLUNIFORM1FPROC GL_Uniform1fFunc = NULL; //ericw
+QS_PFNGLUNIFORM3FPROC GL_Uniform3fFunc = NULL; //ericw
+QS_PFNGLUNIFORM4FPROC GL_Uniform4fFunc = NULL; //ericw
+*/
 
 //====================================
 

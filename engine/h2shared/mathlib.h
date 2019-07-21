@@ -41,6 +41,8 @@ static inline int IS_NAN (float x) {
 }
 #endif
 int Q_isnan (float x);	/* For 32 bit floats only. */
+#define Q_rint(x) ((x) > 0 ? (int)((x) + 0.5) : (int)((x) - 0.5)) //johnfitz -- from joequake
+
 
 extern vec3_t vec3_origin;
 

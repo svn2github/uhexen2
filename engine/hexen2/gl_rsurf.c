@@ -484,7 +484,7 @@ static void DrawGLWaterPolyMTexLM (glpoly_t *p)
 DrawGLPoly
 ================
 */
-static void DrawGLPoly (glpoly_t *p)
+void DrawGLPoly (glpoly_t *p)
 {
 	int	i;
 	float	*v;
@@ -499,7 +499,7 @@ static void DrawGLPoly (glpoly_t *p)
 	glEnd_fp ();
 }
 
-static void DrawGLPolyMTex (glpoly_t *p)
+void DrawGLPolyMTex (glpoly_t *p)
 {
 	int	i;
 	float	*v;

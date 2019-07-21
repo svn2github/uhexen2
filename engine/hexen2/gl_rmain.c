@@ -31,6 +31,11 @@ int			r_framecount;		// used for dlight push checking
 
 mplane_t	frustum[4];
 
+//johnfitz -- rendering statistics
+int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;
+int rs_dynamiclightmaps, rs_brushpasses, rs_aliaspasses, rs_skypasses;
+float rs_megatexels;
+
 int			c_brush_polys, c_alias_polys;
 
 qboolean	r_cache_thrash;			// compatability
@@ -84,7 +89,7 @@ cvar_t	r_lightmap = {"r_lightmap", "0", CVAR_NONE};
 cvar_t	r_shadows = {"r_shadows", "0", CVAR_ARCHIVE};
 cvar_t	r_mirroralpha = {"r_mirroralpha", "1", CVAR_NONE};
 cvar_t	r_wateralpha = {"r_wateralpha", "0.33", CVAR_ARCHIVE};
-cvar_t	r_skyalpha = {"r_skyalpha", "0.67", CVAR_ARCHIVE};
+//cvar_t	r_skyalpha = {"r_skyalpha", "0.67", CVAR_ARCHIVE};
 cvar_t	r_dynamic = {"r_dynamic", "1", CVAR_NONE};
 cvar_t	r_novis = {"r_novis", "0", CVAR_NONE};
 cvar_t	r_wholeframe = {"r_wholeframe", "1", CVAR_ARCHIVE};
@@ -111,6 +116,13 @@ cvar_t	gl_coloredlight = {"gl_coloredlight", "0", CVAR_ARCHIVE};
 cvar_t	gl_colored_dynamic_lights = {"gl_colored_dynamic_lights", "0", CVAR_ARCHIVE};
 cvar_t	gl_extra_dynamic_lights = {"gl_extra_dynamic_lights", "0", CVAR_ARCHIVE};
 
+//johnfitz -- new cvars
+cvar_t	gl_farclip = { "gl_farclip", "16384", CVAR_ARCHIVE };
+cvar_t	gl_overbright = { "gl_overbright", "1", CVAR_ARCHIVE };
+cvar_t	gl_fullbrights = { "gl_fullbrights", "1", CVAR_ARCHIVE };
+extern cvar_t	r_vfog;
+//johnfitz
+
 //=============================================================================
 
 
@@ -133,6 +145,34 @@ qboolean R_CullBox (vec3_t mins, vec3_t maxs)
 	return false;
 }
 
+
+/*
+===============
+R_CullModelForEntity -- johnfitz -- uses correct bounds based on rotation
+===============
+*/
+qboolean R_CullModelForEntity(entity_t *e)
+{
+	vec3_t mins, maxs;
+
+	if (e->angles[0] || e->angles[2]) //pitch or roll
+	{
+		VectorAdd(e->origin, e->model->rmins, mins);
+		VectorAdd(e->origin, e->model->rmaxs, maxs);
+	}
+	else if (e->angles[1]) //yaw
+	{
+		VectorAdd(e->origin, e->model->ymins, mins);
+		VectorAdd(e->origin, e->model->ymaxs, maxs);
+	}
+	else //no rotation
+	{
+		VectorAdd(e->origin, e->model->mins, mins);
+		VectorAdd(e->origin, e->model->maxs, maxs);
+	}
+
+	return R_CullBox(mins, maxs);
+}
 
 /*
 =================

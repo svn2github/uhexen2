@@ -152,7 +152,8 @@ qboolean Image_WriteTGA (const char *name, byte *data, int width, int height, in
 
 	Sys_mkdir (fs_gamedir_nopath, false); //if we've switched to a nonexistant gamedir, create it now so we don't crash
 	q_snprintf (pathname, sizeof(pathname), "%s/%s", fs_gamedir_nopath, name);
-	handle = Sys_FileOpenWrite (pathname);
+	handle = FS_FileOpenWrite (pathname);
+	
 	if (handle == -1)
 		return false;
 
@@ -176,8 +177,8 @@ qboolean Image_WriteTGA (const char *name, byte *data, int width, int height, in
 		data[i+2] = temp;
 	}
 
-	Sys_FileWrite (handle, header, TARGAHEADERSIZE);
-	Sys_FileWrite (handle, data, size);
+	FS_FileWrite(handle, header, TARGAHEADERSIZE);
+	FS_FileWrite(handle, data, size);
 	Sys_FileClose (handle);
 
 	return true;

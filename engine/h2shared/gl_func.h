@@ -43,6 +43,8 @@ __GL_FUNC_EXTERN func##_f func##_fp;
 GL_FUNCTION(void, glBindTexture, (GLenum,GLuint))
 GL_FUNCTION(void, glDeleteTextures, (GLsizei,const GLuint *))
 GL_FUNCTION(void, glGenTextures, (GLsizei,GLuint *))
+GL_FUNCTION(void, glGetTexImage, (GLenum, GLint, GLenum, GLenum, GLvoid *));
+
 GL_FUNCTION(void, glTexParameterf, (GLenum,GLenum,GLfloat))
 GL_FUNCTION(void, glTexEnvf, (GLenum,GLenum,GLfloat))
 GL_FUNCTION(void, glScalef, (GLfloat,GLfloat,GLfloat))

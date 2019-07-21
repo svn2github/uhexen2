@@ -448,8 +448,10 @@ typedef struct qmodel_s
 //
 // volume occupied by the model graphics
 //
+	float		radius; //johnfitz -- removed float radius;
 	vec3_t		mins, maxs;
-	float		radius;
+	vec3_t		ymins, ymaxs; //johnfitz -- bounds for entities with nonzero yaw
+	vec3_t		rmins, rmaxs; //johnfitz -- bounds for entities with nonzero pitch or roll
 
 //
 // brush model
