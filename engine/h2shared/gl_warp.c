@@ -26,7 +26,7 @@ extern	qmodel_t	*loadmodel;
 
 int		skytexturenum;
 
-static GLuint	solidskytexture, alphaskytexture;
+static gltexture_t	*solidskytexture, *alphaskytexture;
 static float	speedscale;	// for top sky and bottom sky
 
 static msurface_t	*warpface;

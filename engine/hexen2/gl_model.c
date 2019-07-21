@@ -67,6 +67,16 @@ void Mod_Init (void)
 	Cmd_AddCommand ("mcache", Mod_Print);
 
 	memset (mod_novis, 0xff, sizeof(mod_novis));
+
+	//johnfitz -- create notexture miptex
+	r_notexture_mip = (texture_t *)Hunk_AllocName(sizeof(texture_t), "r_notexture_mip");
+	strcpy(r_notexture_mip->name, "notexture");
+	r_notexture_mip->height = r_notexture_mip->width = 32;
+
+	r_notexture_mip2 = (texture_t *)Hunk_AllocName(sizeof(texture_t), "r_notexture_mip2");
+	strcpy(r_notexture_mip2->name, "notexture2");
+	r_notexture_mip2->height = r_notexture_mip2->width = 32;
+	//johnfitz
 }
 
 /*
@@ -2887,7 +2897,7 @@ static void *Mod_LoadSpriteFrame (void *pin, mspriteframe_t **ppframe, int frame
 	pspriteframe->right = width + origin[0];
 
 	q_snprintf (name, sizeof(name), "%s_%i", loadmodel->name, framenum);
-	pspriteframe->gl_texturenum = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);
+	pspriteframe->gltexture = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);
 
 	return (void *)((byte *)pinframe + sizeof (dspriteframe_t) + size);
 }

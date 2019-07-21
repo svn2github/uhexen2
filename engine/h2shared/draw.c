@@ -293,6 +293,7 @@ void Draw_ReInit (void)
 	draw_reinit = true;
 
 	W_LoadWadFile ("gfx.wad");
+	TexMgr_Init(); //johnfitz
 	Draw_Init();
 	SCR_Init();
 	Sbar_Init();

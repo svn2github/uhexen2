@@ -237,7 +237,8 @@ typedef struct mspriteframe_s
 	short		width;
 	short		height;
 	float		up, down, left, right;
-	GLuint		gl_texturenum;
+	//GLuint		gl_texturenum;
+	struct gltexture_s	*gltexture;
 } mspriteframe_t;
 
 typedef struct

@@ -39,6 +39,7 @@ unsigned int	SHIFT_a;
 #endif
 
 qboolean	draw_reinit = false;
+qpic_t             *pic_nul; //johnfitz -- for missing gfx, don't crash
 
 static cvar_t	gl_picmip = {"gl_picmip", "0", CVAR_NONE};
 static cvar_t	gl_constretch = {"gl_constretch", "0", CVAR_ARCHIVE};
@@ -47,11 +48,11 @@ static cvar_t	gl_texture_anisotropy = {"gl_texture_anisotropy", "1", CVAR_ARCHIV
 
 static GLuint		menuplyr_textures[MAX_PLAYER_CLASS];	// player textures in multiplayer config screens
 static GLuint		draw_backtile;
-static GLuint		conback;
-static GLuint		char_texture;
-static GLuint		cs_texture;	// crosshair texture
-static GLuint		char_smalltexture;
-static GLuint		char_menufonttexture;
+static gltexture_t		*conback;
+static gltexture_t		*char_texture;
+static gltexture_t		*cs_texture;	// crosshair texture
+static gltexture_t		*char_smalltexture;
+static gltexture_t		*char_menufonttexture;
 
 // Crosshair texture is a 32x32 alpha map with 8 levels of alpha.
 // The format is similar to an X11 pixmap, but not the same.
@@ -127,7 +128,7 @@ static void Draw_PicCheckError (void *ptr, const char *name)
 		Sys_Error ("Failed to load %s", name);
 }
 
-
+/*
 qpic_t *Draw_PicFromFile (const char *name)
 {
 	qpic_t	*p;
@@ -148,24 +149,38 @@ qpic_t *Draw_PicFromFile (const char *name)
 
 	return p;
 }
+*/
 
-qpic_t *Draw_PicFromWad (const char *name)
+/*
+================
+Draw_PicFromWad
+================
+*/
+qpic_t *Draw_PicFromWad(const char *name)
 {
 	qpic_t	*p;
 	glpic_t	gl;
+	src_offset_t offset; //johnfitz
 
-	p = (qpic_t *) W_GetLumpName (name);
+	p = (qpic_t *)W_GetLumpName(name);
+	if (!p) return pic_nul; //johnfitz
 
-	gl.texnum = GL_LoadPicTexture (p);
+	char texturename[64]; //johnfitz
+	q_snprintf(texturename, sizeof(texturename), "%s:%s", WADFILENAME, name); //johnfitz
+
+	offset = (src_offset_t)p - (src_offset_t)wad_base + sizeof(int) * 2; //johnfitz
+
+	gl.gltexture = TexMgr_LoadImage(NULL, texturename, p->width, p->height, SRC_INDEXED, p->data, WADFILENAME,
+		offset, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
 	gl.sl = 0;
-	gl.sh = 1;
+	gl.sh = (float)p->width / (float)TexMgr_PadConditional(p->width); //johnfitz
 	gl.tl = 0;
-	gl.th = 1;
-	memcpy (p->data, &gl, sizeof(glpic_t));
+	gl.th = (float)p->height / (float)TexMgr_PadConditional(p->height); //johnfitz
+
+	memcpy(p->data, &gl, sizeof(glpic_t));
 
 	return p;
 }
-
 
 /*
 ================
@@ -219,7 +234,9 @@ qpic_t	*Draw_CachePic (const char *path)
 	pic->pic.width = dat->width;
 	pic->pic.height = dat->height;
 
-	gl.texnum = GL_LoadPicTexture (dat);
+	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
+		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+
 	gl.sl = 0;
 	gl.sh = 1;
 	gl.tl = 0;
@@ -270,7 +287,8 @@ qpic_t	*Draw_CacheLoadingPic (void)
 	pic->pic.width = dat->width;
 	pic->pic.height = dat->height;
 
-	gl.texnum = GL_LoadPicTexture (dat);
+	gl.gltexture = TexMgr_LoadImage(NULL, ls_path, dat->width, dat->height, SRC_INDEXED, dat->data, ls_path,
+		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
 	gl.sl = 0;
 	gl.sh = 1;
 	gl.tl = 0;
@@ -280,6 +298,31 @@ qpic_t	*Draw_CacheLoadingPic (void)
 	return &pic->pic;
 }
 #endif	/* !DRAW_PROGRESSBARS */
+
+/*
+================
+Draw_MakePic -- johnfitz -- generate pics from internal data
+================
+*/
+qpic_t *Draw_MakePic(const char *name, int width, int height, byte *data)
+{
+	int flags = TEXPREF_NEAREST | TEXPREF_ALPHA | TEXPREF_PERSIST | TEXPREF_NOPICMIP | TEXPREF_PAD;
+	qpic_t		*pic;
+	glpic_t		gl;
+
+	pic = (qpic_t *)Hunk_Alloc(sizeof(qpic_t) - 4 + sizeof(glpic_t));
+	pic->width = width;
+	pic->height = height;
+
+	gl.gltexture = TexMgr_LoadImage(NULL, name, width, height, SRC_INDEXED, data, "", (src_offset_t)data, flags);
+	gl.sl = 0;
+	gl.sh = (float)width / (float)TexMgr_PadConditional(width);
+	gl.tl = 0;
+	gl.th = (float)height / (float)TexMgr_PadConditional(height);
+	memcpy(pic->data, &gl, sizeof(glpic_t));
+
+	return pic;
+}
 
 /*
 ===============
@@ -295,7 +338,7 @@ static void Draw_TouchAllFilterModes (void)
 	{
 		if (glt->flags & (TEX_NEAREST|TEX_LINEAR))	/* TEX_MIPMAP mustn't be set in this case */
 			continue;
-		GL_Bind (glt->texnum);
+		GL_Bind (glt);
 		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
 		if (glt->flags & TEX_MIPMAP)
 		{
@@ -347,7 +390,7 @@ static void Draw_TouchMipmapFilterModes (void)
 	{
 		if (glt->flags & TEX_MIPMAP)
 		{
-			GL_Bind (glt->texnum);
+			GL_Bind (glt);
 			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
 			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].minfilter);
 			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
@@ -411,6 +454,7 @@ static void Draw_ReinitTextures (void)
 
 	// Reload pre-map pics, fonts, console, etc
 	W_LoadWadFile ("gfx.wad");
+	TexMgr_Init(); //johnfitz
 	Draw_Init();
 	SCR_Init();
 	Sbar_Init();
@@ -458,6 +502,7 @@ void Draw_ReInit (void)
 
 	// Reload pre-map pics, fonts, console, etc
 	W_LoadWadFile ("gfx.wad");
+	TexMgr_Init(); //johnfitz
 	Draw_Init();
 	SCR_Init();
 	Sbar_Init();
@@ -502,7 +547,9 @@ void Draw_Init (void)
 		if (chars[i] == 0)
 			chars[i] = 255;	// proper transparent color
 	}
-	char_texture = GL_LoadTexture ("charset", chars, 256, 128, TEX_ALPHA|TEX_NEAREST);
+	//char_texture = GL_LoadTexture ("charset", chars, 256, 128, TEX_ALPHA|TEX_NEAREST);
+	char_texture = TexMgr_LoadImage(NULL, "gfx/menu/conchars.lmp", 256, 128, SRC_INDEXED, chars,
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS);
 
 	// load the small characters for status bar
 	chars = (byte *) W_GetLumpName("tinyfont");
@@ -511,7 +558,9 @@ void Draw_Init (void)
 		if (chars[i] == 0)
 			chars[i] = 255;	// proper transparent color
 	}
-	char_smalltexture = GL_LoadTexture ("smallcharset", chars, 128, 32, TEX_ALPHA|TEX_NEAREST);
+	//char_smalltexture = GL_LoadTexture ("smallcharset", chars, 128, 32, TEX_ALPHA|TEX_NEAREST);
+	char_smalltexture = TexMgr_LoadImage(NULL, "gfx/menu/conchars.lmp", 128, 32, SRC_INDEXED, chars,
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS);
 
 	// load the big menu font
 	// Note: old version of demo has bigfont.lmp, not bigfont2.lmp
@@ -524,13 +573,17 @@ void Draw_Init (void)
 		if (p->data[i] == 0)
 			p->data[i] = 255;	// proper transparent color
 	}
-	char_menufonttexture = GL_LoadTexture ("menufont", p->data, p->width, p->height, TEX_ALPHA|TEX_LINEAR);
+	//char_menufonttexture = GL_LoadTexture ("menufont", p->data, p->width, p->height, TEX_ALPHA|TEX_LINEAR);
+	char_menufonttexture = TexMgr_LoadImage(NULL, WADFILENAME":menufont", p->width, p->height, SRC_INDEXED, p->data,
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 
 	// load the console background
 	p = (qpic_t *)FS_LoadTempFile ("gfx/menu/conback.lmp", NULL);
 	Draw_PicCheckError (p, "gfx/menu/conback.lmp");
 	SwapPic (p);
-	conback = GL_LoadTexture ("conback", p->data, p->width, p->height, TEX_LINEAR);
+	//conback = GL_LoadTexture ("conback", p->data, p->width, p->height, TEX_LINEAR);
+	conback = TexMgr_LoadImage(NULL, WADFILENAME":conback", p->width, p->height, SRC_INDEXED, p->data,
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 
 	// load the backtile
 	p = (qpic_t *)FS_LoadTempFile ("gfx/menu/backtile.lmp", NULL);
@@ -779,7 +832,7 @@ void Draw_Pic (int x, int y, qpic_t *pic)
 
 	gl = (glpic_t *)pic->data;
 	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl->texnum);
+	GL_Bind (gl);
 
 	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -813,7 +866,7 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 	glEnable_fp (GL_BLEND);
 	glCullFace_fp(GL_FRONT);
 	glColor4f_fp (1,1,1,alpha);
-	GL_Bind (gl->texnum);
+	GL_Bind (gl);
 	glBegin_fp (GL_QUADS);
 	glTexCoord2f_fp (gl->sl, gl->tl);
 	glVertex2f_fp (x, y);
@@ -872,7 +925,9 @@ qpic_t *Draw_CachePicNoTrans (const char *path)
 		if (dat->data[i] == 255)
 			dat->data[i] = 31; // pal(31) == pal(255) == FCFCFC (white)
 	}
-	gl.texnum = GL_LoadPicTexture (dat);
+	//gl.texnum = GL_LoadPicTexture (dat);
+	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
+		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
 
 	gl.sl = 0;
 	gl.sh = 1;
@@ -896,7 +951,7 @@ void Draw_IntermissionPic (qpic_t *pic)
 
 	gl = (glpic_t *)pic->data;
 	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl->texnum);
+	GL_Bind (gl);
 
 	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -936,7 +991,7 @@ void Draw_SubPic (int x, int y, qpic_t *pic, int srcx, int srcy, int width, int 
 	newth = newtl + (height*oldglheight)/pic->height;
 
 	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl->texnum);
+	GL_Bind (gl);
 	glBegin_fp (GL_QUADS);
 	glTexCoord2f_fp (newsl, newtl);
 	glVertex2f_fp (x, y);
@@ -989,7 +1044,7 @@ void Draw_PicCropped (int x, int y, qpic_t *pic)
 	}
 
 	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl->texnum);
+	GL_Bind (gl);
 	glBegin_fp (GL_QUADS);
 	glTexCoord2f_fp (gl->sl, tl);
 	glVertex2f_fp (x, y);
@@ -1047,7 +1102,7 @@ void Draw_SubPicCropped (int x, int y, int h, qpic_t *pic)
 	}
 
 	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl->texnum);
+	GL_Bind (gl);
 	glBegin_fp (GL_QUADS);
 	glTexCoord2f_fp (gl->sl, tl);
 	glVertex2f_fp (x, y);
@@ -1829,7 +1884,7 @@ gl_rebind:
 	glt->flags = flags;
 	glt->source_crc = crc;
 
-	GL_Bind (glt->texnum);
+	GL_Bind (glt);
 	if (flags & TEX_RGBA)
 		GL_Upload32 ((unsigned int *)data, glt);
 	else	GL_Upload8 (data, glt);
@@ -1870,7 +1925,9 @@ static GLuint GL_LoadPixmap (const char *name, const char *data)
 		}
 	}
 
-	return GL_LoadTexture (name, (unsigned char *) pixels, 32, 32, TEX_ALPHA | TEX_RGBA | TEX_LINEAR);
+	//return GL_LoadTexture (name, (unsigned char *) pixels, 32, 32, TEX_ALPHA | TEX_RGBA | TEX_LINEAR);
+	return TexMgr_LoadImage(NULL, name, 32, 32, SRC_INDEXED, (unsigned char *)pixels,
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 }
 
 /*
