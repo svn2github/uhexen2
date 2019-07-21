@@ -95,7 +95,7 @@ typedef struct
 	float	modelindex_sheep;
 	float	num_players;
 	float	exp_mult;
-	func_t	main;
+	func_t	prMain;
 	func_t	StartFrame;
 	func_t	PlayerPreThink;
 	func_t	PlayerPostThink;
@@ -170,7 +170,7 @@ typedef struct
 	float	modelindex_sheep;
 	float	num_players;
 	float	exp_mult;
-	func_t	main;
+	func_t	prMain;
 	func_t	StartFrame;
 	func_t	PlayerPreThink;
 	func_t	PlayerPostThink;
@@ -241,7 +241,7 @@ typedef struct
 	float	modelindex_sheep;
 	float	num_players;
 	float	exp_mult;
-	func_t	main;
+	func_t	prMain;
 	func_t	StartFrame;
 	func_t	PlayerPreThink;
 	func_t	PlayerPostThink;
@@ -302,7 +302,7 @@ typedef struct
 	float	*num_players;
 	float	*exp_mult;
 	/* functions */
-	func_t	*main;
+	func_t	*prMain;
 	func_t	*StartFrame;
 	func_t	*PlayerPreThink;
 	func_t	*PlayerPostThink;

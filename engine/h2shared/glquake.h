@@ -179,6 +179,15 @@ extern	GLuint		playertextures[MAX_CLIENTS];
 extern	GLuint		gl_extra_textures[MAX_EXTRA_TEXTURES];	// generic textures for models
 extern int gl_lightmap_format, lightmap_bytes;
 
+// Multitexture
+extern	qboolean	mtexenabled;
+extern	qboolean	gl_mtexable;
+extern PFNGLMULTITEXCOORD2FARBPROC  GL_MTexCoord2fFunc;
+extern PFNGLACTIVETEXTUREARBPROC    GL_SelectTextureFunc;
+extern PFNGLCLIENTACTIVETEXTUREARBPROC	GL_ClientActiveTextureFunc;
+extern GLint		gl_max_texture_units; //ericw
+
+
 /* the GL_Bind macro */
 /*
 #define GL_Bind(texnum)							\

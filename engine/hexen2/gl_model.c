@@ -52,6 +52,9 @@ int		entity_file_size;
 
 static qboolean	spr_reload_only = false;
 
+texture_t	*r_notexture_mip; //johnfitz -- moved here from r_main.c
+texture_t	*r_notexture_mip2; //johnfitz -- used for non-lightmapped surfs with a missing texture
+
 
 /*
 ===============

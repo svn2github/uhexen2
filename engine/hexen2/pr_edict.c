@@ -112,7 +112,7 @@ static sv_def_t globals_v103[] = {
 	{ev_float,	OFS_V103(num_players),		&sv_globals.num_players},
 	{ev_float,	OFS_V103(exp_mult),		&sv_globals.exp_mult},
 
-	{ev_function,	OFS_V103(main),			&sv_globals.main},
+	{ev_function,	OFS_V103(prMain),			&sv_globals.prMain},
 	{ev_function,	OFS_V103(StartFrame),		&sv_globals.StartFrame},
 	{ev_function,	OFS_V103(PlayerPreThink),	&sv_globals.PlayerPreThink},
 	{ev_function,	OFS_V103(PlayerPostThink),	&sv_globals.PlayerPostThink},
@@ -170,7 +170,7 @@ static sv_def_t globals_v111[] = {
 	{ev_float,	OFS_V111(num_players),		&sv_globals.num_players},
 	{ev_float,	OFS_V111(exp_mult),		&sv_globals.exp_mult},
 
-	{ev_function,	OFS_V111(main),			&sv_globals.main},
+	{ev_function,	OFS_V111(prMain),			&sv_globals.prMain},
 	{ev_function,	OFS_V111(StartFrame),		&sv_globals.StartFrame},
 	{ev_function,	OFS_V111(PlayerPreThink),	&sv_globals.PlayerPreThink},
 	{ev_function,	OFS_V111(PlayerPostThink),	&sv_globals.PlayerPostThink},
@@ -225,7 +225,7 @@ static sv_def_t globals_v112[] = {
 	{ev_float,	OFS_V112(num_players),		&sv_globals.num_players},
 	{ev_float,	OFS_V112(exp_mult),		&sv_globals.exp_mult},
 
-	{ev_function,	OFS_V112(main),			&sv_globals.main},
+	{ev_function,	OFS_V112(prMain),			&sv_globals.prMain},
 	{ev_function,	OFS_V112(StartFrame),		&sv_globals.StartFrame},
 	{ev_function,	OFS_V112(PlayerPreThink),	&sv_globals.PlayerPreThink},
 	{ev_function,	OFS_V112(PlayerPostThink),	&sv_globals.PlayerPostThink},

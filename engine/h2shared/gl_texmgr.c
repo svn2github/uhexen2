@@ -135,7 +135,7 @@ static void TexMgr_TextureMode_f(cvar_t *var)
 
 	for (i = 0; i < NUM_GLMODES; i++)
 	{
-		if (!Q_strcmp(gl_modes[i].name, gl_texturemode.string))
+		if (!strcmp(gl_modes[i].name, gl_texturemode.string))
 		{
 			if (glmode_idx != i)
 			{
@@ -468,7 +468,7 @@ void TexMgr_LoadPalette(void)
 	int i, mark;
 	FILE *f;
 
-	COM_FOpenFile("gfx/palette.lmp", &f, NULL);
+	FS_OpenFile("gfx/palette.lmp", &f, NULL);
 	if (!f)
 		Sys_Error("Couldn't load gfx/palette.lmp");
 
@@ -1291,7 +1291,7 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants)
 		//lump inside file
 		long size;
 		FILE *f;
-		COM_FOpenFile(glt->source_file, &f, NULL);
+		FS_OpenFile(glt->source_file, &f, NULL);
 		if (!f)
 			goto invalid;
 		fseek(f, glt->source_offset, SEEK_CUR);
