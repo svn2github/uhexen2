@@ -141,7 +141,8 @@ void R_InitParticleTexture (void)
 
 	//particletexture = GL_LoadTexture("", (byte *)data, TEXSIZE, TEXSIZE, TEX_ALPHA | TEX_RGBA | TEX_LINEAR);
 	particletexture = TexMgr_LoadImage(NULL, "", TEXSIZE, TEXSIZE, SRC_INDEXED, (byte *)data,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_RGBA | TEXPREF_LINEAR);
+		//WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
@@ -249,6 +250,10 @@ void R_Init (void)
 	playerTranslation = (byte *)FS_LoadHunkFile ("gfx/player.lmp", NULL);
 	if (!playerTranslation)
 		Sys_Error ("Couldn't load gfx/player.lmp");
+
+	Sky_Init(); //johnfitz
+	Fog_Init(); //johnfitz
+
 }
 
 /*
@@ -385,7 +390,8 @@ void R_TranslatePlayerSkin (int playernum)
 
 	q_snprintf(name, sizeof(name), "player_%i", playernum);
 	playertextures[playernum] = TexMgr_LoadImage(currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
-		SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
+		//SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
+		SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_RGBA | TEXPREF_LINEAR);
 
 }
 

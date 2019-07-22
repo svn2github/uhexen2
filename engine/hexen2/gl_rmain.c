@@ -465,7 +465,7 @@ static void R_DrawSpriteModel (entity_t *e)
 	   as good, should work with non 3Dfx MiniGL drivers */
 	if ((e->drawflags & DRF_TRANSLUCENT) || (e->model->flags & EF_TRANSPARENT))
 	{
-		glDisable_fp (GL_ALPHA_TEST);
+		glEnable_fp (GL_ALPHA_TEST);
 		glEnable_fp (GL_BLEND);
 		glTexEnvf_fp (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glColor4f_fp (1.0f, 1.0f, 1.0f, r_wateralpha.value);
@@ -764,6 +764,7 @@ static void R_DrawAliasModel (entity_t *e)
 	float		xyfact = 1.0, zfact = 1.0; // avoid compiler warning
 	int		skinnum;
 	int		mls;
+	qboolean	alphatest = !!(e->model->flags & EF_HOLEY);
 
 	clmodel = e->model;
 
@@ -946,8 +947,10 @@ static void R_DrawAliasModel (entity_t *e)
 	}
 	else if ((e->model->flags & EF_TRANSPARENT))
 	{
-		glEnable_fp (GL_BLEND);
-	//	glColor3f_fp (1,1,1);
+		glEnable_fp(GL_BLEND);
+		glEnable_fp(GL_ALPHA_TEST);
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE);
+			glColor3f_fp (1,1,1);
 		model_constant_alpha = 1.0f;
 	}
 	else if ((e->model->flags & EF_HOLEY))

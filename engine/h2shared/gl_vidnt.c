@@ -1070,6 +1070,7 @@ static void GL_Init (void)
 	gl_extensions = (const char *)glGetString_fp (GL_EXTENSIONS);
 	Con_SafeDPrintf ("GL_EXTENSIONS: %s\n", gl_extensions);
 
+	gl_max_size.integer = 256;//shan?
 	glGetIntegerv_fp(GL_MAX_TEXTURE_SIZE, &gl_max_size);
 	if (gl_max_size.integer < 256)	// Refuse to work when less than 256
 		Sys_Error ("hardware capable of min. 256k opengl texture size needed");

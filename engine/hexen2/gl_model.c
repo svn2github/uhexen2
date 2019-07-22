@@ -2178,9 +2178,9 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 
 	s = pheader->skinwidth * pheader->skinheight;
 
-	tex_mode = TEX_DEFAULT | TEX_MIPMAP;
+	tex_mode = TEXPREF_NONE | TEXPREF_MIPMAP;
 	if (mdl_flags & EF_TRANSPARENT)
-		tex_mode |= TEX_TRANSPARENT;
+		tex_mode |= TEXPREF_TRANSPARENT;
 	else if (mdl_flags & EF_HOLEY)
 		tex_mode |= TEX_HOLEY;
 	else if (mdl_flags & EF_SPECIAL_TRANS)
