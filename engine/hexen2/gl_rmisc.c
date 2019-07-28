@@ -241,6 +241,9 @@ void R_Init (void)
 	Cvar_RegisterVariable (&gl_colored_dynamic_lights);
 	Cvar_RegisterVariable (&gl_extra_dynamic_lights);
 
+	Cvar_RegisterVariable (&r_drawworld);
+	Cvar_RegisterVariable (&gl_farclip);
+
 	R_InitBubble();
 
 	R_InitParticles ();
@@ -434,6 +437,7 @@ void R_NewMap (void)
 	}
 
 	Sky_NewMap(); //johnfitz -- skybox in worldspawn
+	Fog_NewMap(); //johnfitz -- global fog in worldspawn
 #ifdef QUAKE2
 	R_LoadSkys ();
 #endif

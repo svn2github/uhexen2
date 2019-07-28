@@ -87,6 +87,7 @@ static	qboolean AlwaysDrawModel;
 cvar_t	r_norefresh = {"r_norefresh", "0", CVAR_NONE};
 cvar_t	r_drawentities = {"r_drawentities", "1", CVAR_NONE};
 cvar_t	r_drawviewmodel = {"r_drawviewmodel", "1", CVAR_NONE};
+cvar_t	r_drawworld = { "r_drawworld", "1", CVAR_NONE };
 cvar_t	r_speeds = {"r_speeds", "0", CVAR_NONE};
 cvar_t	r_waterwarp = {"r_waterwarp", "0", CVAR_ARCHIVE};
 cvar_t	r_fullbright = {"r_fullbright", "0", CVAR_NONE};
@@ -950,8 +951,19 @@ static void R_DrawAliasModel (entity_t *e)
 		glEnable_fp(GL_BLEND);
 		glEnable_fp(GL_ALPHA_TEST);
 		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE);
-			glColor3f_fp (1,1,1);
+		//	glColor3f_fp (1,1,1);
 		model_constant_alpha = 1.0f;
+		/*
+		glEnable_fp(GL_BLEND);
+		//	glColor3f_fp (1,1,1);
+		model_constant_alpha = 1.0f;
+		*/
+		/*
+		glEnable_fp(GL_ALPHA_TEST);
+		glEnable_fp(GL_BLEND);
+		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glColor4f_fp(1.0f, 1.0f, 1.0f, r_wateralpha.value);
+		*/
 	}
 	else if ((e->model->flags & EF_HOLEY))
 	{
@@ -1829,9 +1841,15 @@ static void R_RenderScene (void)
 
 	R_MarkLeaves ();	// done here so we know if we're in water
 
+	Fog_EnableGFog(); //johnfitz
+
+	Sky_DrawSky(); //johnfitz
+
 	R_DrawWorld ();		// adds static entities to the list
 
 	S_ExtraUpdate ();	// don't let sound get messed up if going slow
+
+	Fog_DisableGFog(); //johnfitz
 
 	R_DrawEntitiesOnList ();
 

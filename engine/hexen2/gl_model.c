@@ -515,8 +515,10 @@ bsp_tex_internal:
 			extraflags |= TEX_HOLEY;
 		// ericw
 
-		if (!strncmp(mt->name,"sky",3))
-			R_InitSky (tx);
+		//if (!strncmp(mt->name,"sky",3))
+		//	R_InitSky (tx);
+		if (!q_strncasecmp(mt->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
+			Sky_LoadTexture(tx);
 		else
 			tx->gltexture = TexMgr_LoadImage(NULL, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
 				WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
@@ -643,8 +645,10 @@ void Mod_ReloadTextures (void)
 			tx = mod->textures[j];
 			if (tx)
 			{
-				if (!strncmp(tx->name, "sky", 3))
-					R_InitSky(tx);
+				//if (!strncmp(tx->name, "sky", 3))
+				//	R_InitSky(tx);
+				if (!q_strncasecmp(tx->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
+					Sky_LoadTexture(tx);
 				else
 					tx->gltexture = TexMgr_LoadImage(NULL, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
 						WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
@@ -1111,6 +1115,53 @@ static void Mod_LoadTexinfo (lump_t *l)
 
 /*
 ================
+Mod_PolyForUnlitSurface -- johnfitz -- creates polys for unlightmapped surfaces (sky and water)
+
+TODO: merge this into BuildSurfaceDisplayList?
+================
+*/
+void Mod_PolyForUnlitSurface(msurface_t *fa)
+{
+	vec3_t		verts[64];
+	int			numverts, i, lindex;
+	float		*vec;
+	glpoly_t	*poly;
+	float		texscale;
+
+	if (fa->flags & (SURF_DRAWTURB | SURF_DRAWSKY))
+		texscale = (1.0 / 128.0); //warp animation repeats every 128
+	else
+		texscale = (1.0 / 32.0); //to match r_notexture_mip
+
+	// convert edges back to a normal polygon
+	numverts = 0;
+	for (i = 0; i < fa->numedges; i++)
+	{
+		lindex = loadmodel->surfedges[fa->firstedge + i];
+
+		if (lindex > 0)
+			vec = loadmodel->vertexes[loadmodel->edges[lindex].v[0]].position;
+		else
+			vec = loadmodel->vertexes[loadmodel->edges[-lindex].v[1]].position;
+		VectorCopy(vec, verts[numverts]);
+		numverts++;
+	}
+
+	//create the poly
+	poly = (glpoly_t *)Hunk_Alloc(sizeof(glpoly_t) + (numverts - 4) * VERTEXSIZE * sizeof(float));
+	poly->next = NULL;
+	fa->polys = poly;
+	poly->numverts = numverts;
+	for (i = 0, vec = (float *)verts; i < numverts; i++, vec += 3)
+	{
+		VectorCopy(vec, poly->verts[i]);
+		poly->verts[i][3] = DotProduct(vec, fa->texinfo->vecs[0]) * texscale;
+		poly->verts[i][4] = DotProduct(vec, fa->texinfo->vecs[1]) * texscale;
+	}
+}
+
+/*
+================
 CalcSurfaceExtents
 
 Fills in s->texturemins[] and s->extents[]
@@ -1264,7 +1315,13 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 			continue;
 		}
 
-		if (out->texinfo->texture->name[0] == '*')		// turbulent
+		//johnfitz -- this section rewritten
+		if (!q_strncasecmp(out->texinfo->texture->name, "sky", 3)) // sky surface //also note -- was Q_strncmp, changed to match qbsp
+		{
+			out->flags |= (SURF_DRAWSKY | SURF_DRAWTILED);
+			Mod_PolyForUnlitSurface(out); //no more subdivision
+		}
+		else if (out->texinfo->texture->name[0] == '*')		// turbulent
 		{
 			out->flags |= (SURF_DRAWTURB | SURF_DRAWTILED);
 			for (i = 0; i < 2; i++)
@@ -1281,8 +1338,7 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 
 			continue;
 		}
-
-		if (out->texinfo->texture->name[0] == '{') // ericw -- fence textures
+		else if (out->texinfo->texture->name[0] == '{') // ericw -- fence textures
 		{
 			out->flags |= SURF_DRAWFENCE;
 		}

@@ -95,61 +95,55 @@ A sky texture is 256*128, with the left side being a masked overlay
 */
 void Sky_LoadTexture (texture_t *mt)
 {
-	char		texturename[64];
-	int			i, j, p, r, g, b, count;
+	int		i, j, p;
 	byte		*src;
-	static byte	front_data[128*128]; //FIXME: Hunk_Alloc
-	static byte	back_data[128*128]; //FIXME: Hunk_Alloc
-	unsigned	*rgba;
+	unsigned int	trans[128 * 128];
+	unsigned int	transpix;
+	int		r, g, b;
+	unsigned int	*rgba;
 
 	src = (byte *)mt + mt->offsets[0];
 
-// extract back layer and upload
-	for (i=0 ; i<128 ; i++)
-		for (j=0 ; j<128 ; j++)
-			back_data[(i*128) + j] = src[i*256 + j + 128];
-
-	q_snprintf(texturename, sizeof(texturename), "%s:%s_back", loadmodel->name, mt->name);
-	//solidskytexture = TexMgr_LoadImage (loadmodel, texturename, 128, 128, SRC_INDEXED, back_data, "", (src_offset_t)back_data, TEXPREF_NONE);
-	//solidskytexture = TexMgr_LoadImage(NULL, WADFILENAME":upsky", 128, 128, SRC_INDEXED, (byte *)trans,
-	solidskytexture = TexMgr_LoadImage(NULL, WADFILENAME":upsky", 128, 128, SRC_INDEXED, "",
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
-
-
-// extract front layer and upload
-	for (i=0 ; i<128 ; i++)
-		for (j=0 ; j<128 ; j++)
+	// make an average value for the back to avoid
+	// a fringe on the top level
+	r = g = b = 0;
+	for (i = 0; i < 128; i++)
+	{
+		for (j = 0; j < 128; j++)
 		{
-			front_data[(i*128) + j] = src[i*256 + j];
-			if (front_data[(i*128) + j] == 0)
-				front_data[(i*128) + j] = 255;
+			p = src[i * 256 + j + 128];
+			rgba = &d_8to24table[p];
+			trans[(i * 128) + j] = *rgba;
+			r += ((byte *)rgba)[0];
+			g += ((byte *)rgba)[1];
+			b += ((byte *)rgba)[2];
 		}
+	}
 
-	q_snprintf(texturename, sizeof(texturename), "%s:%s_front", loadmodel->name, mt->name);
-	//alphaskytexture = TexMgr_LoadImage (loadmodel, texturename, 128, 128, SRC_INDEXED, front_data, "", (src_offset_t)front_data, TEXPREF_ALPHA);
-	//alphaskytexture = TexMgr_LoadImage(NULL, WADFILENAME":lowsky", 128, 128, SRC_INDEXED, (byte *)trans,
-	alphaskytexture = TexMgr_LoadImage(NULL, WADFILENAME":lowsky", 128, 128, SRC_INDEXED, "",
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
+	((byte *)&transpix)[0] = r / (128 * 128);
+	((byte *)&transpix)[1] = g / (128 * 128);
+	((byte *)&transpix)[2] = b / (128 * 128);
+	((byte *)&transpix)[3] = 0;
 
+	//solidskytexture = GL_LoadTexture("upsky", (byte *)trans, 128, 128, TEX_RGBA|TEX_LINEAR);
+	solidskytexture = TexMgr_LoadImage(NULL, WADFILENAME":upsky", 128, 128, SRC_RGBA, (byte *)trans,
+		WADFILENAME, 0, TEXPREF_RGBA | TEXPREF_LINEAR);
 
-// calculate r_fastsky color based on average of all opaque foreground colors
-	r = g = b = count = 0;
-	for (i=0 ; i<128 ; i++)
-		for (j=0 ; j<128 ; j++)
+	for (i = 0; i < 128; i++)
+	{
+		for (j = 0; j < 128; j++)
 		{
-			p = src[i*256 + j];
-			if (p != 0)
-			{
-				rgba = &d_8to24table[p];
-				r += ((byte *)rgba)[0];
-				g += ((byte *)rgba)[1];
-				b += ((byte *)rgba)[2];
-				count++;
-			}
+			p = src[i * 256 + j];
+			if (p == 0)
+				trans[(i * 128) + j] = transpix;
+			else
+				trans[(i * 128) + j] = d_8to24table[p];
 		}
-	skyflatcolor[0] = (float)r/(count*255);
-	skyflatcolor[1] = (float)g/(count*255);
-	skyflatcolor[2] = (float)b/(count*255);
+	}
+
+	//alphaskytexture = GL_LoadTexture("lowsky", (byte *)trans, 128, 128, TEX_ALPHA|TEX_RGBA|TEX_LINEAR);
+	alphaskytexture = TexMgr_LoadImage(NULL, WADFILENAME":lowsky", 128, 128, SRC_RGBA, (byte *)trans,
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_RGBA | TEXPREF_LINEAR);
 }
 
 /*
@@ -554,10 +548,12 @@ void Sky_ProcessTextureChains (void)
 	{
 		t = cl.worldmodel->textures[i];
 
-		if (!t || !t->texturechains[chain_world] || !(t->texturechains[chain_world]->flags & SURF_DRAWSKY))
+		//if (!t || !t->texturechains[chain_world] || !(t->texturechains[chain_world]->flags & SURF_DRAWSKY))
+		if (!t || !t->gltexture || !(t->gltexture->flags & SURF_DRAWSKY))
 			continue;
 
-		for (s = t->texturechains[chain_world]; s; s = s->texturechain)
+		//for (s = t->texturechains[chain_world]; s; s = s->texturechain)
+		for (s = cl.worldmodel->surfaces; s; s = s->texturechain)
 			if (!s->culled)
 				Sky_ProcessPoly (s->polys);
 	}
@@ -1020,7 +1016,7 @@ void Sky_DrawSky (void)
 	//
 	// render slow sky: cloud layers or skybox
 	//
-	if (!r_fastsky.value && !(Fog_GetDensity() > 0 && skyfog >= 1))
+	//if (!r_fastsky.value && !(Fog_GetDensity() > 0 && skyfog >= 1))
 	{
 		glDepthFunc_fp(GL_GEQUAL);
 		glDepthMask_fp(0);

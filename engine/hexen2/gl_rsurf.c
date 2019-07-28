@@ -44,6 +44,8 @@ static int	allocated[MAX_LIGHTMAPS][BLOCK_WIDTH];
 static byte	lightmaps[4*MAX_LIGHTMAPS*BLOCK_WIDTH*BLOCK_HEIGHT];
 
 
+void Sky_DrawFaceQuad(glpoly_t *p);
+
 /*
 ===============
 R_AddDynamicLights
@@ -691,11 +693,13 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 	if (!override)
 		glColor4f_fp(intensity, intensity, intensity, alpha_val);
 
+	/*
 	if (fa->flags & SURF_DRAWSKY)
 	{	// warp texture, no lightmaps
 		EmitBothSkyLayers (fa);
 		return;
 	}
+	*/
 
 	t = R_TextureAnimation (e, fa->texinfo->texture);
 	GL_Bind (t->gltexture);
@@ -844,11 +848,13 @@ void R_RenderBrushPolyMTex (entity_t *e, msurface_t *fa, qboolean override)
 	if (!override)
 		glColor4f_fp(intensity, intensity, intensity, alpha_val);
 
+	/*
 	if (fa->flags & SURF_DRAWSKY)
 	{	// warp texture, no lightmaps
 		EmitBothSkyLayers (fa);
 		return;
 	}
+	*/
 
 	glActiveTextureARB_fp(GL_TEXTURE0_ARB);
 	t = R_TextureAnimation (e, fa->texinfo->texture);
@@ -1021,7 +1027,8 @@ static void DrawTextureChains (entity_t *e)
 			continue;
 		if (i == skytexturenum)
 			R_DrawSkyChain (s);
-		else if (i == mirrortexturenum && r_mirroralpha.value != 1.0)
+		else
+		if (i == mirrortexturenum && r_mirroralpha.value != 1.0)
 		{
 			R_MirrorChain (s);
 			continue;
@@ -1343,6 +1350,9 @@ R_DrawWorld
 */
 void R_DrawWorld (void)
 {
+	if (!r_drawworld.integer)
+		return;
+
 	VectorCopy (r_refdef.vieworg, modelorg);
 
 	currenttexture[0] = GL_UNUSED_TEXTURE;

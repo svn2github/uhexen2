@@ -293,6 +293,7 @@ extern	cvar_t	gl_colored_dynamic_lights;
 extern	cvar_t	gl_extra_dynamic_lights;
 extern	cvar_t	gl_lightmapfmt;
 static	cvar_t	gl_max_size;
+extern	cvar_t	gl_farclip;
 
 /* other globals */
 extern	int		gl_coloredstatic;	/* value of gl_coloredlight stored at level start */
