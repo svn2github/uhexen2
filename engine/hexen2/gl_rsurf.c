@@ -693,13 +693,11 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 	if (!override)
 		glColor4f_fp(intensity, intensity, intensity, alpha_val);
 
-	/*
 	if (fa->flags & SURF_DRAWSKY)
 	{	// warp texture, no lightmaps
-		EmitBothSkyLayers (fa);
+		//EmitBothSkyLayers (fa);
 		return;
 	}
-	*/
 
 	t = R_TextureAnimation (e, fa->texinfo->texture);
 	GL_Bind (t->gltexture);
@@ -848,13 +846,11 @@ void R_RenderBrushPolyMTex (entity_t *e, msurface_t *fa, qboolean override)
 	if (!override)
 		glColor4f_fp(intensity, intensity, intensity, alpha_val);
 
-	/*
 	if (fa->flags & SURF_DRAWSKY)
 	{	// warp texture, no lightmaps
-		EmitBothSkyLayers (fa);
+		//EmitBothSkyLayers (fa);
 		return;
 	}
-	*/
 
 	glActiveTextureARB_fp(GL_TEXTURE0_ARB);
 	t = R_TextureAnimation (e, fa->texinfo->texture);
@@ -1025,9 +1021,9 @@ static void DrawTextureChains (entity_t *e)
 		s = t->texturechains[0];
 		if (!s)
 			continue;
-		if (i == skytexturenum)
-			R_DrawSkyChain (s);
-		else
+		//if (i == skytexturenum)
+		//	R_DrawSkyChain (s);
+		//else
 		if (i == mirrortexturenum && r_mirroralpha.value != 1.0)
 		{
 			R_MirrorChain (s);
@@ -1237,6 +1233,8 @@ WORLD MODEL
 /*
 ================
 R_RecursiveWorldNode
+
+similar to R_MarkSurfaces
 ================
 */
 static void R_RecursiveWorldNode (mnode_t *node)

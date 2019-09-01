@@ -473,7 +473,8 @@ bsp_tex_internal:
 #endif
 
 		if (!strncmp(mt->name,"sky",3))
-			R_InitSky (tx);
+			Sky_LoadTexture(tx);
+			//R_InitSky (tx);
 	}
 
 //

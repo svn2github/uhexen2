@@ -544,17 +544,23 @@ void Sky_ProcessTextureChains (void)
 	//if (!r_drawworld_cheatsafe)
 	//	return;
 
-	for (i=0 ; i<cl.worldmodel->numtextures ; i++)
+	//for (i=0 ; i<cl.worldmodel->numtextures ; i++)
 	{
-		t = cl.worldmodel->textures[i];
+		//t = cl.worldmodel->textures[i];
+		t = cl.worldmodel->textures[skytexturenum];
 
 		//if (!t || !t->texturechains[chain_world] || !(t->texturechains[chain_world]->flags & SURF_DRAWSKY))
-		if (!t || !t->gltexture || !(t->gltexture->flags & SURF_DRAWSKY))
-			continue;
+		//if (!t || !t->gltexture || !(t->gltexture->flags & SURF_DRAWSKY))
+		//if (!t || !t->gltexture || (t->gltexture->texnum != skytexturenum))
+		//	continue;
 
 		//for (s = t->texturechains[chain_world]; s; s = s->texturechain)
-		for (s = cl.worldmodel->surfaces; s; s = s->texturechain)
-			if (!s->culled)
+		//for (s = cl.worldmodel->surfaces; s; s = s->texturechain)
+		//	if (!s->culled)
+		//		Sky_ProcessPoly (s->polys);
+		//for (s = cl.worldmodel->surfaces; s; s = s->texturechain)
+		for (s = cl.worldmodel->surfaces; s; s++)
+			if (s->flags & SURF_DRAWSKY)
 				Sky_ProcessPoly (s->polys);
 	}
 }

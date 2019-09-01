@@ -1306,14 +1306,14 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 
 	// set the drawing flags flag
 
-		if (!strncmp(out->texinfo->texture->name,"sky",3))	// sky
-		{
-			out->flags |= (SURF_DRAWSKY | SURF_DRAWTILED);
-#ifndef QUAKE2
-			GL_SubdivideSurface (out);	// cut up polygon for warps
-#endif
-			continue;
-		}
+//		if (!strncmp(out->texinfo->texture->name,"sky",3))	// sky
+//		{
+//			out->flags |= (SURF_DRAWSKY | SURF_DRAWTILED);
+//#ifndef QUAKE2
+//			GL_SubdivideSurface (out);	// cut up polygon for warps
+//#endif
+//			continue;
+//		}
 
 		//johnfitz -- this section rewritten
 		if (!q_strncasecmp(out->texinfo->texture->name, "sky", 3)) // sky surface //also note -- was Q_strncmp, changed to match qbsp

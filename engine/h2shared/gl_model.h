@@ -94,9 +94,9 @@ typedef struct texture_s
 } texture_t;
 
 
-#define	SURF_PLANEBACK		2
-#define	SURF_DRAWSKY		4
-#define SURF_DRAWSPRITE		8
+#define	SURF_PLANEBACK		0x2
+#define	SURF_DRAWSKY		0x4
+#define SURF_DRAWSPRITE		0x8
 #define SURF_DRAWTURB		0x10
 #define SURF_DRAWTILED		0x20
 #define SURF_DRAWBACKGROUND	0x40
