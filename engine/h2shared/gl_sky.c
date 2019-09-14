@@ -559,9 +559,9 @@ void Sky_ProcessTextureChains (void)
 		//	if (!s->culled)
 		//		Sky_ProcessPoly (s->polys);
 		//for (s = cl.worldmodel->surfaces; s; s = s->texturechain)
-		for (s = cl.worldmodel->surfaces; s; s++)
-			if (s->flags & SURF_DRAWSKY)
-				Sky_ProcessPoly (s->polys);
+//		for (s = cl.worldmodel->surfaces; s; s++)
+//			if (s->flags & SURF_DRAWSKY)
+//				Sky_ProcessPoly (s->polys);
 	}
 }
 

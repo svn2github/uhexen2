@@ -200,7 +200,6 @@ qpic_t	*Draw_CachePic (const char *path)
 		if (!strcmp (path, pic->name))
 			return &pic->pic;
 	}
-
 	if (menu_numcachepics == MAX_CACHED_PICS)
 		Sys_Error ("menu_numcachepics == MAX_CACHED_PICS");
 	menu_numcachepics++;
@@ -238,10 +237,14 @@ qpic_t	*Draw_CachePic (const char *path)
 	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
 		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
 
+	//gl.sl = 0;
+	//gl.sh = 1;
+	//gl.tl = 0;
+	//gl.th = 1;
 	gl.sl = 0;
-	gl.sh = 1;
+	gl.sh = (float)dat->width / (float)TexMgr_PadConditional(dat->width); //johnfitz
 	gl.tl = 0;
-	gl.th = 1;
+	gl.th = (float)dat->height / (float)TexMgr_PadConditional(dat->height); //johnfitz
 	memcpy (pic->pic.data, &gl, sizeof(glpic_t));
 
 	return &pic->pic;
@@ -288,12 +291,16 @@ qpic_t	*Draw_CacheLoadingPic (void)
 	pic->pic.width = dat->width;
 	pic->pic.height = dat->height;
 
-	gl.gltexture = TexMgr_LoadImage(NULL, ls_path, dat->width, dat->height, SRC_RGBA, dat->data, ls_path,
+	gl.gltexture = TexMgr_LoadImage(NULL, ls_path, dat->width, dat->height, SRC_INDEXED, dat->data, ls_path,
 		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+	//gl.sl = 0;
+	//gl.sh = 1;
+	//gl.tl = 0;
+	//gl.th = 1;
 	gl.sl = 0;
-	gl.sh = 1;
+	gl.sh = (float)dat->width / (float)TexMgr_PadConditional(dat->width); //johnfitz
 	gl.tl = 0;
-	gl.th = 1;
+	gl.th = (float)dat->height / (float)TexMgr_PadConditional(dat->height); //johnfitz
 	memcpy (pic->pic.data, &gl, sizeof(glpic_t));
 
 	return &pic->pic;
@@ -590,7 +597,10 @@ void Draw_Init (void)
 	p = (qpic_t *)FS_LoadTempFile("gfx/menu/backtile.lmp", NULL);
 	Draw_PicCheckError(p, "gfx/menu/backtile.lmp");
 	SwapPic(p);
-	draw_backtile = GL_LoadPicTexture(p);
+	//draw_backtile = GL_LoadPicTexture(p);
+	draw_backtile = TexMgr_LoadImage(NULL, WADFILENAME":backtile", p->width, p->height, SRC_INDEXED, p->data,
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+
 
 	// load the crosshair texture
 	cs_texture = GL_LoadPixmap ("crosshair", cs_data);
@@ -824,33 +834,25 @@ void Draw_BigCharacter (int x, int y, int num)
 
 /*
 =============
-Draw_Pic
+Draw_Pic -- johnfitz -- modified
 =============
 */
-void Draw_Pic (int x, int y, qpic_t *pic)
+void Draw_Pic(int x, int y, qpic_t *pic)
 {
 	glpic_t			*gl;
 
 	gl = (glpic_t *)pic->data;
-	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl);
-
-	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-	glBegin_fp (GL_QUADS);
-	glTexCoord2f_fp (gl->sl, gl->tl);
-	glVertex2f_fp (x, y);
-	glTexCoord2f_fp (gl->sh, gl->tl);
-	glVertex2f_fp (x+pic->width, y);
-	glTexCoord2f_fp (gl->sh, gl->th);
-	glVertex2f_fp (x+pic->width, y+pic->height);
-	glTexCoord2f_fp (gl->sl, gl->th);
-	glVertex2f_fp (x, y+pic->height);
-	glEnd_fp ();
-
-	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	GL_Bind(gl->gltexture);
+	glBegin_fp(GL_QUADS);
+	glTexCoord2f_fp(gl->sl, gl->tl);
+	glVertex2f_fp(x, y);
+	glTexCoord2f_fp(gl->sh, gl->tl);
+	glVertex2f_fp(x + pic->width, y);
+	glTexCoord2f_fp(gl->sh, gl->th);
+	glVertex2f_fp(x + pic->width, y + pic->height);
+	glTexCoord2f_fp(gl->sl, gl->th);
+	glVertex2f_fp(x, y + pic->height);
+	glEnd_fp();
 }
 
 /*
@@ -864,23 +866,23 @@ void Draw_AlphaPic (int x, int y, qpic_t *pic, float alpha)
 
 	gl = (glpic_t *)pic->data;
 	glDisable_fp(GL_ALPHA_TEST);
-	glEnable_fp (GL_BLEND);
+	glEnable_fp(GL_BLEND);
 	glCullFace_fp(GL_FRONT);
-	glColor4f_fp (1,1,1,alpha);
-	GL_Bind (gl);
-	glBegin_fp (GL_QUADS);
-	glTexCoord2f_fp (gl->sl, gl->tl);
-	glVertex2f_fp (x, y);
-	glTexCoord2f_fp (gl->sh, gl->tl);
-	glVertex2f_fp (x+pic->width, y);
-	glTexCoord2f_fp (gl->sh, gl->th);
-	glVertex2f_fp (x+pic->width, y+pic->height);
-	glTexCoord2f_fp (gl->sl, gl->th);
-	glVertex2f_fp (x, y+pic->height);
-	glEnd_fp ();
-	glColor4f_fp (1,1,1,1);
+	glColor4f_fp(1, 1, 1, alpha);
+	GL_Bind(gl->gltexture);
+	glBegin_fp(GL_QUADS);
+	glTexCoord2f_fp(gl->sl, gl->tl);
+	glVertex2f_fp(x, y);
+	glTexCoord2f_fp(gl->sh, gl->tl);
+	glVertex2f_fp(x + pic->width, y);
+	glTexCoord2f_fp(gl->sh, gl->th);
+	glVertex2f_fp(x + pic->width, y + pic->height);
+	glTexCoord2f_fp(gl->sl, gl->th);
+	glVertex2f_fp(x, y + pic->height);
+	glEnd_fp();
+	glColor4f_fp(1, 1, 1, 1);
 	glEnable_fp(GL_ALPHA_TEST);
-	glDisable_fp (GL_BLEND);
+	glDisable_fp(GL_BLEND);
 }
 
 #if FULLSCREEN_INTERMISSIONS
@@ -952,7 +954,7 @@ void Draw_IntermissionPic (qpic_t *pic)
 
 	gl = (glpic_t *)pic->data;
 	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl);
+	GL_Bind (gl->gltexture);
 
 	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -992,7 +994,7 @@ void Draw_SubPic (int x, int y, qpic_t *pic, int srcx, int srcy, int width, int 
 	newth = newtl + (height*oldglheight)/pic->height;
 
 	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl);
+	GL_Bind (gl->gltexture);
 	glBegin_fp (GL_QUADS);
 	glTexCoord2f_fp (newsl, newtl);
 	glVertex2f_fp (x, y);
@@ -1045,7 +1047,7 @@ void Draw_PicCropped (int x, int y, qpic_t *pic)
 	}
 
 	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl);
+	GL_Bind (gl->gltexture);
 	glBegin_fp (GL_QUADS);
 	glTexCoord2f_fp (gl->sl, tl);
 	glVertex2f_fp (x, y);
@@ -1103,7 +1105,7 @@ void Draw_SubPicCropped (int x, int y, int h, qpic_t *pic)
 	}
 
 	glColor4f_fp (1,1,1,1);
-	GL_Bind (gl);
+	GL_Bind (gl->gltexture);
 	glBegin_fp (GL_QUADS);
 	glTexCoord2f_fp (gl->sl, tl);
 	glVertex2f_fp (x, y);
@@ -1843,6 +1845,7 @@ static void GL_Upload8 (byte *data, gltexture_t *glt)
 GL_LoadTexture
 ================
 */
+/*
 GLuint GL_LoadTexture (const char *identifier, byte *data, int width, int height, int flags)
 {
 	int		i, size;
@@ -1861,7 +1864,7 @@ GLuint GL_LoadTexture (const char *identifier, byte *data, int width, int height
 
 	if (identifier[0])
 	{
-		/* texture already present? */
+		//texture already present?
 		for (i = 0, glt = gltextures; i < numgltextures; i++, glt++)
 		{
 			if (!strcmp (identifier, glt->name))
@@ -1869,13 +1872,14 @@ GLuint GL_LoadTexture (const char *identifier, byte *data, int width, int height
 				if (crc != glt->source_crc ||
 				    (glt->flags & TEXPREF_MIPMAP) != (flags & TEXPREF_MIPMAP) ||
 				    width  != glt->width || height != glt->height)
-				{ /* not the same, delete and rebind to new image */
+				{ 
+					//not the same, delete and rebind to new image
 					Con_DPrintf ("Texture cache mismatch: %lu, %s, reloading\n",
 							    (unsigned long)glt->texnum, identifier);
 					glDeleteTextures_fp (1, &glt->texnum);
 					goto gl_rebind;
 				}
-				else	return glt->texnum;	/* the same is present. */
+				else	return glt->texnum;	//the same is present.
 			}
 		}
 	}
@@ -1901,6 +1905,7 @@ gl_rebind:
 
 	return glt->texnum;
 }
+*/
 
 /*
 ===============
