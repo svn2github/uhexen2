@@ -841,7 +841,7 @@ static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_
 		// ignore if not touching a PV leaf
 		if (ent != clent)	// clent is ALWAYS sent
 		{	// ignore ents without visible models
-			if (!ent->v.modelindex || !*PR_GetString(ent->v.model))
+			if (!ent->v.modelindex || !PR_GetString(ent->v.model)[0])
 			{
 				DoRemove = true;
 				goto skipA;
@@ -853,7 +853,13 @@ static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_
 					break;
 			}
 
-			if (i == ent->num_leafs)
+			// ericw -- added ent->num_leafs < MAX_ENT_LEAFS condition.
+			//
+			// if ent->num_leafs == MAX_ENT_LEAFS, the ent is visible from too many leafs
+			// for us to say whether it's in the PVS, so don't try to vis cull it.
+			// this commonly happens with rotators, because they often have huge bboxes
+			// spanning the entire map, or really tall lifts, etc.
+			if (i == ent->num_leafs && ent->num_leafs < MAX_ENT_LEAFS)
 			{
 				DoRemove = true;
 				goto skipA;
