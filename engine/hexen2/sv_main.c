@@ -724,7 +724,7 @@ byte *SV_FatPVS(vec3_t org) //johnfitz -- added worldmodel as a parameter
 #define CLIENT_FRAME_INIT	255
 #define CLIENT_FRAME_RESET	254
 
-static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_t *msg)
+static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t *msg)
 {
 	int		e, i;
 	int		bits;
@@ -740,10 +740,10 @@ static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_
 	client_frames_t	*reference, *build;
 	client_state2_t	*state;
 	entity_state2_t	*ref_ent, *set_ent, build_ent;
-	qboolean		FoundInList,DoRemove,DoPlayer,DoMonsters,DoMissiles,DoMisc,IgnoreEnt;
-	short			RemoveList[MAX_CLIENT_STATES],NumToRemove;
+	qboolean		FoundInList, DoRemove, DoPlayer, DoMonsters, DoMissiles, DoMisc, IgnoreEnt;
+	short			RemoveList[MAX_CLIENT_STATES], NumToRemove;
 
-	client_num = client-svs.clients;
+	client_num = client - svs.clients;
 	state = &sv.states[client_num];
 	reference = &state->frames[0];
 
@@ -751,12 +751,12 @@ static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_
 	{	// Old sequence
 	//	Con_Printf("SV: Old sequence SV(%d,%d) CL(%d,%d)\n",client->current_sequence, client->current_frame, client->last_sequence, client->last_frame);
 		client->current_frame++;
-		if (client->current_frame > MAX_FRAMES+1)
-			client->current_frame = MAX_FRAMES+1;
+		if (client->current_frame > MAX_FRAMES + 1)
+			client->current_frame = MAX_FRAMES + 1;
 	}
 	else if (client->last_frame == CLIENT_FRAME_INIT ||
-			 client->last_frame == 0 ||
-			 client->last_frame == MAX_FRAMES+1)
+		client->last_frame == 0 ||
+		client->last_frame == MAX_FRAMES + 1)
 	{	// Reference expired in current sequence
 	//	Con_Printf("SV: Expired SV(%d,%d) CL(%d,%d)\n",client->current_sequence, client->current_frame, client->last_sequence, client->last_frame);
 		client->current_frame = 1;
@@ -791,8 +791,8 @@ static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_
 	{	// Normal frame advance
 	//	Con_Printf("SV: Normal SV(%d,%d) CL(%d,%d)\n",client->current_sequence, client->current_frame, client->last_sequence, client->last_frame);
 		client->current_frame++;
-		if (client->current_frame > MAX_FRAMES+1)
-			client->current_frame = MAX_FRAMES+1;
+		if (client->current_frame > MAX_FRAMES + 1)
+			client->current_frame = MAX_FRAMES + 1;
 	}
 
 	DoPlayer = DoMonsters = DoMissiles = DoMisc = false;
@@ -811,9 +811,9 @@ static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_
 	client->last_frame = CLIENT_FRAME_RESET;
 
 	NumToRemove = 0;
-	MSG_WriteByte (msg, svc_reference);
-	MSG_WriteByte (msg, client->current_frame);
-	MSG_WriteByte (msg, client->current_sequence);
+	MSG_WriteByte(msg, svc_reference);
+	MSG_WriteByte(msg, client->current_frame);
+	MSG_WriteByte(msg, client->current_sequence);
 
 	// find the client's PVS
 	if (clent->v.cameramode)
@@ -822,9 +822,9 @@ static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_
 		VectorCopy(ent->v.origin, org);
 	}
 	else
-		VectorAdd (clent->v.origin, clent->v.view_ofs, org);
+		VectorAdd(clent->v.origin, clent->v.view_ofs, org);
 
-	pvs = SV_FatPVS (org);
+	pvs = SV_FatPVS(org);
 
 	// send over all entities (except the client) that touch the pvs
 	ent = NEXT_EDICT(sv.edicts);
@@ -841,7 +841,7 @@ static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_
 		// ignore if not touching a PV leaf
 		if (ent != clent)	// clent is ALWAYS sent
 		{	// ignore ents without visible models
-			if (!ent->v.modelindex || !*PR_GetString(ent->v.model))
+			if (!ent->v.modelindex || !PR_GetString(ent->v.model)[0])
 			{
 				DoRemove = true;
 				goto skipA;
@@ -849,18 +849,24 @@ static void SV_PrepareClientEntities (client_t *client, edict_t	*clent, sizebuf_
 
 			for (i = 0; i < ent->num_leafs; i++)
 			{
-				if (pvs[ent->leafnums[i] >> 3] & (1 << (ent->leafnums[i] & 7)) )
+				if (pvs[ent->leafnums[i] >> 3] & (1 << (ent->leafnums[i] & 7)))
 					break;
 			}
 
-			if (i == ent->num_leafs)
+			// ericw -- added ent->num_leafs < MAX_ENT_LEAFS condition.
+			//
+			// if ent->num_leafs == MAX_ENT_LEAFS, the ent is visible from too many leafs
+			// for us to say whether it's in the PVS, so don't try to vis cull it.
+			// this commonly happens with rotators, because they often have huge bboxes
+			// spanning the entire map, or really tall lifts, etc.
+			if (i == ent->num_leafs && ent->num_leafs < MAX_ENT_LEAFS)
 			{
 				DoRemove = true;
 				goto skipA;
 			}
 		}
 
-skipA:
+	skipA:
 		IgnoreEnt = false;
 		flagtest = (long)ent->v.flags;
 		if (!DoRemove)
@@ -876,8 +882,8 @@ skipA:
 					IgnoreEnt = true;
 			}
 			else if (ent->v.movetype == MOVETYPE_FLYMISSILE ||
-					 ent->v.movetype == MOVETYPE_BOUNCEMISSILE ||
-					 ent->v.movetype == MOVETYPE_BOUNCE)
+				ent->v.movetype == MOVETYPE_BOUNCEMISSILE ||
+				ent->v.movetype == MOVETYPE_BOUNCE)
 			{
 				if (!DoMissiles)
 					IgnoreEnt = true;
@@ -891,8 +897,8 @@ skipA:
 
 		bits = 0;
 
-		while (position < reference->count && 
-			   e > reference->states[position].index)
+		while (position < reference->count &&
+			e > reference->states[position].index)
 			position++;
 
 		if (position < reference->count && reference->states[position].index == e)
@@ -952,26 +958,26 @@ skipA:
 		for (i = 0; i < 3; i++)
 		{
 			miss = ent->v.origin[i] - ref_ent->origin[i];
-			if ( miss < -0.1 || miss > 0.1 )
+			if (miss < -0.1 || miss > 0.1)
 			{
-				bits |= U_ORIGIN1<<i;
+				bits |= U_ORIGIN1 << i;
 				set_ent->origin[i] = ent->v.origin[i];
 			}
 		}
 
-		if ( ent->v.angles[0] != ref_ent->angles[0] )
+		if (ent->v.angles[0] != ref_ent->angles[0])
 		{
 			bits |= U_ANGLE1;
 			set_ent->angles[0] = ent->v.angles[0];
 		}
 
-		if ( ent->v.angles[1] != ref_ent->angles[1] )
+		if (ent->v.angles[1] != ref_ent->angles[1])
 		{
 			bits |= U_ANGLE2;
 			set_ent->angles[1] = ent->v.angles[1];
 		}
 
-		if ( ent->v.angles[2] != ref_ent->angles[2] )
+		if (ent->v.angles[2] != ref_ent->angles[2])
 		{
 			bits |= U_ANGLE3;
 			set_ent->angles[2] = ent->v.angles[2];
@@ -1006,7 +1012,7 @@ skipA:
 			set_ent->effects = ent->v.effects;
 		}
 
-	//	flagtest = (long)ent->v.flags;
+		//	flagtest = (long)ent->v.flags;
 		if (flagtest & 0xff000000)
 		{
 			Host_Error("Invalid flags setting for class %s", PR_GetString(ent->v.classname));
@@ -1016,9 +1022,9 @@ skipA:
 		temp_index = ent->v.modelindex;
 		if (((int)ent->v.flags & FL_CLASS_DEPENDENT) && ent->v.model)
 		{
-			strcpy (NewName, PR_GetString(ent->v.model));
-			NewName[strlen(NewName)-5] = client->playerclass + 48;
-			temp_index = SV_ModelIndex (NewName);
+			strcpy(NewName, PR_GetString(ent->v.model));
+			NewName[strlen(NewName) - 5] = client->playerclass + 48;
+			temp_index = SV_ModelIndex(NewName);
 		}
 
 		if (ref_ent->modelindex != temp_index)
@@ -1027,8 +1033,8 @@ skipA:
 			set_ent->modelindex = temp_index;
 		}
 
-		if ( ref_ent->scale != ((int)(ent->v.scale * 100.0) & 255)
-			|| ref_ent->abslight != ((int)(ent->v.abslight * 255.0) & 255) )
+		if (ref_ent->scale != ((int)(ent->v.scale * 100.0) & 255)
+			|| ref_ent->abslight != ((int)(ent->v.abslight * 255.0) & 255))
 		{
 			bits |= U_SCALE;
 			set_ent->scale = ((int)(ent->v.scale * 100.0) & 255);
@@ -1058,60 +1064,60 @@ skipA:
 		if (bits >= 65536)
 			bits |= U_MOREBITS2;
 
-	//
-	// write the message
-	//
-		MSG_WriteByte (msg,bits | U_SIGNAL);
+		//
+		// write the message
+		//
+		MSG_WriteByte(msg, bits | U_SIGNAL);
 
 		if (bits & U_MOREBITS)
-			MSG_WriteByte (msg, bits >> 8);
+			MSG_WriteByte(msg, bits >> 8);
 		if (bits & U_MOREBITS2)
-			MSG_WriteByte (msg, bits >> 16);
+			MSG_WriteByte(msg, bits >> 16);
 
 		if (bits & U_LONGENTITY)
-			MSG_WriteShort (msg, e);
+			MSG_WriteShort(msg, e);
 		else
-			MSG_WriteByte (msg, e);
+			MSG_WriteByte(msg, e);
 
 		if (bits & U_MODEL)
-			MSG_WriteShort (msg, temp_index);
+			MSG_WriteShort(msg, temp_index);
 		if (bits & U_FRAME)
-			MSG_WriteByte (msg, ent->v.frame);
+			MSG_WriteByte(msg, ent->v.frame);
 		if (bits & U_COLORMAP)
-			MSG_WriteByte (msg, ent->v.colormap);
+			MSG_WriteByte(msg, ent->v.colormap);
 		if (bits & U_SKIN)
 		{ // Used for skin and drawflags
 			MSG_WriteByte(msg, ent->v.skin);
 			MSG_WriteByte(msg, ent->v.drawflags);
 		}
 		if (bits & U_EFFECTS)
-			MSG_WriteByte (msg, ent->v.effects);
+			MSG_WriteByte(msg, ent->v.effects);
 		if (bits & U_ORIGIN1)
-			MSG_WriteCoord (msg, ent->v.origin[0]);
+			MSG_WriteCoord(msg, ent->v.origin[0]);
 		if (bits & U_ANGLE1)
-			MSG_WriteAngle (msg, ent->v.angles[0]);
+			MSG_WriteAngle(msg, ent->v.angles[0]);
 		if (bits & U_ORIGIN2)
-			MSG_WriteCoord (msg, ent->v.origin[1]);
+			MSG_WriteCoord(msg, ent->v.origin[1]);
 		if (bits & U_ANGLE2)
-			MSG_WriteAngle (msg, ent->v.angles[1]);
+			MSG_WriteAngle(msg, ent->v.angles[1]);
 		if (bits & U_ORIGIN3)
-			MSG_WriteCoord (msg, ent->v.origin[2]);
+			MSG_WriteCoord(msg, ent->v.origin[2]);
 		if (bits & U_ANGLE3)
-			MSG_WriteAngle (msg, ent->v.angles[2]);
+			MSG_WriteAngle(msg, ent->v.angles[2]);
 		if (bits & U_SCALE)
 		{ // Used for scale and abslight
-			MSG_WriteByte (msg, (int)(ent->v.scale * 100.0) & 255);
-			MSG_WriteByte (msg, (int)(ent->v.abslight * 255.0) & 255);
+			MSG_WriteByte(msg, (int)(ent->v.scale * 100.0) & 255);
+			MSG_WriteByte(msg, (int)(ent->v.abslight * 255.0) & 255);
 		}
 
 		if (build->count >= MAX_CLIENT_STATES)
 			break;
 	}
 
-	MSG_WriteByte (msg, svc_clear_edicts);
-	MSG_WriteByte (msg, NumToRemove);
+	MSG_WriteByte(msg, svc_clear_edicts);
+	MSG_WriteByte(msg, NumToRemove);
 	for (i = 0; i < NumToRemove; i++)
-		MSG_WriteShort (msg, RemoveList[i]);
+		MSG_WriteShort(msg, RemoveList[i]);
 }
 
 /*
