@@ -1330,6 +1330,7 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 				out->texturemins[i] = -8192;
 			}
 
+			Mod_PolyForUnlitSurface(out);
 			GL_SubdivideSurface (out);	// cut up polygon for warps
 
 			if ( (!q_strncasecmp(out->texinfo->texture->name,"*rtex078",8)) ||

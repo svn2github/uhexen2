@@ -559,9 +559,15 @@ void Sky_ProcessTextureChains (void)
 		//	if (!s->culled)
 		//		Sky_ProcessPoly (s->polys);
 		//for (s = cl.worldmodel->surfaces; s; s = s->texturechain)
-//		for (s = cl.worldmodel->surfaces; s; s++)
-//			if (s->flags & SURF_DRAWSKY)
-//				Sky_ProcessPoly (s->polys);
+		int blah = 0;
+		s = cl.worldmodel->surfaces;
+		//for (s = cl.worldmodel->surfaces; s; s++)
+		for (i = 0; i < cl.worldmodel->numsurfaces; i++, s++)
+		{
+			blah++;
+			if ((!s->culled) && (s->flags & SURF_DRAWSKY))
+				Sky_ProcessPoly(s->polys);
+		}
 	}
 }
 
@@ -794,18 +800,25 @@ void Sky_GetTexCoord (vec3_t v, float speed, float *s, float *t)
 	vec3_t	dir;
 	float	length, scroll;
 
-	VectorSubtract (v, r_origin, dir);
+	VectorSubtract(v, r_origin, dir);
 	dir[2] *= 3;	// flatten the sphere
 
-	length = dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2];
-	length = sqrt (length);
-	length = 6*63/length;
+	length = dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2];
+	length = sqrt(length);
+	length = 6 * 63 / length;
+
+	dir[0] *= length;
+	dir[1] *= length;
 
 	scroll = cl.time*speed;
 	scroll -= (int)scroll & ~127;
 
 	*s = (scroll + dir[0] * length) * (1.0/128);
 	*t = (scroll + dir[1] * length) * (1.0/128);
+
+	//*s = (scroll + dir[0]) * (1.0 / 128);
+	//*t = (scroll + dir[1]) * (1.0 / 128);
+
 }
 
 /*
@@ -857,6 +870,8 @@ void Sky_DrawFaceQuad (glpoly_t *p)
 			glVertex3fv_fp(v);
 		}
 		glEnd_fp();
+
+
 
 		GL_Bind (alphaskytexture);
 		glEnable_fp(GL_BLEND);
