@@ -26,7 +26,7 @@ extern	qmodel_t	*loadmodel;
 
 int		skytexturenum;
 
-static gltexture_t	*solidskytexture, *alphaskytexture;
+static gltexture_t	*solidskytexturez, *alphaskytexturez;
 static float	speedscale;	// for top sky and bottom sky
 
 static msurface_t	*warpface;
@@ -250,12 +250,12 @@ static void EmitSkyPolysMulti (msurface_t *fa)
 	float		length;
 
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	GL_Bind (solidskytexture);
+	GL_Bind (solidskytexturez);
 
 	glActiveTextureARB_fp (GL_TEXTURE1_ARB);
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
 	glEnable_fp(GL_TEXTURE_2D);
-	GL_Bind (alphaskytexture);
+	GL_Bind (alphaskytexturez);
 
 	for (p = fa->polys ; p ; p = p->next)
 	{
@@ -341,7 +341,7 @@ void EmitBothSkyLayers (msurface_t *fa)
 		return;
 	}
 
-	GL_Bind(solidskytexture);
+	GL_Bind(solidskytexturez);
 	speedscale = realtime*8;
 	speedscale -= (int)speedscale & ~127;
 
@@ -350,7 +350,7 @@ void EmitBothSkyLayers (msurface_t *fa)
 	glEnable_fp (GL_BLEND);
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glColor4f_fp(1.0f, 1.0f, 1.0f, r_skyalpha.value);
-	GL_Bind (alphaskytexture);
+	GL_Bind (alphaskytexturez);
 	speedscale = realtime*16;
 	speedscale -= (int)speedscale & ~127;
 
@@ -378,7 +378,7 @@ void R_DrawSkyChain (msurface_t *s)
 		return;
 	}
 
-	GL_Bind(solidskytexture);
+	GL_Bind(solidskytexturez);
 	speedscale = realtime*8;
 	speedscale -= (int)speedscale & ~127;
 
@@ -388,7 +388,7 @@ void R_DrawSkyChain (msurface_t *s)
 	glEnable_fp (GL_BLEND);
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glColor4f_fp(1.0f, 1.0f, 1.0f, r_skyalpha.value);
-	GL_Bind (alphaskytexture);
+	GL_Bind (alphaskytexturez);
 	speedscale = realtime*16;
 	speedscale -= (int)speedscale & ~127;
 
@@ -1148,7 +1148,7 @@ void R_InitSky (texture_t *mt)
 	((byte *)&transpix)[3] = 0;
 
 	//solidskytexture = GL_LoadTexture("upsky", (byte *)trans, 128, 128, TEX_RGBA|TEX_LINEAR);
-	solidskytexture = TexMgr_LoadImage(NULL, WADFILENAME":upsky", 128, 128, SRC_RGBA, (byte *)trans,
+	solidskytexturez = TexMgr_LoadImage(NULL, WADFILENAME":upsky", 128, 128, SRC_RGBA, (byte *)trans,
 		WADFILENAME, 0, TEXPREF_RGBA | TEXPREF_LINEAR);
 		//WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_RGBA);
 
@@ -1165,7 +1165,7 @@ void R_InitSky (texture_t *mt)
 	}
 
 	//alphaskytexture = GL_LoadTexture("lowsky", (byte *)trans, 128, 128, TEX_ALPHA|TEX_RGBA|TEX_LINEAR);
-	alphaskytexture = TexMgr_LoadImage(NULL, WADFILENAME":lowsky", 128, 128, SRC_RGBA, (byte *)trans,
+	alphaskytexturez = TexMgr_LoadImage(NULL, WADFILENAME":lowsky", 128, 128, SRC_RGBA, (byte *)trans,
 		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_RGBA | TEXPREF_LINEAR);
 		//WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 }
