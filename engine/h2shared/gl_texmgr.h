@@ -45,7 +45,7 @@ typedef struct gltexture_s {
 //managed by texture manager
 	unsigned int		texnum;
 	struct gltexture_s	*next;
-	struct qmodel_t		*owner;
+	qmodel_t			*owner;
 //managed by image loading
 	char				name[64];
 	unsigned int		width; //size of image as it exists in opengl

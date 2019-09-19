@@ -110,7 +110,8 @@ void Sky_LoadTexture (texture_t *mt)
 			back_data[(i * 128) + j] = src[i * 256 + j + 128];
 
 	q_snprintf(texturename, sizeof(texturename), "%s:%s_upsky", loadmodel->name, mt->name);
-	solidskytexture = TexMgr_LoadImage(loadmodel, WADFILENAME":upsky", 128, 128, SRC_INDEXED, back_data, "", (src_offset_t)back_data, TEXPREF_NONE);
+	solidskytexture = TexMgr_LoadImage(loadmodel, "upsky", 128, 128, SRC_INDEXED, back_data, "", (src_offset_t)back_data, TEXPREF_NONE);
+	//solidskytexture = nulltexture;
 
 	// extract front layer and upload
 	for (i = 0; i < 128; i++)
@@ -122,7 +123,8 @@ void Sky_LoadTexture (texture_t *mt)
 		}
 
 	q_snprintf(texturename, sizeof(texturename), "%s:%s_lowsky", loadmodel->name, mt->name);
-	alphaskytexture = TexMgr_LoadImage(loadmodel, WADFILENAME":lowsky", 128, 128, SRC_INDEXED, front_data, "", (src_offset_t)front_data, TEXPREF_ALPHA);
+	alphaskytexture = TexMgr_LoadImage(loadmodel, "lowsky", 128, 128, SRC_INDEXED, front_data, "", (src_offset_t)front_data, TEXPREF_ALPHA);
+	//alphaskytexture = notexture;
 
 	// calculate r_fastsky color based on average of all opaque foreground colors
 	r = g = b = count = 0;
@@ -524,7 +526,7 @@ void Sky_ProcessPoly (glpoly_t	*p)
 	{
 		for (i=0 ; i<p->numverts ; i++)
 			VectorSubtract (p->verts[i], r_origin, verts[i]);
-		//Sky_ClipPoly (p->numverts, verts[0], 0);
+		Sky_ClipPoly (p->numverts, verts[0], 0);
 	}
 }
 
@@ -563,7 +565,7 @@ void Sky_ProcessTextureChains (void)
 		for (i = 0; i < cl.worldmodel->numsurfaces; i++, s++)
 		{
 			blah++;
-			//if ((!s->culled) && (s->flags & SURF_DRAWSKY))
+			if ((!s->culled) && (s->flags & SURF_DRAWSKY))
 				Sky_ProcessPoly(s->polys);
 		}
 	}
@@ -811,8 +813,11 @@ void Sky_GetTexCoord (vec3_t v, float speed, float *s, float *t)
 	scroll = cl.time*speed;
 	scroll -= (int)scroll & ~127;
 
-	*s = (scroll + dir[0] * length) * (1.0/128);
-	*t = (scroll + dir[1] * length) * (1.0/128);
+	*s = (scroll + dir[0] * length) * (1.0 / 128);
+	*t = (scroll + dir[1] * length) * (1.0 / 128);
+
+	//*s = rand() * (1.0 / RAND_MAX) * 10000;
+	//*t = rand() * (1.0 / RAND_MAX) * 10000;
 
 	//*s = (scroll + dir[0]) * (1.0 / 128);
 	//*t = (scroll + dir[1]) * (1.0 / 128);
@@ -865,6 +870,9 @@ void Sky_DrawFaceQuad (glpoly_t *p)
 		{
 			Sky_GetTexCoord (v, 8, &s, &t);
 			glTexCoord2f_fp (s, t);
+			v[0] = rand() * (1.0 / RAND_MAX) * 1000;
+			v[1] = rand() * (1.0 / RAND_MAX) * 1000;
+			v[2] = rand() * (1.0 / RAND_MAX) * 1000;
 			glVertex3fv_fp(v);
 		}
 		glEnd_fp();
@@ -925,83 +933,51 @@ void Sky_DrawFace (int axis)
 	glpoly_t	*p;
 	vec3_t		verts[4];
 	int			i, j, start;
-	float		di,qi,dj,qj;
+	float		di, qi, dj, qj;
 	vec3_t		vup, vright, temp, temp2;
 
-	float		*v;
-	float		s, t;
-	vec3_t		dir;
-	float		length;
-
 	Sky_SetBoxVert(-1.0, -1.0, axis, verts[0]);
-	Sky_SetBoxVert(-1.0,  1.0, axis, verts[1]);
-	Sky_SetBoxVert(1.0,   1.0, axis, verts[2]);
-	Sky_SetBoxVert(1.0,  -1.0, axis, verts[3]);
+	Sky_SetBoxVert(-1.0, 1.0, axis, verts[1]);
+	Sky_SetBoxVert(1.0, 1.0, axis, verts[2]);
+	Sky_SetBoxVert(1.0, -1.0, axis, verts[3]);
 
-	start = Hunk_LowMark ();
-	p = (glpoly_t *) Hunk_Alloc(sizeof(glpoly_t));
+	start = Hunk_LowMark();
+	p = (glpoly_t *)Hunk_Alloc(sizeof(glpoly_t));
 
-	for (p = fa->polys; p; p = p->next)
-	{
-		glBegin_fp(GL_POLYGON);
-		for (i = 0, v = p->verts[0]; i < p->numverts; i++, v += VERTEXSIZE)
-		{
-			VectorSubtract(v, r_origin, dir);
-			dir[2] *= 3;	// flatten the sphere
-
-			length = dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2];
-			length = sqrt(length);
-			length = 6 * 63 / length;
-
-			dir[0] *= length;
-			dir[1] *= length;
-
-			s = (cl.time*10 + dir[0]) * (1.0 / 128);
-			t = (cl.time*10 + dir[1]) * (1.0 / 128);
-
-			glTexCoord2f_fp(s, t);
-			glVertex3fv_fp(v);
-		}
-		glEnd_fp();
-	}
-
-
-	/*
-	VectorSubtract(verts[2],verts[3],vup);
-	VectorSubtract(verts[2],verts[1],vright);
+	VectorSubtract(verts[2], verts[3], vup);
+	VectorSubtract(verts[2], verts[1], vright);
 
 	di = q_max((int)r_sky_quality.value, 1);
 	qi = 1.0 / di;
-	dj = (axis < 4) ? di*2 : di; //subdivide vertically more than horizontally on skybox sides
+	dj = (axis < 4) ? di * 2 : di; //subdivide vertically more than horizontally on skybox sides
 	qj = 1.0 / dj;
 
-	for (i=0; i<di; i++)
+	for (i = 0; i < di; i++)
 	{
-		for (j=0; j<dj; j++)
+		for (j = 0; j < dj; j++)
 		{
-			if (i*qi < skymins[0][axis]/2+0.5 - qi || i*qi > skymaxs[0][axis]/2+0.5 ||
-				j*qj < skymins[1][axis]/2+0.5 - qj || j*qj > skymaxs[1][axis]/2+0.5)
+			if (i*qi < skymins[0][axis] / 2 + 0.5 - qi || i * qi > skymaxs[0][axis] / 2 + 0.5 ||
+				j * qj < skymins[1][axis] / 2 + 0.5 - qj || j * qj > skymaxs[1][axis] / 2 + 0.5)
 				continue;
 
 			//if (i&1 ^ j&1) continue; //checkerboard test
-			VectorScale (vright, qi*i, temp);
-			VectorScale (vup, qj*j, temp2);
-			VectorAdd(temp,temp2,temp);
-			VectorAdd(verts[0],temp,p->verts[0]);
+			VectorScale(vright, qi*i, temp);
+			VectorScale(vup, qj*j, temp2);
+			VectorAdd(temp, temp2, temp);
+			VectorAdd(verts[0], temp, p->verts[0]);
 
-			VectorScale (vup, qj, temp);
-			VectorAdd (p->verts[0],temp,p->verts[1]);
+			VectorScale(vup, qj, temp);
+			VectorAdd(p->verts[0], temp, p->verts[1]);
 
-			VectorScale (vright, qi, temp);
-			VectorAdd (p->verts[1],temp,p->verts[2]);
+			VectorScale(vright, qi, temp);
+			VectorAdd(p->verts[1], temp, p->verts[2]);
 
-			VectorAdd (p->verts[0],temp,p->verts[3]);
+			VectorAdd(p->verts[0], temp, p->verts[3]);
 
-			Sky_DrawFaceQuad (p);
+			Sky_DrawFaceQuad(p);
 		}
 	}
-	*/
-	Hunk_FreeToLowMark (start);
+	Hunk_FreeToLowMark(start);
 }
 
 /*
@@ -1062,7 +1038,7 @@ void Sky_DrawSky (void)
 
 	Sky_ProcessTextureChains ();
 	Sky_ProcessEntities ();
-	glColor3f_fp(1, 1, 1);
+	glColor4f_fp(1, 1, 1, 1);
 	glEnable_fp (GL_TEXTURE_2D);
 
 	//
