@@ -564,7 +564,7 @@ void SV_LinkEdict (edict_t *ent, qboolean touch_triggers)
 
 	// if touch_triggers, touch all entities at this node and decend for more
 	if (touch_triggers)
-		SV_TouchLinks ( ent, sv_areanodes );
+		SV_TouchLinks ( ent );
 }
 
 
