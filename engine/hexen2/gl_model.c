@@ -215,10 +215,29 @@ void Mod_ClearAll (void)
 		}
 		else
 		{	// Clear all other models completely
+			TexMgr_FreeTexturesForOwner(mod); //johnfitz
 			memset(mod, 0, sizeof(qmodel_t));
 			mod->needload = NL_UNREFERENCED;
 		}
 	}
+}
+
+
+void Mod_ResetAll(void)
+{
+	int		i;
+	qmodel_t	*mod;
+
+	//ericw -- free alias model VBOs
+	//GLMesh_DeleteVertexBuffers();
+
+	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
+	{
+		if (!mod->needload) //otherwise Mod_ClearAll() did it already
+			TexMgr_FreeTexturesForOwner(mod);
+		memset(mod, 0, sizeof(qmodel_t));
+	}
+	mod_numknown = 0;
 }
 
 /*
@@ -518,7 +537,7 @@ bsp_tex_internal:
 		if (!q_strncasecmp(mt->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
 			Sky_LoadTexture(tx);
 		else
-			tx->gltexture = TexMgr_LoadImage(NULL, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
+			tx->gltexture = TexMgr_LoadImage(loadmodel, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
 				WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 			//tx->gl_texturenum = GL_LoadTexture (mt->name, (byte *)(tx+1), tx->width, tx->height, (TEX_MIPMAP | extraflags));
 	}
@@ -646,7 +665,7 @@ void Mod_ReloadTextures (void)
 				if (!q_strncasecmp(tx->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
 					Sky_LoadTexture(tx);
 				else
-					tx->gltexture = TexMgr_LoadImage(NULL, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
+					tx->gltexture = TexMgr_LoadImage(loadmodel, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
 						WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 			}
 		}
@@ -2952,7 +2971,7 @@ static void *Mod_LoadSpriteFrame (void *pin, mspriteframe_t **ppframe, int frame
 
 	q_snprintf (name, sizeof(name), "%s_%i", loadmodel->name, framenum);
 	//pspriteframe->gltexture = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);
-	pspriteframe->gltexture = TexMgr_LoadImage(NULL, name, width, height, SRC_INDEXED, (byte *)(pinframe + 1),
+	pspriteframe->gltexture = TexMgr_LoadImage(loadmodel, name, width, height, SRC_INDEXED, (byte *)(pinframe + 1),
 		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 
 	return (void *)((byte *)pinframe + sizeof (dspriteframe_t) + size);
@@ -3038,6 +3057,7 @@ static void Mod_LoadSpriteModel (qmodel_t *mod, void *buffer)
 	dspriteframetype_t	*pframetype;
 
 	pin = (dsprite_t *)buffer;
+	mod_base = (byte *)buffer; //johnfitz
 
 	version = LittleLong (pin->version);
 	if (version != SPRITE_VERSION)

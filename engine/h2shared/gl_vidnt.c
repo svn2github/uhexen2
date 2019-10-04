@@ -2247,6 +2247,8 @@ static void VID_Restart_f (void)
 		return;
 	}
 
+	TexMgr_DeleteTextureObjects();
+
 	Con_Printf ("Re-initializing video:\n");
 	VID_ChangeVideoMode (vid_mode.integer);
 }

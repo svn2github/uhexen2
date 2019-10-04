@@ -425,6 +425,7 @@ TexMgr_FreeTexturesForOwner
 void TexMgr_FreeTexturesForOwner(qmodel_t *owner)
 {
 	gltexture_t *glt, *next;
+	int i;
 
 	for (glt = active_gltextures; glt; glt = next)
 	{

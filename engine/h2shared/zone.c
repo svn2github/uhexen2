@@ -595,13 +595,13 @@ static void Cache_Move ( cache_system_t *c)
 		memcpy (new_cs+1, c+1, c->size - sizeof(cache_system_t));
 		new_cs->user = c->user;
 		memcpy (new_cs->name, c->name, sizeof(new_cs->name));
-		Cache_Free (c->user);
+		Cache_Free (c->user, false); //johnfitz -- added second argument
 		new_cs->user->data = (void *)(new_cs + 1);
 	}
 	else
 	{
 	/*	Con_Printf ("cache_move failed\n");*/
-		Cache_Free (c->user);	/* tough luck... */
+		Cache_Free (c->user, true); // tough luck... //johnfitz -- added second argument
 	}
 }
 
@@ -647,7 +647,7 @@ static void Cache_FreeHigh (int new_high_hunk)
 		if ( (byte *)c + c->size <= hunk_base + hunk_size - new_high_hunk)
 			return;		/* there is space to grow the hunk */
 		if (c == prev)
-			Cache_Free (c->user);	/* didn't move out of the way */
+			Cache_Free (c->user, true);	// didn't move out of the way //johnfitz -- added second argument
 		else
 		{
 			Cache_Move (c);	/* try to move it */
@@ -766,7 +766,7 @@ Throw everything out, so new data will be demand cached
 void Cache_Flush (void)
 {
 	while (cache_head.next != &cache_head)
-		Cache_Free ( cache_head.next->user );	/* reclaim the space */
+		Cache_Free ( cache_head.next->user, true); // reclaim the space //johnfitz -- added second argument
 }
 
 
@@ -800,7 +800,7 @@ Cache_Free
 Frees the memory and removes it from the LRU list
 ==============
 */
-void Cache_Free (cache_user_t *c)
+void Cache_Free (cache_user_t *c, qboolean freetextures) //johnfitz -- added second argument
 {
 	cache_system_t	*cs;
 
@@ -816,6 +816,12 @@ void Cache_Free (cache_user_t *c)
 	c->data = NULL;
 
 	Cache_UnlinkLRU (cs);
+
+	//johnfitz -- if a model becomes uncached, free the gltextures.  This only works
+	//becuase the cache_user_t is the last component of the qmodel_t struct.  Should
+	//fail harmlessly if *c is actually part of an sfx_t struct.  I FEEL DIRTY
+	if (freetextures)
+		TexMgr_FreeTexturesForOwner((qmodel_t *)(c + 1) - 1);
 }
 
 
@@ -873,7 +879,7 @@ void *Cache_Alloc (cache_user_t *c, int size, const char *name)
 	/* free the least recently used cahedat */
 		if (cache_head.lru_prev == &cache_head)	/* not enough memory at all */
 			Sys_Error ("%s: out of memory", __thisfunc__);
-		Cache_Free ( cache_head.lru_prev->user );
+		Cache_Free ( cache_head.lru_prev->user, true); //johnfitz -- added second argument
 	}
 
 	return Cache_Check (c);

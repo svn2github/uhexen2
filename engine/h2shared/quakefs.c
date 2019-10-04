@@ -1448,6 +1448,8 @@ void FS_Init (void)
 					break;
 			}
 			FS_Gamedir(tmp);
+			Mod_ResetAll();
+			TexMgr_NewGame();
 		}
 	}
 }
