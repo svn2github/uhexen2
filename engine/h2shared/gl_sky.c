@@ -815,13 +815,6 @@ void Sky_GetTexCoord (vec3_t v, float speed, float *s, float *t)
 
 	*s = (scroll + dir[0] * length) * (1.0 / 128);
 	*t = (scroll + dir[1] * length) * (1.0 / 128);
-
-	//*s = rand() * (1.0 / RAND_MAX) * 10000;
-	//*t = rand() * (1.0 / RAND_MAX) * 10000;
-
-	//*s = (scroll + dir[0]) * (1.0 / 128);
-	//*t = (scroll + dir[1]) * (1.0 / 128);
-
 }
 
 /*
@@ -870,9 +863,6 @@ void Sky_DrawFaceQuad (glpoly_t *p)
 		{
 			Sky_GetTexCoord (v, 8, &s, &t);
 			glTexCoord2f_fp (s, t);
-			v[0] = rand() * (1.0 / RAND_MAX) * 1000;
-			v[1] = rand() * (1.0 / RAND_MAX) * 1000;
-			v[2] = rand() * (1.0 / RAND_MAX) * 1000;
 			glVertex3fv_fp(v);
 		}
 		glEnd_fp();
@@ -1038,13 +1028,13 @@ void Sky_DrawSky (void)
 
 	Sky_ProcessTextureChains ();
 	Sky_ProcessEntities ();
-	glColor4f_fp(1, 1, 1, 1);
+	glColor3f_fp(1, 1, 1);
 	glEnable_fp (GL_TEXTURE_2D);
 
 	//
 	// render slow sky: cloud layers or skybox
 	//
-	//if (!r_fastsky.value && !(Fog_GetDensity() > 0 && skyfog >= 1))
+	if (!r_fastsky.value && !(Fog_GetDensity() > 0 && skyfog >= 1))
 	{
 		glDepthFunc_fp(GL_GEQUAL);
 		glDepthMask_fp(0);

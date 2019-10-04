@@ -1743,13 +1743,12 @@ static void R_SetupFrame (void)
 
 
 #define NEARCLIP	4
-#define FARCLIP		4096
 static void GL_SetFrustum (GLdouble fovx, GLdouble fovy)
 {
 	GLdouble	xmax, ymax;
 	xmax = NEARCLIP * tan(fovx * M_PI / 360.0);
 	ymax = NEARCLIP * tan(fovy * M_PI / 360.0);
-	glFrustum_fp (-xmax, xmax, -ymax, ymax, NEARCLIP, FARCLIP);
+	glFrustum_fp(-xmax, xmax, -ymax, ymax, NEARCLIP, gl_farclip.value);
 }
 
 /*

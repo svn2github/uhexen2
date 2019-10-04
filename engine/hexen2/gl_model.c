@@ -515,8 +515,6 @@ bsp_tex_internal:
 			extraflags |= TEX_HOLEY;
 		// ericw
 
-		//if (!strncmp(mt->name,"sky",3))
-		//	R_InitSky (tx);
 		if (!q_strncasecmp(mt->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
 			Sky_LoadTexture(tx);
 		else
@@ -645,14 +643,11 @@ void Mod_ReloadTextures (void)
 			tx = mod->textures[j];
 			if (tx)
 			{
-				//if (!strncmp(tx->name, "sky", 3))
-				//	R_InitSky(tx);
 				if (!q_strncasecmp(tx->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
 					Sky_LoadTexture(tx);
 				else
 					tx->gltexture = TexMgr_LoadImage(NULL, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
 						WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
-					//tx->gl_texturenum = GL_LoadTexture (tx->name, (byte *)(tx+1), tx->width, tx->height, TEX_MIPMAP);
 			}
 		}
 	}
@@ -1304,17 +1299,6 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 				out->samples = loadmodel->lightdata + lightofs ;
 		}
 
-	// set the drawing flags flag
-
-//		if (!strncmp(out->texinfo->texture->name,"sky",3))	// sky
-//		{
-//			out->flags |= (SURF_DRAWSKY | SURF_DRAWTILED);
-//#ifndef QUAKE2
-//			GL_SubdivideSurface (out);	// cut up polygon for warps
-//#endif
-//			continue;
-//		}
-
 		//johnfitz -- this section rewritten
 		if (!q_strncasecmp(out->texinfo->texture->name, "sky", 3)) // sky surface //also note -- was Q_strncmp, changed to match qbsp
 		{
@@ -1330,13 +1314,14 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 				out->texturemins[i] = -8192;
 			}
 
+#ifndef QUAKE2
 			GL_SubdivideSurface (out);	// cut up polygon for warps
+#endif
 
 			if ( (!q_strncasecmp(out->texinfo->texture->name,"*rtex078",8)) ||
 					(!q_strncasecmp(out->texinfo->texture->name,"*lowlight",9)) )
 				out->flags |= SURF_TRANSLUCENT;
 
-			continue;
 		}
 		else if (out->texinfo->texture->name[0] == '{') // ericw -- fence textures
 		{

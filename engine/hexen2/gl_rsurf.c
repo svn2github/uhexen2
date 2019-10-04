@@ -695,7 +695,7 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 
 	if (fa->flags & SURF_DRAWSKY)
 	{	// warp texture, no lightmaps
-		//EmitBothSkyLayers (fa);
+		//EmitBothSkyLayers (fa); //shan
 		return;
 	}
 

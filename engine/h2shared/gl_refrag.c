@@ -140,7 +140,7 @@ static void R_SplitEntityOnNode(mnode_t *node)
 		leaf = (mleaf_t *)node;
 
 		// grab an efrag off the free list
-		ef = R_GetEfrag(); //shan
+		ef = R_GetEfrag();
 		ef->entity = r_addent;
 
 		// set the leaf links
