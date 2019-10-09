@@ -362,7 +362,7 @@ typedef struct
 	char		name[HUNKNAME_LEN];
 } hunk_t;
 
-static byte	*hunk_base;
+byte	*hunk_base;
 static int	hunk_size;
 
 static int	hunk_low_used;
