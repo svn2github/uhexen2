@@ -974,7 +974,7 @@ void R_DrawWaterSurfaces (void)
 		t = cl.worldmodel->textures[i];
 		if (!t)
 			continue;
-		s = t->texturechains[0];
+		s = t->texturechains[chain_world];
 		if (!s)
 			continue;
 		if (!(s->flags & SURF_DRAWTURB))
@@ -1018,7 +1018,7 @@ static void DrawTextureChains (entity_t *e)
 		t = cl.worldmodel->textures[i];
 		if (!t)
 			continue;
-		s = t->texturechains[0];
+		s = t->texturechains[chain_world];
 		if (!s)
 			continue;
 		//if (i == skytexturenum)
@@ -1080,7 +1080,7 @@ static void DrawTextureChains (entity_t *e)
 
 		}
 
-		t->texturechains[0] = NULL;
+		t->texturechains[chain_world] = NULL;
 	}
 }
 
@@ -1230,6 +1230,46 @@ WORLD MODEL
 =============================================================
 */
 
+
+//==============================================================================
+//
+// SETUP CHAINS
+//
+//==============================================================================
+
+/*
+================
+R_ClearTextureChains -- ericw
+
+clears texture chains for all textures used by the given model, and also
+clears the lightmap chains
+================
+*/
+void R_ClearTextureChains(qmodel_t *mod, texchain_t chain)
+{
+	int i;
+
+	// set all chains to null
+	for (i = 0; i < mod->numtextures; i++)
+		if (mod->textures[i])
+			mod->textures[i]->texturechains[chain] = NULL;
+
+	// clear lightmap chains
+	memset(lightmap_polys, 0, sizeof(lightmap_polys));
+}
+
+/*
+================
+R_ChainSurface -- ericw -- adds the given surface to its texture chain
+================
+*/
+void R_ChainSurface(msurface_t *surf, texchain_t chain)
+{
+	surf->texturechain = surf->texinfo->texture->texturechains[chain];
+	surf->texinfo->texture->texturechains[chain] = surf;
+}
+
+
 /*
 ================
 R_RecursiveWorldNode
@@ -1331,8 +1371,8 @@ static void R_RecursiveWorldNode (mnode_t *node)
 			if (!mirror
 				|| surf->texinfo->texture != cl.worldmodel->textures[mirrortexturenum])
 			{
-				surf->texturechain = surf->texinfo->texture->texturechains[0];
-				surf->texinfo->texture->texturechains[0] = surf;
+				surf->texturechain = surf->texinfo->texture->texturechains[chain_world];
+				surf->texinfo->texture->texturechains[chain_world] = surf;
 			}
 		}
 	}
