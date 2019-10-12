@@ -736,6 +736,8 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 			glEnable_fp(GL_TEXTURE_2D);
+
+			glDepthFunc_fp(GL_GEQUAL);
 			GL_Bind (lightmap_textures[fa->lightmaptexturenum]);
 			//glEnable_fp (GL_BLEND);
 
