@@ -567,7 +567,6 @@ static void R_BlendLightmaps (qboolean Translucent)
 		if (!p)
 			continue;	// skip if no lightmap
 
-		glDepthFunc_fp(GL_GEQUAL);
 		GL_Bind(lightmap_textures[i]);
 
 		if (lightmap_modified[i])
@@ -1211,7 +1210,13 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent)
 		(e->drawflags & MLS_ABSLIGHT) != MLS_ABSLIGHT &&
 		!gl_mtexable)
 	{
-		R_BlendLightmaps (Translucent);
+		glDepthFunc_fp(GL_GEQUAL);
+		glDepthMask_fp(0);
+
+		R_BlendLightmaps(Translucent);
+
+		glDepthMask_fp(1);
+		glDepthFunc_fp(GL_LEQUAL);
 	}
 	glPopMatrix_fp ();
 #if 0 /* see above... */
