@@ -1210,7 +1210,7 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent)
 		(e->drawflags & MLS_ABSLIGHT) != MLS_ABSLIGHT &&
 		!gl_mtexable)
 	{
-		glDepthFunc_fp(GL_GEQUAL);
+		glDepthFunc_fp(GL_EQUAL);
 		glDepthMask_fp(0);
 
 		R_BlendLightmaps(Translucent);
@@ -1421,10 +1421,16 @@ void R_DrawWorld (void)
 		glEnable_fp(GL_TEXTURE_2D);
 	}
 
+	glDepthFunc_fp(GL_EQUAL);
+	glDepthMask_fp(0);
+
 	if (!gl_mtexable)
-		R_BlendLightmaps (false);
+		R_BlendLightmaps(false);
 	else
-		R_UpdateLightmaps (false);
+		R_UpdateLightmaps(false);
+
+	glDepthMask_fp(1);
+	glDepthFunc_fp(GL_LEQUAL);
 
 #ifdef QUAKE2
 	R_DrawSkyBox ();

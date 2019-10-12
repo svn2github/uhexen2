@@ -943,6 +943,9 @@ static void R_DrawAliasModel (entity_t *e)
 	else if (e->drawflags & DRF_TRANSLUCENT)
 	{
 		glEnable_fp (GL_BLEND);
+		//glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
 	//	glColor4f_fp (1,1,1,r_wateralpha.value);
 		model_constant_alpha = r_wateralpha.value;
 	}
@@ -1066,6 +1069,8 @@ static void R_DrawAliasModel (entity_t *e)
 	if (gl_affinemodels.integer)
 		glHint_fp (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 #endif
+	if (e->model->flags & EF_TRANSPARENT)
+		glDisable_fp(GL_ALPHA_TEST);
 
 	glPopMatrix_fp ();
 
