@@ -567,6 +567,7 @@ static void R_BlendLightmaps (qboolean Translucent)
 		if (!p)
 			continue;	// skip if no lightmap
 
+		glDepthFunc_fp(GL_GEQUAL);
 		GL_Bind(lightmap_textures[i]);
 
 		if (lightmap_modified[i])
@@ -737,7 +738,6 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 
 			glEnable_fp(GL_TEXTURE_2D);
 
-			glDepthFunc_fp(GL_GEQUAL);
 			GL_Bind (lightmap_textures[fa->lightmaptexturenum]);
 			//glEnable_fp (GL_BLEND);
 
