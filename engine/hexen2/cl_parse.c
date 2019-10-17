@@ -1810,6 +1810,9 @@ void CL_ParseServerMessage (void)
 		case svc_skybox:
 			Sky_LoadSkyBox(MSG_ReadString());
 			break;
+		case svc_fog:
+			Fog_ParseServerMessage();
+			break;
 		}
 	}
 }

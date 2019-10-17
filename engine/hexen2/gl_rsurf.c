@@ -1206,7 +1206,7 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent)
 		}
 	}
 
-	if (!Translucent && 
+	if (!Translucent &&
 		(e->drawflags & MLS_ABSLIGHT) != MLS_ABSLIGHT &&
 		!gl_mtexable)
 	{

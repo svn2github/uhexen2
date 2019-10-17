@@ -107,6 +107,7 @@
 #define	svc_sound_update_pos	53	// [short] ent+channel [coord3] pos
 #define	svc_mod_name		54	// [string] name (UQE v1.13 by Korax, music file name)
 #define	svc_skybox		55	// [string] name (UQE v1.13 by Korax, skybox name)
+#define svc_fog					56	// [byte] density [byte] red [byte] green [byte] blue [float] time
 
 //==============================================
 

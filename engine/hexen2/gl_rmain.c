@@ -609,7 +609,6 @@ static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum)
 			order += 2;
 
 			// normals and vertexes come from the frame list
-
 			if (gl_lightmap_format == GL_RGBA)
 			{
 				l = shadedots[verts->lightnormalindex];
@@ -621,6 +620,7 @@ static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum)
 				glColor4f_fp (r*l, g*l, b*l, model_constant_alpha);
 			}
 
+			//glColor4f_fp(rand() * (1.0 / RAND_MAX), rand() * (1.0 / RAND_MAX), rand() * (1.0 / RAND_MAX), rand() * (1.0 / RAND_MAX)); //shan colormap fix?
 			glVertex3f_fp (verts->v[0], verts->v[1], verts->v[2]);
 			verts++;
 		} while (--count);
@@ -766,6 +766,7 @@ static void R_DrawAliasModel (entity_t *e)
 	int		skinnum;
 	int		mls;
 	qboolean	alphatest = !!(e->model->flags & EF_HOLEY);
+	gltexture_t	*tx, *fb;
 
 	clmodel = e->model;
 
@@ -1009,7 +1010,11 @@ static void R_DrawAliasModel (entity_t *e)
 			Con_DPrintf ("%s: no such skin # %d\n", __thisfunc__, skinnum);
 			skinnum = 0;
 		}
-		GL_Bind(paliashdr->gltextures[skinnum][anim]);
+
+		tx = paliashdr->gltextures[skinnum][anim];
+		fb = paliashdr->gltextures[skinnum][anim];
+
+		GL_Bind(tx);
 
 		// we can't dynamically colormap textures, so they are cached
 		// seperately for the players.  Heads are just uncolored.
@@ -1041,8 +1046,33 @@ static void R_DrawAliasModel (entity_t *e)
 	if (gl_affinemodels.integer)
 		glHint_fp (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 #endif
+	if (fb)
+	{
+		GL_Bind(tx);
 
-	R_SetupAliasFrame (e, paliashdr);
+		//one pass with no fog
+		Fog_DisableGFog();
+		R_SetupAliasFrame(e, paliashdr);
+		Fog_EnableGFog();
+		
+		//one modulate pass with black fog
+		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		Fog_StartAdditive();
+		R_SetupAliasFrame(e, paliashdr);
+		Fog_StopAdditive();
+		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+		//one additive pass with black geometry and normal fog
+		GL_Bind(nulltexture);
+		glEnable_fp(GL_BLEND);
+		glBlendFunc_fp(GL_ONE, GL_ONE);
+		glDepthMask_fp(GL_FALSE);
+		R_SetupAliasFrame(e, paliashdr);
+		glDepthMask_fp(GL_TRUE);
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable_fp(GL_BLEND);
+		
+	}
 
 // restore params
 	if ((e->drawflags & DRF_TRANSLUCENT) ||
@@ -1205,7 +1235,7 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 	qsort((void *) theents, numents, sizeof(sortedent_t), transCompare);
 	// Add in BETTER sorting here
 
-	glDepthMask_fp(0);
+	glDepthMask_fp(FALSE);
 	for (i = 0; i < numents; i++)
 	{
 		e = theents[i].ent;
@@ -1240,7 +1270,8 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 	}
 
 	if (!depthMaskWrite)
-		glDepthMask_fp(1);
+		glDepthMask_fp(TRUE);
+
 }
 
 //=============================================================================
@@ -1845,7 +1876,7 @@ static void R_RenderScene (void)
 
 	R_MarkLeaves ();	// done here so we know if we're in water
 
-	Fog_EnableGFog(); //johnfitz
+	//Fog_EnableGFog(); //johnfitz
 
 	Sky_DrawSky(); //johnfitz
 
@@ -1853,13 +1884,13 @@ static void R_RenderScene (void)
 
 	S_ExtraUpdate ();	// don't let sound get messed up if going slow
 
-	Fog_DisableGFog(); //johnfitz
-
-	R_DrawEntitiesOnList ();
-
-	R_DrawAllGlows();
+	R_DrawEntitiesOnList();
 
 	R_RenderDlights ();
+
+	//Fog_DisableGFog(); //johnfitz
+
+	R_DrawAllGlows();
 }
 
 
@@ -2049,6 +2080,7 @@ void R_RenderView (void)
 	}
 
 	mirror = false;
+	Fog_SetupFrame(); //johnfitz
 
 //	glFinish_fp ();
 
