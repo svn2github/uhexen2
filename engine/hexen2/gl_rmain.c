@@ -766,7 +766,6 @@ static void R_DrawAliasModel (entity_t *e)
 	int		skinnum;
 	int		mls;
 	qboolean	alphatest = !!(e->model->flags & EF_HOLEY);
-	gltexture_t	*tx, *fb;
 
 	clmodel = e->model;
 
@@ -1011,10 +1010,7 @@ static void R_DrawAliasModel (entity_t *e)
 			skinnum = 0;
 		}
 
-		tx = paliashdr->gltextures[skinnum][anim];
-		fb = paliashdr->gltextures[skinnum][anim];
-
-		GL_Bind(tx);
+		GL_Bind(paliashdr->gltextures[skinnum][anim]);
 
 		// we can't dynamically colormap textures, so they are cached
 		// seperately for the players.  Heads are just uncolored.
@@ -1046,33 +1042,27 @@ static void R_DrawAliasModel (entity_t *e)
 	if (gl_affinemodels.integer)
 		glHint_fp (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 #endif
-	if (fb)
-	{
-		GL_Bind(tx);
-
-		//one pass with no fog
-		Fog_DisableGFog();
-		R_SetupAliasFrame(e, paliashdr);
-		Fog_EnableGFog();
+	//one pass with no fog
+	Fog_DisableGFog();
+	R_SetupAliasFrame(e, paliashdr);
+	Fog_EnableGFog();
 		
-		//one modulate pass with black fog
-		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		Fog_StartAdditive();
-		R_SetupAliasFrame(e, paliashdr);
-		Fog_StopAdditive();
-		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-		//one additive pass with black geometry and normal fog
-		GL_Bind(nulltexture);
-		glEnable_fp(GL_BLEND);
-		glBlendFunc_fp(GL_ONE, GL_ONE);
-		glDepthMask_fp(GL_FALSE);
-		R_SetupAliasFrame(e, paliashdr);
-		glDepthMask_fp(GL_TRUE);
-		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDisable_fp(GL_BLEND);
+	//one modulate pass with black fog
+	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	Fog_StartAdditive();
+	R_SetupAliasFrame(e, paliashdr);
+	Fog_StopAdditive();
+	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		
-	}
+	//one additive pass with black geometry and normal fog
+	//GL_Bind(nulltexture);
+	glEnable_fp(GL_BLEND);
+	glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+	glDepthMask_fp(GL_FALSE);
+	R_SetupAliasFrame(e, paliashdr);
+	glDepthMask_fp(GL_TRUE);
+	glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable_fp(GL_BLEND);
 
 // restore params
 	if ((e->drawflags & DRF_TRANSLUCENT) ||
@@ -1876,7 +1866,7 @@ static void R_RenderScene (void)
 
 	R_MarkLeaves ();	// done here so we know if we're in water
 
-	//Fog_EnableGFog(); //johnfitz
+	Fog_EnableGFog(); //johnfitz
 
 	Sky_DrawSky(); //johnfitz
 
@@ -1888,7 +1878,7 @@ static void R_RenderScene (void)
 
 	R_RenderDlights ();
 
-	//Fog_DisableGFog(); //johnfitz
+	Fog_DisableGFog(); //johnfitz
 
 	R_DrawAllGlows();
 }
