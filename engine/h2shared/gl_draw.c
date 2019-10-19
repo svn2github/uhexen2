@@ -47,8 +47,8 @@ static cvar_t	gl_texturemode = {"gl_texturemode", "", CVAR_ARCHIVE};
 static cvar_t	gl_texture_anisotropy = {"gl_texture_anisotropy", "1", CVAR_ARCHIVE};
 
 static GLuint		menuplyr_textures[MAX_PLAYER_CLASS];	// player textures in multiplayer config screens
-static GLuint		draw_backtile;
-//qpic_t		*draw_backtile;
+//static GLuint		draw_backtile;
+qpic_t		*draw_backtile;
 static gltexture_t		*conback;
 static gltexture_t		*char_texture;
 static gltexture_t		*cs_texture;	// crosshair texture
@@ -596,12 +596,16 @@ void Draw_Init (void)
 		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP);
 
 	// load the backtile
-	p = (qpic_t *)FS_LoadTempFile("gfx/menu/backtile.lmp", NULL);
-	Draw_PicCheckError(p, "gfx/menu/backtile.lmp");
-	SwapPic(p);
+	//p = (qpic_t *)FS_LoadTempFile("gfx/menu/backtile.lmp", NULL);
+	draw_backtile = Draw_CachePic("gfx/menu/backtile.lmp");
+
+	//Draw_PicCheckError(p, "gfx/menu/backtile.lmp");
+	//SwapPic(p);
 	//draw_backtile = GL_LoadPicTexture(p);
-	draw_backtile = TexMgr_LoadImage(NULL, WADFILENAME":backtile", p->width, p->height, SRC_INDEXED, p->data,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+	//draw_backtile = GL_LoadPixmap("conback", cs_data);
+	//gltexture_t* blah = TexMgr_LoadImage(NULL, WADFILENAME":backtile", p->width, p->height, SRC_INDEXED, p->data,
+	//	WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+	//draw_backtile = Draw_PicFromWad("backtile");
 
 
 	// load the crosshair texture
@@ -1269,13 +1273,13 @@ refresh window.
 */
 void Draw_TileClear (int x, int y, int w, int h)
 {
-	//glpic_t	*gl;
+	glpic_t	*gl;
 
-	//gl = (glpic_t *)draw_backtile->data;
+	gl = (glpic_t *)draw_backtile->data;
 
 	glColor3f_fp (1,1,1);
-	GL_Bind (draw_backtile);
-	//GL_Bind(gl->gltexture);
+	//GL_Bind (draw_backtile);
+	GL_Bind(gl->gltexture);
 	glBegin_fp (GL_QUADS);
 	glTexCoord2f_fp (x/64.0, y/64.0);
 	glVertex2f_fp (x, y);
@@ -1952,7 +1956,7 @@ static GLuint GL_LoadPixmap (const char *name, const char *data)
 GL_LoadPicTexture
 ================
 */
-GLuint GL_LoadPicTexture (qpic_t *pic)
+gltexture_t* GL_LoadPicTexture (qpic_t *pic)
 {
 	//return GL_LoadTexture ("", pic->data, pic->width, pic->height, TEX_ALPHA|TEX_LINEAR);
 	return TexMgr_LoadImage(NULL, "", pic->width, pic->height, SRC_INDEXED, pic->data,

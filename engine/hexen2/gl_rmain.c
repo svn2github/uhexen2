@@ -1878,9 +1878,9 @@ static void R_RenderScene (void)
 
 	R_RenderDlights ();
 
-	Fog_DisableGFog(); //johnfitz
-
 	R_DrawAllGlows();
+
+	Fog_DisableGFog(); //johnfitz
 }
 
 

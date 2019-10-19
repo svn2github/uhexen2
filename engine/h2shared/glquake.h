@@ -338,7 +338,7 @@ GLuint GL_LoadTexture (const char *identifier, byte *data,
 #define	TEX_HOLEY		(1 << 14)	/* Solid model with color 0			*/
 #define	TEX_SPECIAL_TRANS	(1 << 15)	/* Translucency through the particle table	*/
 
-GLuint GL_LoadPicTexture (qpic_t *pic);
+gltexture_t* GL_LoadPicTexture (qpic_t *pic);
 void D_ClearOpenGLTextures (int last_tex);
 
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
