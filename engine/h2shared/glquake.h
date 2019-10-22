@@ -344,9 +344,9 @@ void D_ClearOpenGLTextures (int last_tex);
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 qboolean R_CullModelForEntity(entity_t *e);
 
-void R_DrawBrushModel (entity_t *e, qboolean Translucent);
+void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit);
 void R_DrawWorld (void);
-void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override);
+void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean unlit);
 void R_RotateForEntity (entity_t *e);
 void R_StoreEfrags (efrag_t **ppefrag);
 

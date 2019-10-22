@@ -662,7 +662,7 @@ static void R_UpdateLightmaps (qboolean Translucent)
 R_RenderBrushPoly
 ================
 */
-void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
+void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean unlit)
 {
 	texture_t	*t;
 	byte		*base;
@@ -691,7 +691,12 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override)
 	}
 
 	if (!override)
-		glColor4f_fp(intensity, intensity, intensity, alpha_val);
+	{
+		if (unlit)
+			glColor4f_fp(0, 0, 0, alpha_val);
+		else
+			glColor4f_fp(intensity, intensity, intensity, alpha_val);
+	}
 
 	if (fa->flags & SURF_DRAWSKY)
 	{	// warp texture, no lightmaps
@@ -1047,7 +1052,7 @@ static void DrawTextureChains (entity_t *e)
 				(e->drawflags & MLS_ABSLIGHT) == MLS_ABSLIGHT))
 			{
 				for ( ; s ; s = s->texturechain)
-					R_RenderBrushPoly (e, s, false);
+					R_RenderBrushPoly (e, s, false, false);
 			}
 			else if (gl_mtexable)
 			{
@@ -1074,7 +1079,7 @@ static void DrawTextureChains (entity_t *e)
 			else
 			{
 				for ( ; s ; s = s->texturechain)
-					R_RenderBrushPoly (e, s, false);
+					R_RenderBrushPoly (e, s, false, false);
 			}
 			if (drawFence)
 				glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
@@ -1090,7 +1095,7 @@ static void DrawTextureChains (entity_t *e)
 R_DrawBrushModel
 =================
 */
-void R_DrawBrushModel (entity_t *e, qboolean Translucent)
+void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 {
 	int		i, k;
 	vec3_t		mins, maxs;
@@ -1134,7 +1139,9 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent)
 	}
 #endif /* #if 0 */
 
-	glColor3f_fp (1,1,1);
+	if (!unlit)
+		glColor3f_fp (1,1,1);
+
 	memset (lightmap_polys, 0, sizeof(lightmap_polys));
 
 	VectorSubtract (r_refdef.vieworg, e->origin, modelorg);
@@ -1191,22 +1198,32 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent)
 	//
 	// draw texture
 	//
+	//one pass with no fog
+	
+	Fog_DisableGFog();
+	psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
 	for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
 	{
-	// find which side of the node we are on
+		// find which side of the node we are on
 		pplane = psurf->plane;
 
-		dot = DotProduct (modelorg, pplane->normal) - pplane->dist;
+		dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
 
-	// draw the polygon
+		// draw the polygon
 		if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
 			(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
 		{
-			R_RenderBrushPoly (e, psurf, false);
+			R_RenderBrushPoly(e, psurf, false, unlit);
 		}
 	}
+	Fog_EnableGFog();
 
-	if (!Translucent &&
+	
+	//one modulate pass with black fog and shading?
+	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	Fog_StartAdditive();
+
+	if (!Translucent && !unlit &&
 		(e->drawflags & MLS_ABSLIGHT) != MLS_ABSLIGHT &&
 		!gl_mtexable)
 	{
@@ -1218,6 +1235,86 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent)
 		glDepthMask_fp(1);
 		glDepthFunc_fp(GL_LEQUAL);
 	}
+	else
+	{
+		psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
+		for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
+		{
+			// find which side of the node we are on
+			pplane = psurf->plane;
+
+			dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
+
+			// draw the polygon
+			if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
+				(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+			{
+				R_RenderBrushPoly(e, psurf, false, unlit);
+			}
+		}
+	}
+	Fog_StopAdditive();
+	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	
+	//one additive pass with black geometry and normal fog
+	glEnable_fp(GL_BLEND);
+	glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+	glDepthMask_fp(GL_FALSE);
+	glDisable_fp(GL_TEXTURE_2D);
+	glColor3f_fp(0, 0, 0);
+	psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
+	for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
+	{
+		// find which side of the node we are on
+		pplane = psurf->plane;
+
+		dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
+
+		// draw the polygon
+		if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
+			(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+		{
+			R_RenderBrushPoly(e, psurf, false, true);
+		}
+	}
+	glColor3f_fp(1, 1, 1);
+	glEnable_fp(GL_TEXTURE_2D);
+	glDepthMask_fp(GL_TRUE);
+	glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable_fp(GL_BLEND);
+	
+
+	/*
+	psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
+	for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
+	{
+	// find which side of the node we are on
+		pplane = psurf->plane;
+
+		dot = DotProduct (modelorg, pplane->normal) - pplane->dist;
+
+	// draw the polygon
+		if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
+			(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+		{
+			R_RenderBrushPoly (e, psurf, false, unlit);
+		}
+	}
+	
+
+	if (!Translucent && !unlit &&
+		(e->drawflags & MLS_ABSLIGHT) != MLS_ABSLIGHT &&
+		!gl_mtexable)
+	{
+		glDepthFunc_fp(GL_EQUAL);
+		glDepthMask_fp(0);
+
+		R_BlendLightmaps(Translucent);
+
+		glDepthMask_fp(1);
+		glDepthFunc_fp(GL_LEQUAL);
+	}
+	*/
 	glPopMatrix_fp ();
 #if 0 /* see above... */
 	if (gl_zfix.integer && !gl_ztrick.integer)

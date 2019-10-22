@@ -562,7 +562,7 @@ static int	lastposenum;
 GL_DrawAliasFrame
 =============
 */
-static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum)
+static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum, qboolean unlit)
 {
 	float		l;
 	trivertx_t	*verts;
@@ -612,12 +612,18 @@ static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum)
 			if (gl_lightmap_format == GL_RGBA)
 			{
 				l = shadedots[verts->lightnormalindex];
-				glColor4f_fp (l * lightcolor[0], l * lightcolor[1], l * lightcolor[2], model_constant_alpha);
+				if (unlit)
+					glColor4f_fp(0, 0, 0, model_constant_alpha);
+				else
+					glColor4f_fp (l * lightcolor[0], l * lightcolor[1], l * lightcolor[2], model_constant_alpha);
 			}
 			else
 			{
 				l = shadedots[verts->lightnormalindex] * shadelight;
-				glColor4f_fp (r*l, g*l, b*l, model_constant_alpha);
+				if (unlit)
+					glColor4f_fp(0, 0, 0, model_constant_alpha);
+				else
+					glColor4f_fp (r*l, g*l, b*l, model_constant_alpha);
 			}
 
 			//glColor4f_fp(rand() * (1.0 / RAND_MAX), rand() * (1.0 / RAND_MAX), rand() * (1.0 / RAND_MAX), rand() * (1.0 / RAND_MAX)); //shan colormap fix?
@@ -707,7 +713,7 @@ R_SetupAliasFrame
 
 =================
 */
-static void R_SetupAliasFrame (entity_t *e, aliashdr_t *paliashdr)
+static void R_SetupAliasFrame (entity_t *e, aliashdr_t *paliashdr, qboolean unlit)
 {
 	int	pose, numposes, frame;
 	float		interval;
@@ -728,7 +734,7 @@ static void R_SetupAliasFrame (entity_t *e, aliashdr_t *paliashdr)
 		pose += (int)(cl.time / interval) % numposes;
 	}
 
-	GL_DrawAliasFrame (e, paliashdr, pose);
+	GL_DrawAliasFrame (e, paliashdr, pose, unlit);
 }
 
 
@@ -1042,24 +1048,26 @@ static void R_DrawAliasModel (entity_t *e)
 	if (gl_affinemodels.integer)
 		glHint_fp (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 #endif
+	
 	//one pass with no fog
 	Fog_DisableGFog();
-	R_SetupAliasFrame(e, paliashdr);
+	R_SetupAliasFrame(e, paliashdr, false);
 	Fog_EnableGFog();
-		
+	
 	//one modulate pass with black fog
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	Fog_StartAdditive();
-	R_SetupAliasFrame(e, paliashdr);
+	R_SetupAliasFrame(e, paliashdr, false);
 	Fog_StopAdditive();
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		
+	
 	//one additive pass with black geometry and normal fog
-	//GL_Bind(nulltexture);
 	glEnable_fp(GL_BLEND);
 	glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
 	glDepthMask_fp(GL_FALSE);
-	R_SetupAliasFrame(e, paliashdr);
+	glDisable_fp(GL_TEXTURE_2D);
+	R_SetupAliasFrame(e, paliashdr, true);
+	glEnable_fp(GL_TEXTURE_2D);
 	glDepthMask_fp(GL_TRUE);
 	glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable_fp(GL_BLEND);
@@ -1163,7 +1171,35 @@ static void R_DrawEntitiesOnList (void)
 		case mod_brush:
 			item_trans = ((e->drawflags & DRF_TRANSLUCENT)) != 0;
 			if (!item_trans)
-				R_DrawBrushModel (e,false);
+			{
+				R_DrawBrushModel(e, false, false);
+				/*
+				//one pass with no fog
+				Fog_DisableGFog();
+				R_DrawBrushModel(e, false, false);
+				Fog_EnableGFog();
+
+				//one modulate pass with black fog
+				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				Fog_StartAdditive();
+				R_DrawBrushModel(e, false, false);
+				Fog_StopAdditive();
+				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+				
+				//one additive pass with black geometry and normal fog
+				glEnable_fp(GL_BLEND);
+				glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+				glDepthMask_fp(GL_FALSE);
+				glDisable_fp(GL_TEXTURE_2D);
+				glColor3f_fp(0, 0, 0);
+				R_DrawBrushModel(e, true, true);
+				glColor3f_fp(1, 1, 1);
+				glEnable_fp(GL_TEXTURE_2D);
+				glDepthMask_fp(GL_TRUE);
+				glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glDisable_fp(GL_BLEND);
+				*/
+			}
 			break;
 
 		case mod_sprite:
@@ -1246,7 +1282,32 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 				depthMaskWrite = 1;
 				glDepthMask_fp(1);
 			}
-			R_DrawBrushModel (e, true);
+			//R_DrawBrushModel (e, true, false);
+			//one pass with no fog
+			Fog_DisableGFog();
+			R_DrawBrushModel(e, true, false);
+			Fog_EnableGFog();
+			
+			//one modulate pass with black fog
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			Fog_StartAdditive();
+			R_DrawBrushModel(e, false, false);
+			Fog_StopAdditive();
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+			//one additive pass with black geometry and normal fog
+			glEnable_fp(GL_BLEND);
+			glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+			glDepthMask_fp(GL_FALSE);
+			glDisable_fp(GL_TEXTURE_2D);
+			glColor3f_fp(0, 0, 0);
+			R_DrawBrushModel(e, false, true);
+			glColor3f_fp(1, 1, 1);
+			glEnable_fp(GL_TEXTURE_2D);
+			glDepthMask_fp(GL_TRUE);
+			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable_fp(GL_BLEND);
+			
 			break;
 		case mod_sprite:
 			if (depthMaskWrite)
@@ -2016,7 +2077,7 @@ static void R_Mirror (void)
 	glColor4f_fp (1,1,1,r_mirroralpha.value);
 	s = cl.worldmodel->textures[mirrortexturenum]->texturechains[chain_world];
 	for ( ; s ; s = s->texturechain)
-		R_RenderBrushPoly (&r_worldentity, s, true);
+		R_RenderBrushPoly (&r_worldentity, s, true, false);
 	cl.worldmodel->textures[mirrortexturenum]->texturechains[chain_world] = NULL;
 	glDisable_fp (GL_BLEND);
 	glColor4f_fp (1,1,1,1);
