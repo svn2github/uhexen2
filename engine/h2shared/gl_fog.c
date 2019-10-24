@@ -332,6 +332,21 @@ void Fog_StartAdditive (void)
 		glFogfv_fp(GL_FOG_COLOR, color);
 }
 
+void Fog_StartAdditiveDouble(void)
+{
+	vec3_t color = { 0,0,0 };
+
+	if (Fog_GetDensity() > 0)
+	{
+		Fog_Update(fog_density * 10.0,
+			fog_red,
+			fog_green,
+			fog_blue,
+			0.0);
+
+		glFogfv_fp(GL_FOG_COLOR, color);
+	}
+}
 /*
 =============
 Fog_StopAdditive
@@ -343,6 +358,19 @@ void Fog_StopAdditive (void)
 {
 	if (Fog_GetDensity() > 0)
 		glFogfv_fp(GL_FOG_COLOR, Fog_GetColor());
+}
+
+void Fog_StopAdditiveDouble(void)
+{
+	if (Fog_GetDensity() > 0)
+	{
+		Fog_Update(fog_density * 0.10,
+			fog_red,
+			fog_green,
+			fog_blue,
+			0.0);
+		glFogfv_fp(GL_FOG_COLOR, Fog_GetColor());
+	}
 }
 
 //==============================================================================

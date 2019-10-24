@@ -1282,7 +1282,11 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 				depthMaskWrite = 1;
 				glDepthMask_fp(1);
 			}
-			//R_DrawBrushModel (e, true, false);
+			Fog_EnableGFog(); //johnfitz
+			R_DrawBrushModel (e, true, false);
+			Fog_DisableGFog(); //johnfitz
+
+			/*
 			//one pass with no fog
 			Fog_DisableGFog();
 			R_DrawBrushModel(e, true, false);
@@ -1307,7 +1311,7 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 			glDepthMask_fp(GL_TRUE);
 			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glDisable_fp(GL_BLEND);
-			
+			*/
 			break;
 		case mod_sprite:
 			if (depthMaskWrite)
@@ -1488,6 +1492,7 @@ static void R_DrawAllGlows (void)
 	glEnable_fp (GL_BLEND);
 	glBlendFunc_fp (GL_ONE, GL_ONE);
 
+	Fog_StartAdditive();
 	for (i = 0; i < cl_numvisedicts; i++)
 	{
 		e = cl_visedicts[i];
@@ -1501,6 +1506,7 @@ static void R_DrawAllGlows (void)
 			break;
 		}
 	}
+	Fog_StopAdditive();
 
 	glDisable_fp (GL_BLEND);
 	glEnable_fp (GL_TEXTURE_2D);
