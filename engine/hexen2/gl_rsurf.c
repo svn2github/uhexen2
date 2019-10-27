@@ -986,17 +986,73 @@ void R_DrawWaterSurfaces (void)
 		if (!(s->flags & SURF_DRAWTURB))
 			continue;
 
-		//if ((s->flags & SURF_DRAWTURB) && (s->flags & SURF_TRANSLUCENT))
-		if (s->flags & SURF_TRANSLUCENT)
-			glColor4f_fp (1,1,1,r_wateralpha.value);
+		//if (s->flags & SURF_TRANSLUCENT)
+		if ((s->flags & SURF_DRAWTURB) && (s->flags & SURF_TRANSLUCENT))
+		{
+			glColor4f_fp(1, 1, 1, r_wateralpha.value);
+
+			// set modulate mode explicitly
+			GL_Bind(t->gltexture);
+
+			//one modulate pass with black fog
+			//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			Fog_StartAdditive();
+			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE);
+			for (; s; s = s->texturechain)
+				EmitWaterPolys(s);
+			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			Fog_StopAdditive();
+			//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+		}
 		else
-			glColor4f_fp (1,1,1,1);
+		{
+			glColor4f_fp(1, 1, 1, 1);
 
-		// set modulate mode explicitly
-		GL_Bind (t->gltexture);
+			// set modulate mode explicitly
+			GL_Bind(t->gltexture);
 
-		for ( ; s ; s = s->texturechain)
-			EmitWaterPolys (s);
+			//one pass with no fog
+			//Fog_DisableGFog();
+			//glEnable_fp(GL_BLEND);
+			//glBlendFunc_fp(GL_ONE, GL_ONE);
+			//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			for (; s; s = s->texturechain)
+				EmitWaterPolys(s);
+			//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			//glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			//glDisable_fp(GL_BLEND);
+			//Fog_EnableGFog();
+
+			//one modulate pass with black fog
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glEnable_fp(GL_BLEND);
+			glBlendFunc_fp(GL_ONE, GL_ONE);
+			Fog_StartAdditive();
+			//for (; s; s = s->texturechain)
+			//	EmitWaterPolys(s);
+			Fog_StopAdditive();
+			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable_fp(GL_BLEND);
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+			//one additive pass with black geometry and normal fog
+			glEnable_fp(GL_BLEND);
+			glBlendFunc_fp(GL_ONE, GL_ONE);
+			glDepthMask_fp(GL_FALSE);
+			glDisable_fp(GL_TEXTURE_2D);
+			glColor4f_fp(0, 0, 0, 0);
+			//for (; s; s = s->texturechain)
+			//	EmitWaterPolys(s);
+			glEnable_fp(GL_TEXTURE_2D);
+			glDepthMask_fp(GL_TRUE);
+			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDisable_fp(GL_BLEND);
+
+		}
+
+		//for ( ; s ; s = s->texturechain)
+		//	EmitWaterPolys (s);
 
 		t->texturechains[0] = NULL;
 	}

@@ -466,7 +466,7 @@ static void R_DrawSpriteModel (entity_t *e)
 	   as good, should work with non 3Dfx MiniGL drivers */
 	if ((e->drawflags & DRF_TRANSLUCENT) || (e->model->flags & EF_TRANSPARENT))
 	{
-		glEnable_fp (GL_ALPHA_TEST);
+		//glEnable_fp (GL_ALPHA_TEST);
 		glEnable_fp (GL_BLEND);
 		glTexEnvf_fp (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glColor4f_fp (1.0f, 1.0f, 1.0f, r_wateralpha.value);
@@ -949,7 +949,7 @@ static void R_DrawAliasModel (entity_t *e)
 	else if (e->drawflags & DRF_TRANSLUCENT)
 	{
 		glEnable_fp (GL_BLEND);
-		//glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 	//	glColor4f_fp (1,1,1,r_wateralpha.value);
@@ -958,10 +958,15 @@ static void R_DrawAliasModel (entity_t *e)
 	else if ((e->model->flags & EF_TRANSPARENT))
 	{
 		glEnable_fp(GL_BLEND);
-		glEnable_fp(GL_ALPHA_TEST);
-		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE);
+		//glEnable_fp(GL_ALPHA_TEST);
+		//glBlendFunc_fp(GL_ONE, GL_SRC_COLOR); //shan?
+		//glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+		//glBlendFunc_fp(GL_SRC_COLOR, GL_SRC_ALPHA);
+		glBlendFunc_fp(GL_ONE, GL_SRC_COLOR);
 		//	glColor3f_fp (1,1,1);
+		//glColor4f_fp(1.0f, 1.0f, 1.0f, 0.65f);
 		model_constant_alpha = 1.0f;
+		//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		/*
 		glEnable_fp(GL_BLEND);
 		//	glColor3f_fp (1,1,1);
@@ -978,6 +983,7 @@ static void R_DrawAliasModel (entity_t *e)
 	{
 		glEnable_fp (GL_BLEND);
 	//	glColor3f_fp (1,1,1);
+		glBlendFunc_fp(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
 		model_constant_alpha = 1.0f;
 	}
 	else
@@ -1048,7 +1054,8 @@ static void R_DrawAliasModel (entity_t *e)
 	if (gl_affinemodels.integer)
 		glHint_fp (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 #endif
-	
+	R_SetupAliasFrame(e, paliashdr, false);
+	/*
 	//one pass with no fog
 	Fog_DisableGFog();
 	R_SetupAliasFrame(e, paliashdr, false);
@@ -1071,13 +1078,15 @@ static void R_DrawAliasModel (entity_t *e)
 	glDepthMask_fp(GL_TRUE);
 	glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable_fp(GL_BLEND);
-
+	*/
 // restore params
 	if ((e->drawflags & DRF_TRANSLUCENT) ||
 	    (e->model->flags & EF_SPECIAL_TRANS) ||
 	    (e->model->flags & EF_TRANSPARENT) ||
 	    (e->model->flags & EF_HOLEY) )
 	{
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable_fp(GL_ALPHA_TEST);
 		glDisable_fp (GL_BLEND);
 	}
 
@@ -1171,35 +1180,7 @@ static void R_DrawEntitiesOnList (void)
 		case mod_brush:
 			item_trans = ((e->drawflags & DRF_TRANSLUCENT)) != 0;
 			if (!item_trans)
-			{
 				R_DrawBrushModel(e, false, false);
-				/*
-				//one pass with no fog
-				Fog_DisableGFog();
-				R_DrawBrushModel(e, false, false);
-				Fog_EnableGFog();
-
-				//one modulate pass with black fog
-				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-				Fog_StartAdditive();
-				R_DrawBrushModel(e, false, false);
-				Fog_StopAdditive();
-				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-				
-				//one additive pass with black geometry and normal fog
-				glEnable_fp(GL_BLEND);
-				glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
-				glDepthMask_fp(GL_FALSE);
-				glDisable_fp(GL_TEXTURE_2D);
-				glColor3f_fp(0, 0, 0);
-				R_DrawBrushModel(e, true, true);
-				glColor3f_fp(1, 1, 1);
-				glEnable_fp(GL_TEXTURE_2D);
-				glDepthMask_fp(GL_TRUE);
-				glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glDisable_fp(GL_BLEND);
-				*/
-			}
 			break;
 
 		case mod_sprite:
@@ -1285,33 +1266,6 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 			Fog_EnableGFog(); //johnfitz
 			R_DrawBrushModel (e, true, false);
 			Fog_DisableGFog(); //johnfitz
-
-			/*
-			//one pass with no fog
-			Fog_DisableGFog();
-			R_DrawBrushModel(e, true, false);
-			Fog_EnableGFog();
-			
-			//one modulate pass with black fog
-			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			Fog_StartAdditive();
-			R_DrawBrushModel(e, false, false);
-			Fog_StopAdditive();
-			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-			//one additive pass with black geometry and normal fog
-			glEnable_fp(GL_BLEND);
-			glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
-			glDepthMask_fp(GL_FALSE);
-			glDisable_fp(GL_TEXTURE_2D);
-			glColor3f_fp(0, 0, 0);
-			R_DrawBrushModel(e, false, true);
-			glColor3f_fp(1, 1, 1);
-			glEnable_fp(GL_TEXTURE_2D);
-			glDepthMask_fp(GL_TRUE);
-			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glDisable_fp(GL_BLEND);
-			*/
 			break;
 		case mod_sprite:
 			if (depthMaskWrite)
@@ -2148,6 +2102,7 @@ void R_RenderView (void)
 
 	glDepthMask_fp(0);
 
+	Fog_EnableGFog(); //johnfitz
 	R_DrawParticles ();
 
 	R_DrawTransEntitiesOnList (r_viewleaf->contents == CONTENTS_EMPTY); // This restores the depth mask
@@ -2155,6 +2110,7 @@ void R_RenderView (void)
 	R_DrawWaterSurfaces ();
 
 	R_DrawTransEntitiesOnList (r_viewleaf->contents != CONTENTS_EMPTY);
+	Fog_DisableGFog(); //johnfitz
 
 	R_DrawViewModel();
 
