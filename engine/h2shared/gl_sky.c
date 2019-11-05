@@ -100,6 +100,7 @@ void Sky_LoadTexture (texture_t *mt)
 	byte		*src;
 	static byte	front_data[128 * 128]; //FIXME: Hunk_Alloc
 	static byte	back_data[128 * 128]; //FIXME: Hunk_Alloc
+	//unsigned int	transpix;
 	unsigned	*rgba;
 
 	src = (byte *)mt + mt->offsets[0];
@@ -109,8 +110,31 @@ void Sky_LoadTexture (texture_t *mt)
 		for (j = 0; j < 128; j++)
 			back_data[(i * 128) + j] = src[i * 256 + j + 128];
 
+	/*
+	r = g = b = 0;
+	for (i = 0; i < 128; i++)
+	{
+		for (j = 0; j < 128; j++)
+		{
+			p = src[i * 256 + j + 128];
+			rgba = &d_8to24table[p];
+			back_data[(i * 128) + j] = *rgba;
+			r += ((byte *)rgba)[0];
+			g += ((byte *)rgba)[1];
+			b += ((byte *)rgba)[2];
+		}
+	}
+
+	((byte *)&transpix)[0] = r / (128 * 128);
+	((byte *)&transpix)[1] = g / (128 * 128);
+	((byte *)&transpix)[2] = b / (128 * 128);
+	((byte *)&transpix)[3] = 0;
+	*/
+
 	q_snprintf(texturename, sizeof(texturename), "%s:%s_upsky", loadmodel->name, mt->name);
-	solidskytexture = TexMgr_LoadImage(loadmodel, "upsky", 128, 128, SRC_INDEXED, back_data, "", (src_offset_t)back_data, TEXPREF_NONE);
+	solidskytexture = TexMgr_LoadImage(loadmodel, "upsky", 1024, 1024, SRC_INDEXED, back_data, "", (src_offset_t)back_data, TEXPREF_NONE);
+	//solidskytexture = TexMgr_LoadImage(loadmodel, WADFILENAME":upsky", 128, 128, SRC_RGBA, back_data, WADFILENAME, 0, TEXPREF_RGBA | TEXPREF_LINEAR);
+
 	//solidskytexture = nulltexture;
 
 	// extract front layer and upload
@@ -121,9 +145,23 @@ void Sky_LoadTexture (texture_t *mt)
 			if (front_data[(i * 128) + j] == 0)
 				front_data[(i * 128) + j] = 255;
 		}
-
+	/*
+	for (i = 0; i < 128; i++)
+	{
+		for (j = 0; j < 128; j++)
+		{
+			p = src[i * 256 + j];
+			if (p == 0)
+				front_data[(i * 128) + j] = transpix;
+			else
+				front_data[(i * 128) + j] = d_8to24table[p];
+		}
+	}
+	*/
 	q_snprintf(texturename, sizeof(texturename), "%s:%s_lowsky", loadmodel->name, mt->name);
 	alphaskytexture = TexMgr_LoadImage(loadmodel, "lowsky", 128, 128, SRC_INDEXED, front_data, "", (src_offset_t)front_data, TEXPREF_ALPHA);
+	//alphaskytexture = TexMgr_LoadImage(loadmodel, WADFILENAME":lowsky", 128, 128, SRC_RGBA, front_data, WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_RGBA | TEXPREF_LINEAR);
+
 	//alphaskytexture = notexture;
 
 	// calculate r_fastsky color based on average of all opaque foreground colors

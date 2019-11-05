@@ -605,7 +605,7 @@ bsp_tex_internal:
 				int	extraflags;
 
 				extraflags = 0;
-				if (tx->name[0] == '{')
+				//if (tx->name[0] == '{')
 					extraflags |= TEXPREF_ALPHA;
 				// ericw
 

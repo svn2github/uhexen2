@@ -962,7 +962,7 @@ static void R_DrawAliasModel (entity_t *e)
 		//glBlendFunc_fp(GL_ONE, GL_SRC_COLOR); //shan?
 		//glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
 		//glBlendFunc_fp(GL_SRC_COLOR, GL_SRC_ALPHA);
-		glBlendFunc_fp(GL_ONE, GL_SRC_COLOR);
+		//glBlendFunc_fp(GL_ONE, GL_SRC_COLOR);
 		//	glColor3f_fp (1,1,1);
 		//glColor4f_fp(1.0f, 1.0f, 1.0f, 0.65f);
 		model_constant_alpha = 1.0f;
@@ -982,8 +982,11 @@ static void R_DrawAliasModel (entity_t *e)
 	else if ((e->model->flags & EF_HOLEY))
 	{
 		glEnable_fp (GL_BLEND);
-	//	glColor3f_fp (1,1,1);
-		glBlendFunc_fp(GL_ONE_MINUS_SRC_ALPHA, GL_SRC_ALPHA);
+		glEnable_fp(GL_ALPHA_TEST);
+		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		//glColor3f_fp (1,1,1);
+		glColor4f_fp(1.0f, 1.0f, 1.0f, r_wateralpha.value);
+		//glBlendFunc_fp(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		model_constant_alpha = 1.0f;
 	}
 	else

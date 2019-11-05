@@ -488,7 +488,14 @@ void TexMgr_LoadPalette(void)
 		*dst++ = *src++;
 		*dst++ = 255;
 	}
+	((byte *)&d_8to24table[255])[0] = 255;
+	((byte *)&d_8to24table[255])[1] = 255;
+	((byte *)&d_8to24table[255])[2] = 255;
 	((byte *)&d_8to24table[255])[3] = 0;
+	((byte *)&d_8to24table[0])[0] = 0;
+	((byte *)&d_8to24table[0])[1] = 0;
+	((byte *)&d_8to24table[0])[2] = 0;
+	((byte *)&d_8to24table[0])[3] = 0;
 
 	//fullbright palette, 0-223 are black (for additive blending)
 	src = pal + 224 * 3;
@@ -1140,7 +1147,7 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 		padbyte = 255;
 	}
 
-	// pad each dimention, but only if it's not going to be downsampled later
+	// pad each dimension, but only if it's not going to be downsampled later
 	if (glt->flags & TEXPREF_PAD)
 	{
 		if ((int)glt->width < TexMgr_SafeTextureSize(glt->width))
