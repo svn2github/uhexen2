@@ -132,7 +132,7 @@ void Sky_LoadTexture (texture_t *mt)
 	*/
 
 	q_snprintf(texturename, sizeof(texturename), "%s:%s_upsky", loadmodel->name, mt->name);
-	solidskytexture = TexMgr_LoadImage(loadmodel, "upsky", 1024, 1024, SRC_INDEXED, back_data, "", (src_offset_t)back_data, TEXPREF_NONE);
+	solidskytexture = TexMgr_LoadImage(loadmodel, "upsky", 128, 128, SRC_INDEXED, back_data, "", (src_offset_t)back_data, TEXPREF_NONE);
 	//solidskytexture = TexMgr_LoadImage(loadmodel, WADFILENAME":upsky", 128, 128, SRC_RGBA, back_data, WADFILENAME, 0, TEXPREF_RGBA | TEXPREF_LINEAR);
 
 	//solidskytexture = nulltexture;
@@ -904,8 +904,6 @@ void Sky_DrawFaceQuad (glpoly_t *p)
 			glVertex3fv_fp(v);
 		}
 		glEnd_fp();
-
-
 
 		GL_Bind (alphaskytexture);
 		glEnable_fp(GL_BLEND);

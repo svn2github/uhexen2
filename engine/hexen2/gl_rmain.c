@@ -1057,8 +1057,8 @@ static void R_DrawAliasModel (entity_t *e)
 	if (gl_affinemodels.integer)
 		glHint_fp (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 #endif
-	R_SetupAliasFrame(e, paliashdr, false);
-	/*
+	//R_SetupAliasFrame(e, paliashdr, false);
+	
 	//one pass with no fog
 	Fog_DisableGFog();
 	R_SetupAliasFrame(e, paliashdr, false);
@@ -1081,7 +1081,7 @@ static void R_DrawAliasModel (entity_t *e)
 	glDepthMask_fp(GL_TRUE);
 	glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable_fp(GL_BLEND);
-	*/
+	
 // restore params
 	if ((e->drawflags & DRF_TRANSLUCENT) ||
 	    (e->model->flags & EF_SPECIAL_TRANS) ||

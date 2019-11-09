@@ -944,7 +944,7 @@ qpic_t *Draw_CachePicNoTrans (const char *path)
 	}
 	//gl.texnum = GL_LoadPicTexture (dat);
 	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
-		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+		sizeof(int) * 2, TEXPREF_NOPICMIP); //johnfitz -- TexMgr
 
 	//gl.sl = 0;
 	//gl.sh = 1;

@@ -1535,14 +1535,14 @@ void SB_ViewSizeChanged(void)
 
 static void Sbar_DrawPic(int x, int y, qpic_t *pic)
 {
-	//Draw_PicCropped
-	Draw_Pic(x+((vid.width-320)>>1), y+(vid.height-(int)BarHeight), pic);
+	//Draw_Pic
+	Draw_PicCropped(x+((vid.width-320)>>1), y+(vid.height-(int)BarHeight), pic);
 }
 
 static void Sbar_DrawTransPic(int x, int y, qpic_t *pic)
 {
-	//Draw_TransPicCropped
-	Draw_TransPic(x+((vid.width-320)>>1), y+(vid.height-(int)BarHeight), pic);
+	//Draw_TransPic
+	Draw_TransPicCropped(x+((vid.width-320)>>1), y+(vid.height-(int)BarHeight), pic);
 }
 
 #if 0	/* no callers */
