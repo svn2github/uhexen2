@@ -943,8 +943,11 @@ qpic_t *Draw_CachePicNoTrans (const char *path)
 			dat->data[i] = 31; // pal(31) == pal(255) == FCFCFC (white)
 	}
 	//gl.texnum = GL_LoadPicTexture (dat);
-	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
-		sizeof(int) * 2, TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+	//gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
+	//	sizeof(int) * 2, TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, WADFILENAME, 
+		0, TEXPREF_RGBA | TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+
 
 	//gl.sl = 0;
 	//gl.sh = 1;

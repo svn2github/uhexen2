@@ -1112,7 +1112,6 @@ static void SB_IntermissionOverlay (void)
 	{
 		pic = Load_IntermissionPic_FN (cl.intermission_pic, vid.width, vid.height);
 		Draw_IntermissionPic_FN (((vid.width - 320)>>1), ((vid.height - 200)>>1), pic);
-		//Draw_IntermissionPic_FN((vid.width), ((vid.height)), pic);
 	}
 
 	if (cl.message_index >= 0 && cl.message_index < host_string_count)

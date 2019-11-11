@@ -1092,94 +1092,112 @@ TexMgr_LoadImage8 -- handles 8bit source data, then passes it to LoadImage32
 */
 static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 {
-	extern cvar_t gl_fullbrights;
-	qboolean padw = false, padh = false;
-	byte padbyte;
-	unsigned int *usepal;
-	int i;
+	unsigned int		*trans;
+	int			mark;
+	int			i, p, s;
 
-	// HACK HACK HACK -- taken from tomazquake
-	if (strstr(glt->name, "shot1sid") &&
-		glt->width == 32 && glt->height == 32 &&
-		CRC_Block(data, 1024) == 65393)
-	{
-		// This texture in b_shell1.bsp has some of the first 32 pixels painted white.
-		// They are invisible in software, but look really ugly in GL. So we just copy
-		// 32 pixels from the bottom to make it look nice.
-		memcpy(data, data + 32 * 31, 32);
-	}
+	s = glt->width * glt->height;
+	mark = Hunk_LowMark();
+	trans = (unsigned int *)Hunk_AllocName(s * sizeof(unsigned int), "texbuf_upload8");
 
-	// detect false alpha cases
-	if (glt->flags & TEXPREF_ALPHA && !(glt->flags & TEXPREF_CONCHARS))
+	if (glt->flags & (TEXPREF_ALPHA | TEXPREF_TRANSPARENT | TEX_HOLEY | TEX_SPECIAL_TRANS))
 	{
-		for (i = 0; i < (int)(glt->width * glt->height); i++)
-			if (data[i] == 255) //transparent index
-				break;
-		if (i == (int)(glt->width * glt->height))
-			glt->flags -= TEXPREF_ALPHA;
-	}
+		// if there are no transparent pixels, make it a 3 component
+		// texture even if it was flagged as TEX_ALPHA.
+		qboolean noalpha = !(glt->flags & (TEXPREF_TRANSPARENT | TEX_HOLEY | TEX_SPECIAL_TRANS));
 
-	// choose palette and padbyte
-	if (glt->flags & TEXPREF_FULLBRIGHT)
-	{
-		if (glt->flags & TEXPREF_ALPHA)
-			usepal = d_8to24table_fbright_fence;
-		else
-			usepal = d_8to24table_fbright;
-		padbyte = 0;
-	}
-	else if (glt->flags & TEXPREF_NOBRIGHT && gl_fullbrights.value)
-	{
-		if (glt->flags & TEXPREF_ALPHA)
-			usepal = d_8to24table_nobright_fence;
-		else
-			usepal = d_8to24table_nobright;
-		padbyte = 0;
-	}
-	else if (glt->flags & TEXPREF_CONCHARS)
-	{
-		usepal = d_8to24table_conchars;
-		padbyte = 0;
+		for (i = 0; i < s; i++)
+		{
+			p = data[i];
+			trans[i] = d_8to24table[p];
+
+			if (p == 255)
+			{
+				if (noalpha)
+					noalpha = false;
+
+				/* transparent, so scan around for another color
+				 * to avoid alpha fringes */
+				 /* this is a replacement from Quake II for Raven's
+				  * "neighboring colors" code */
+				if (i > glt->width && data[i - glt->width] != 255)
+					p = data[i - glt->width];
+				else if (i < s - glt->width && data[i + glt->width] != 255)
+					p = data[i + glt->width];
+				else if (i > 0 && data[i - 1] != 255)
+					p = data[i - 1];
+				else if (i < s - 1 && data[i + 1] != 255)
+					p = data[i + 1];
+				else
+					p = 0;
+				/* copy rgb components */
+				((byte *)&trans[i])[0] = ((byte *)&d_8to24table[p])[0];
+				((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
+				((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
+			}
+
+			if (glt->flags & TEXPREF_TRANSPARENT)
+			{
+				p = data[i];
+				if (p == 0)
+				{
+					trans[i] &= MASK_rgb;
+				}
+				else if (p & 1)
+				{
+					p = (int)(255 * r_wateralpha.value) & 0xff;
+					trans[i] &= MASK_rgb;
+					trans[i] |= p << SHIFT_a;
+				}
+				else
+				{
+					trans[i] |= MASK_a;
+				}
+			}
+			else if (glt->flags & TEX_HOLEY)
+			{
+				p = data[i];
+				if (glt->name[0] == '{')
+				{
+					if (p == 255)
+						trans[i] &= MASK_rgb;
+				}
+				else
+				{
+					if (p == 0)
+						trans[i] &= MASK_rgb;
+				}
+			}
+			else if (glt->flags & TEX_SPECIAL_TRANS)
+			{
+				p = data[i];
+				trans[i] = d_8to24table[ColorIndex[p >> 4]] & MASK_rgb;
+				trans[i] |= ((int)ColorPercent[p & 15] & 0xff) << SHIFT_a;
+			}
+		}
+
+		if (noalpha)
+			glt->flags &= ~TEXPREF_ALPHA;
+		if (glt->flags & (TEXPREF_TRANSPARENT | TEX_HOLEY | TEX_SPECIAL_TRANS))
+			glt->flags |= TEXPREF_ALPHA;
 	}
 	else
 	{
-		usepal = d_8to24table;
-		padbyte = 255;
-	}
-
-	// pad each dimension, but only if it's not going to be downsampled later
-	if (glt->flags & TEXPREF_PAD)
-	{
-		if ((int)glt->width < TexMgr_SafeTextureSize(glt->width))
+		if (s & 3)
+			Sys_Error("%s: s&3", __thisfunc__);
+		for (i = 0; i < s; i += 4)
 		{
-			data = TexMgr_PadImageW(data, glt->width, glt->height, padbyte);
-			glt->width = TexMgr_Pad(glt->width);
-			padw = true;
-		}
-		if ((int)glt->height < TexMgr_SafeTextureSize(glt->height))
-		{
-			data = TexMgr_PadImageH(data, glt->width, glt->height, padbyte);
-			glt->height = TexMgr_Pad(glt->height);
-			padh = true;
+			trans[i] = d_8to24table[data[i]];
+			trans[i + 1] = d_8to24table[data[i + 1]];
+			trans[i + 2] = d_8to24table[data[i + 2]];
+			trans[i + 3] = d_8to24table[data[i + 3]];
 		}
 	}
 
-	// convert to 32bit
-	data = (byte *)TexMgr_8to32(data, glt->width * glt->height, usepal);
-
-	// fix edges
-	if (glt->flags & TEXPREF_ALPHA)
-		TexMgr_AlphaEdgeFix(data, glt->width, glt->height);
-	else
-	{
-		if (padw)
-			TexMgr_PadEdgeFixW(data, glt->source_width, glt->source_height);
-		if (padh)
-			TexMgr_PadEdgeFixH(data, glt->source_width, glt->source_height);
-	}
-
+	//GL_Upload32(trans, glt);
 	// upload it
-	TexMgr_LoadImage32(glt, (unsigned *)data);
+	TexMgr_LoadImage32(glt, trans);
+	Hunk_FreeToLowMark(mark);
 }
 
 /*
