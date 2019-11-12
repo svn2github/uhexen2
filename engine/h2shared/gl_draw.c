@@ -1064,6 +1064,7 @@ void Draw_PicCropped (int x, int y, qpic_t *pic)
 	{
 		height = pic->height;
 		tl = gl->tl;
+		//th = (height-0.01)/pic->height;
 		th = gl->th;//(height-0.01)/pic->height;
 	}
 

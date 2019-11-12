@@ -209,7 +209,8 @@ void Mod_ClearAll (void)
 			if (flush_textures && gl_purge_maptex.integer)
 			{
 				if (Cache_Check(&(mod->cache)))
-					Cache_Free(&(mod->cache));
+					Cache_Free(&(mod->cache), true); //johnfitz -- added second argument
+				TexMgr_FreeTexturesForOwner(mod); //johnfitz
 				mod->needload = NL_NEEDS_LOADED;
 			}
 		}
@@ -605,7 +606,7 @@ bsp_tex_internal:
 				int	extraflags;
 
 				extraflags = 0;
-				//if (tx->name[0] == '{')
+				if (tx->name[0] == '{')
 					extraflags |= TEXPREF_ALPHA;
 				// ericw
 
@@ -820,7 +821,7 @@ void Mod_ReloadTextures (void)
 		if ((mod_known[j].type == mod_alias) && (mod_known[j].needload != NL_UNREFERENCED))
 		{
 			if (Cache_Check(&(mod_known[j].cache)))
-				Cache_Free(&(mod_known[j].cache));
+				Cache_Free(&(mod_known[j].cache), true); //johnfitz -- added second argument
 			mod_known[j].needload = NL_NEEDS_LOADED;
 			Mod_LoadModel(mod_known + j, false);
 		}

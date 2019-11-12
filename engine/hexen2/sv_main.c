@@ -2028,6 +2028,13 @@ void SV_SpawnServer (const char *server, const char *startspot)
 //
 // set up the new server
 //
+	if (sv.worldmodel)
+	{
+		//Mod_ClearAll();
+		//Mod_ResetAll();
+		//TexMgr_FreeTexturesForOwner(sv.worldmodel);
+	}
+
 	//memset (&sv, 0, sizeof(sv));
 	Host_ClearMemory ();
 

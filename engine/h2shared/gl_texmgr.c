@@ -1095,10 +1095,33 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 	unsigned int		*trans;
 	int			mark;
 	int			i, p, s;
+	qboolean padw = false, padh = false;
+	byte padbyte;
 
 	s = glt->width * glt->height;
 	mark = Hunk_LowMark();
 	trans = (unsigned int *)Hunk_AllocName(s * sizeof(unsigned int), "texbuf_upload8");
+
+
+	padbyte = 0;
+	// pad each dimension, but only if it's not going to be downsampled later
+	if (glt->flags & TEXPREF_PAD)
+	{
+		if ((int)glt->width < TexMgr_SafeTextureSize(glt->width))
+		{
+			data = TexMgr_PadImageW(data, glt->width, glt->height, padbyte);
+			glt->width = TexMgr_Pad(glt->width);
+			padw = true;
+			//TexMgr_PadEdgeFixW(trans, glt->source_width, glt->source_height);
+		}
+		if ((int)glt->height < TexMgr_SafeTextureSize(glt->height))
+		{
+			data = TexMgr_PadImageH(data, glt->width, glt->height, padbyte);
+			glt->height = TexMgr_Pad(glt->height);
+			padh = true;
+			//TexMgr_PadEdgeFixH(trans, glt->source_width, glt->source_height);
+		}
+	}
 
 	if (glt->flags & (TEXPREF_ALPHA | TEXPREF_TRANSPARENT | TEX_HOLEY | TEX_SPECIAL_TRANS))
 	{
@@ -1193,6 +1216,19 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 			trans[i + 3] = d_8to24table[data[i + 3]];
 		}
 	}
+
+	/*
+	// fix edges
+	if (glt->flags & TEXPREF_ALPHA)
+		TexMgr_AlphaEdgeFix(trans, glt->width, glt->height);
+	else
+	{
+		if (padw)
+			TexMgr_PadEdgeFixW(trans, glt->source_width, glt->source_height);
+		if (padh)
+			TexMgr_PadEdgeFixH(trans, glt->source_width, glt->source_height);
+	}
+	*/
 
 	//GL_Upload32(trans, glt);
 	// upload it
