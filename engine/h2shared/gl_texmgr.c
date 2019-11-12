@@ -1092,18 +1092,53 @@ TexMgr_LoadImage8 -- handles 8bit source data, then passes it to LoadImage32
 */
 static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 {
+	extern cvar_t gl_fullbrights;
+	unsigned int *usepal;
 	unsigned int		*trans;
 	int			mark;
 	int			i, p, s;
 	qboolean padw = false, padh = false;
 	byte padbyte;
 
-	s = glt->width * glt->height;
-	mark = Hunk_LowMark();
-	trans = (unsigned int *)Hunk_AllocName(s * sizeof(unsigned int), "texbuf_upload8");
 
+	// detect false alpha cases
+	if (glt->flags & TEXPREF_ALPHA && !(glt->flags & TEXPREF_CONCHARS))
+	{
+		for (i = 0; i < (int)(glt->width * glt->height); i++)
+			if (data[i] == 255) //transparent index
+				break;
+		if (i == (int)(glt->width * glt->height))
+			glt->flags -= TEXPREF_ALPHA;
+	}
 
-	padbyte = 0;
+	// choose palette and padbyte
+	if (glt->flags & TEXPREF_FULLBRIGHT)
+	{
+		if (glt->flags & TEXPREF_ALPHA)
+			usepal = d_8to24table_fbright_fence;
+		else
+			usepal = d_8to24table_fbright;
+		padbyte = 0;
+	}
+	else if (glt->flags & TEXPREF_NOBRIGHT && gl_fullbrights.value)
+	{
+		if (glt->flags & TEXPREF_ALPHA)
+			usepal = d_8to24table_nobright_fence;
+		else
+			usepal = d_8to24table_nobright;
+		padbyte = 0;
+	}
+	else if (glt->flags & TEXPREF_CONCHARS)
+	{
+		usepal = d_8to24table_conchars;
+		padbyte = 0;
+	}
+	else
+	{
+		usepal = d_8to24table;
+		padbyte = 255;
+	}
+
 	// pad each dimension, but only if it's not going to be downsampled later
 	if (glt->flags & TEXPREF_PAD)
 	{
@@ -1122,6 +1157,12 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 			//TexMgr_PadEdgeFixH(trans, glt->source_width, glt->source_height);
 		}
 	}
+
+
+	s = glt->width * glt->height;
+	mark = Hunk_LowMark();
+	trans = (unsigned int *)Hunk_AllocName(s * sizeof(unsigned int), "texbuf_upload8");
+
 
 	if (glt->flags & (TEXPREF_ALPHA | TEXPREF_TRANSPARENT | TEX_HOLEY | TEX_SPECIAL_TRANS))
 	{
