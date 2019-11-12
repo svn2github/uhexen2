@@ -210,7 +210,6 @@ void Mod_ClearAll (void)
 			{
 				if (Cache_Check(&(mod->cache)))
 					Cache_Free(&(mod->cache), true); //johnfitz -- added second argument
-				TexMgr_FreeTexturesForOwner(mod); //johnfitz
 				mod->needload = NL_NEEDS_LOADED;
 			}
 		}

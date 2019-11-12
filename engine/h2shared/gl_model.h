@@ -509,9 +509,9 @@ typedef struct qmodel_s
 //
 // additional model data
 //
-	cache_user_t	cache;		// only access through Mod_Extradata
-
 	float		glow_color[4];
+
+	cache_user_t	cache;		// only access through Mod_Extradata - MUST BE LAST MEMBER
 } qmodel_t;
 
 // values for qmodel_t->needload
