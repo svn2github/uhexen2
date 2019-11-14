@@ -716,6 +716,7 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	if (fa->flags & SURF_DRAWFENCE)
 	{
 		glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
+		glDepthMask_fp(1);
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		//glColor4f_fp(128.0f, 0.0f, 240.0f, 0.7f);
 	}
@@ -768,6 +769,7 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	if (fa->flags & SURF_DRAWFENCE)
 	{
 		glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
+		glDepthMask_fp(0);
 	}
 
 // add the poly to the proper lightmap chain
@@ -1282,7 +1284,7 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 
 		glDepthFunc_fp(GL_EQUAL);
 		glDepthMask_fp(0);
-
+		
 		R_BlendLightmaps(Translucent);
 
 		glDepthMask_fp(1);
@@ -1292,6 +1294,8 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 	{
 		if (Translucent)
 		{
+			//glDepthFunc_fp(GL_EQUAL);
+			glDepthMask_fp(0);
 			//one pass with no fog
 			//Fog_DisableGFog();
 			Fog_StartAdditive();
@@ -1366,6 +1370,8 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 			//glDisable_fp(GL_BLEND);
 			//glEnable_fp(GL_BLEND);
 			
+			glDepthMask_fp(1);
+			//glDepthFunc_fp(GL_LEQUAL);
 		}
 		else
 		{
