@@ -1324,7 +1324,14 @@ CalcSurfaceExtents
 Fills in s->texturemins[] and s->extents[]
 ================
 */
-static void CalcSurfaceExtents (msurface_t *s)
+/*
+================
+CalcSurfaceExtents
+
+Fills in s->texturemins[] and s->extents[]
+================
+*/
+void CalcSurfaceExtents(msurface_t *s)
 {
 	float	mins[2], maxs[2], val;
 	int		i, j, e;
@@ -1332,14 +1339,14 @@ static void CalcSurfaceExtents (msurface_t *s)
 	mtexinfo_t	*tex;
 	int		bmins[2], bmaxs[2];
 
-	mins[0] = mins[1] = 99999999;
-	maxs[0] = maxs[1] = -99999999;
+	mins[0] = mins[1] = 999999;
+	maxs[0] = maxs[1] = -99999;
 
 	tex = s->texinfo;
 
 	for (i = 0; i < s->numedges; i++)
 	{
-		e = loadmodel->surfedges[s->firstedge+i];
+		e = loadmodel->surfedges[s->firstedge + i];
 		if (e >= 0)
 			v = &loadmodel->vertexes[loadmodel->edges[e].v[0]];
 		else
@@ -1347,10 +1354,22 @@ static void CalcSurfaceExtents (msurface_t *s)
 
 		for (j = 0; j < 2; j++)
 		{
-			/* added double casts so that 64 bit/sse2 builds' precision
-			 * matches that of x87 floating point. took from QuakeSpasm,
-			 * patch by Eric Wasylishen.  */
-			val =	((double)v->position[0] * (double)tex->vecs[j][0]) +
+			/* The following calculation is sensitive to floating-point
+			 * precision.  It needs to produce the same result that the
+			 * light compiler does, because R_BuildLightMap uses surf->
+			 * extents to know the width/height of a surface's lightmap,
+			 * and incorrect rounding here manifests itself as patches
+			 * of "corrupted" looking lightmaps.
+			 * Most light compilers are win32 executables, so they use
+			 * x87 floating point.  This means the multiplies and adds
+			 * are done at 80-bit precision, and the result is rounded
+			 * down to 32-bits and stored in val.
+			 * Adding the casts to double seems to be good enough to fix
+			 * lighting glitches when Quakespasm is compiled as x86_64
+			 * and using SSE2 floating-point.  A potential trouble spot
+			 * is the hallway at the beginning of mfxsp17.  -- ericw
+			 */
+			val = ((double)v->position[0] * (double)tex->vecs[j][0]) +
 				((double)v->position[1] * (double)tex->vecs[j][1]) +
 				((double)v->position[2] * (double)tex->vecs[j][2]) +
 				(double)tex->vecs[j][3];
@@ -1364,19 +1383,16 @@ static void CalcSurfaceExtents (msurface_t *s)
 
 	for (i = 0; i < 2; i++)
 	{
-		bmins[i] = (int) floor(mins[i]/16);
-		bmaxs[i] = (int) ceil(maxs[i]/16);
+		bmins[i] = floor(mins[i] / 16);
+		bmaxs[i] = ceil(maxs[i] / 16);
 
 		s->texturemins[i] = bmins[i] * 16;
 		s->extents[i] = (bmaxs[i] - bmins[i]) * 16;
 
-		if ( !(tex->flags & TEX_SPECIAL) && (s->extents[i]>>4)+1 > MAX_SURFACE_LIGHTMAP /* 256 */ )
-		{
-			Sys_Error ("Bad surface extents");
-		}
+		if (!(tex->flags & TEX_SPECIAL) && s->extents[i] > 2000) //johnfitz -- was 512 in glquake, 256 in winquake
+			Sys_Error("Bad surface extents");
 	}
 }
-
 
 /*
 =================
@@ -1479,6 +1495,8 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 #ifndef QUAKE2
 			GL_SubdivideSurface (out);	// cut up polygon for warps
 #endif
+			Mod_PolyForUnlitSurface(out);
+			GL_SubdivideSurface(out);
 
 			if ( (!q_strncasecmp(out->texinfo->texture->name,"*rtex078",8)) ||
 					(!q_strncasecmp(out->texinfo->texture->name,"*lowlight",9)) )

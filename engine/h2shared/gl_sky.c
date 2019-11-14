@@ -845,9 +845,6 @@ void Sky_GetTexCoord (vec3_t v, float speed, float *s, float *t)
 	length = sqrt(length);
 	length = 6 * 63 / length;
 
-	dir[0] *= length;
-	dir[1] *= length;
-
 	scroll = cl.time*speed;
 	scroll -= (int)scroll & ~127;
 

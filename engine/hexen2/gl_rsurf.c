@@ -1278,7 +1278,11 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 			if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
 				(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
 			{
+				//glDepthFunc_fp(GL_EQUAL);
+				//glDepthMask_fp(1);
 				R_RenderBrushPoly(e, psurf, false, false);
+				//glDepthMask_fp(0);
+				//glDepthFunc_fp(GL_LEQUAL);
 			}
 		}
 
@@ -1375,6 +1379,7 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 		}
 		else
 		{
+			//glDepthMask_fp(0);
 			//one pass with no fog
 			Fog_DisableGFog();
 			for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
@@ -1441,6 +1446,7 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 			glDepthMask_fp(GL_TRUE);
 			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glDisable_fp(GL_BLEND);
+			//glDepthMask_fp(1);
 
 		}
 	}
