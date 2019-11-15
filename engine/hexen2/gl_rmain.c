@@ -1010,7 +1010,7 @@ static void R_DrawAliasModel (entity_t *e)
 			q_snprintf (temp, sizeof(temp), "gfx/skin%d.lmp", skinnum);
 			stonepic = Draw_CachePic(temp);
 			gl = (glpic_t *)stonepic->data;
-			gl_extra_textures[skinnum - 100] = gl;
+			gl_extra_textures[skinnum - 100] = gl->gltexture;
 		}
 
 		GL_Bind(gl_extra_textures[skinnum - 100]);

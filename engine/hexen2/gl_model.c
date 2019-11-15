@@ -1495,7 +1495,7 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 #ifndef QUAKE2
 			GL_SubdivideSurface (out);	// cut up polygon for warps
 #endif
-			Mod_PolyForUnlitSurface(out);
+			//Mod_PolyForUnlitSurface(out);
 			GL_SubdivideSurface(out);
 
 			if ( (!q_strncasecmp(out->texinfo->texture->name,"*rtex078",8)) ||
