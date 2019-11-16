@@ -687,7 +687,12 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	{
 		// ent->abslight   0 - 255
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glBlendFunc_fp(GL_ONE, GL_ONE);
 		intensity = (float)e->abslight / 255.0f;
+	}
+	else
+	{
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	if (!override)
@@ -715,6 +720,7 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 
 	if (fa->flags & SURF_DRAWFENCE)
 	{
+		glAlphaFunc_fp(GL_GREATER, 0);
 		glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
 		glDepthMask_fp(1);
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -769,6 +775,7 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	if (fa->flags & SURF_DRAWFENCE)
 	{
 		glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
+		glAlphaFunc_fp(GL_GREATER, 0.632);
 		glDepthMask_fp(0);
 	}
 
@@ -805,6 +812,7 @@ dynamic:
 	if (e->drawflags & DRF_TRANSLUCENT)
 	{
 		glDisable_fp (GL_BLEND);
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 }
 
