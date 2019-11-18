@@ -403,6 +403,7 @@ void Fog_NewMap (void)
 	Fog_MarkModels (); //for volumetric fog
 }
 
+GLfloat Fog_SetupState(void);
 /*
 =============
 Fog_Init

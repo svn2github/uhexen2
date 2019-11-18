@@ -201,6 +201,8 @@ extern GLint		gl_max_texture_units; //ericw
 	} while (0)
 */
 extern	int		gl_texlevel;
+//int			numgltextures;
+int numgltextures;
 extern	int		numgltextures;
 extern	qboolean	flush_textures;
 extern	gltexture_t	gltextures[MAX_GLTEXTURES];

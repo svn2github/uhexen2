@@ -152,7 +152,7 @@ void R_InitExtraTextures (void)
 		gl_extra_textures[i] = GL_UNUSED_TEXTURE;
 
 	// see R_TranslatePlayerSkin() below
-	glGenTextures_fp(MAX_CLIENTS, playertextures);
+	//glGenTextures_fp(MAX_CLIENTS, playertextures);
 }
 
 /*
@@ -328,23 +328,7 @@ void R_TranslatePlayerSkin (int playernum)
 		original = player_8bit_texels[playerclass-1];
 	else	original = player_8bit_texels[0];
 
-	//get correct texture pixels
-	currententity = &cl_entities[1 + playernum];
-
-	if (!currententity->model || currententity->model->type != mod_alias)
-		return;
-
 	paliashdr = (aliashdr_t *)Mod_Extradata (model);
-
-	skinnum = currententity->skinnum;
-	//TODO: move these tests to the place where skinnum gets received from the server
-	if (skinnum < 0 || skinnum >= paliashdr->numskins)
-	{
-		Con_DPrintf("(%d): Invalid player skin #%d\n", playernum, skinnum);
-		skinnum = 0;
-	}
-
-
 	s = paliashdr->skinwidth * paliashdr->skinheight;
 	if (s & 3)
 		Sys_Error ("%s: s&3", __thisfunc__);
@@ -390,9 +374,9 @@ void R_TranslatePlayerSkin (int playernum)
 	//glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	q_snprintf(name, sizeof(name), "player_%i", playernum);
-	playertextures[playernum] = TexMgr_LoadImage(currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
-		//SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
-		SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_RGBA | TEXPREF_LINEAR);
+	playertextures[playernum] = TexMgr_LoadImage(NULL, name, scaled_width, scaled_height,
+		SRC_RGBA, (byte *)pixels, paliashdr->gltextures[0][0]->source_file, 0, TEXPREF_RGBA | TEXPREF_LINEAR);
+	//SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
 
 }
 

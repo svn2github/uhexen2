@@ -35,7 +35,6 @@ static GLint	gl_hardware_maxsize;
 static cvar_t	gl_texture_NPOT;
 
 #define	MAX_GLTEXTURES	2048
-static int numgltextures;
 static gltexture_t	*active_gltextures, *free_gltextures;
 gltexture_t		*notexture, *nulltexture;
 
@@ -309,7 +308,7 @@ float TexMgr_FrameUsage(void)
 TexMgr_FindTexture
 ================
 */
-gltexture_t *TexMgr_FindTexture(qmodel_t *owner, const char *name)
+gltexture_t *TexMgr_FindTexture(qmodel_t *owner, char *name)
 {
 	gltexture_t	*glt;
 
@@ -1297,8 +1296,8 @@ static void TexMgr_LoadLightmap(gltexture_t *glt, byte *data)
 TexMgr_LoadImage -- the one entry point for loading all textures
 ================
 */
-gltexture_t *TexMgr_LoadImage(qmodel_t *owner, const char *name, int width, int height, enum srcformat format,
-	byte *data, const char *source_file, src_offset_t source_offset, unsigned flags)
+gltexture_t *TexMgr_LoadImage(qmodel_t *owner, char *name, int width, int height, enum srcformat format,
+	byte *data, char *source_file, src_offset_t source_offset, unsigned flags)
 {
 	unsigned short crc;
 	gltexture_t *glt;

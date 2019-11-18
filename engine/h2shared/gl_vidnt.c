@@ -2141,7 +2141,8 @@ static void VID_ChangeVideoMode (int newmode)
 	S_ClearBuffer ();
 
 	// Unload all textures and reset texture counts
-	D_ClearOpenGLTextures(0);
+	//D_ClearOpenGLTextures(NULL);
+	TexMgr_DeleteTextureObjects();
 	memset (lightmap_textures, 0, sizeof(lightmap_textures));
 
 	// reset all opengl function pointers

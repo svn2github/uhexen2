@@ -703,7 +703,7 @@ LIBWINSOCK=wsock32
 endif
 
 CPPFLAGS+= -DWIN32_LEAN_AND_MEAN
-INCLUDES+= -I$(OSLIBS)/windows/misc/include -I$(OSLIBS)/windows/dxsdk/include
+INCLUDES+= -I$(OSLIBS)/windows/misc/include -I$(OSLIBS)/windows/dxsdk/include -I$(OSLIBS)/windows/SDL/include
 CFLAGS  += -m32
 LDFLAGS += -m32 -mwindows
 LDFLAGS += -l$(LIBWINSOCK) -lwinmm
@@ -1574,6 +1574,9 @@ SOFTOBJS = \
 GLOBJS = \
 	gl_refrag.o \
 	gl_rlight.o \
+	gl_texmgr.o \
+	gl_sky.o \
+	gl_fog.o \
 	gl_rmain.o \
 	gl_rmisc.o \
 	r_part.o \
@@ -1592,6 +1595,8 @@ COMMONOBJS = \
 	$(SYSOBJ_CDA) \
 	$(SYSOBJ_MIDI) \
 	$(SYSOBJ_NET) \
+	lodepng.o \
+	image.o \
 	net_dgrm.o \
 	net_loop.o \
 	net_main.o \
@@ -1698,10 +1703,14 @@ $(GL_BINARY): $(GLOBJS) $(COMMON_ASM) $(COMMONOBJS) $(TIMIDEPS)
 	$(LINKER) $(GLOBJS) $(COMMON_ASM) $(COMMONOBJS) $(LDFLAGS) $(GL_LIBS) $(SYSLIBS) -o $@
 
 localclean:
-	rm -f *.o *.res dos/*.o core
+	del /f /q *.o
+	del /f /q *.res
+	del /f /q dos\*.o
+	del /f /q core
 clean: localclean timi_clean
 distclean: clean
-	rm -f $(SW_BINARY) $(GL_BINARY)
+	del /f /q $(SW_BINARY)
+	del /f /q $(GL_BINARY)
 
 report:
 	@echo "Host OS  :" $(HOST_OS)

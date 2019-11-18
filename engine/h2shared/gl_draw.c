@@ -46,7 +46,7 @@ static cvar_t	gl_constretch = {"gl_constretch", "0", CVAR_ARCHIVE};
 static cvar_t	gl_texturemode = {"gl_texturemode", "", CVAR_ARCHIVE};
 static cvar_t	gl_texture_anisotropy = {"gl_texture_anisotropy", "1", CVAR_ARCHIVE};
 
-static GLuint		menuplyr_textures[MAX_PLAYER_CLASS];	// player textures in multiplayer config screens
+static gltexture_t		*menuplyr_textures[MAX_PLAYER_CLASS];	// player textures in multiplayer config screens
 //static GLuint		draw_backtile;
 qpic_t		*draw_backtile;
 static gltexture_t		*conback;
@@ -99,7 +99,6 @@ static const char	*cs_data = {
 int		gl_filter_idx = 4; /* Bilinear */
 
 gltexture_t	gltextures[MAX_GLTEXTURES];
-int			numgltextures;
 
 static GLuint GL_LoadPixmap (const char *name, const char *data);
 static void GL_Upload32 (unsigned int *data, gltexture_t *glt);
@@ -511,7 +510,7 @@ void Draw_ReInit (void)
 	scr_disabled_for_loading = true;
 	draw_reinit = true;
 
-	D_ClearOpenGLTextures(0);
+	//D_ClearOpenGLTextures(NULL);
 	TexMgr_DeleteTextureObjects();
 
 	memset (lightmap_textures, 0, sizeof(lightmap_textures));
