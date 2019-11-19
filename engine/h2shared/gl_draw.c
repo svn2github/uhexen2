@@ -619,7 +619,7 @@ void Draw_Init (void)
 	cs_texture = GL_LoadPixmap ("crosshair", cs_data);
 
 	// initialize the player texnums for multiplayer config screens
-	glGenTextures_fp(MAX_PLAYER_CLASS, menuplyr_textures);
+	//glGenTextures_fp(MAX_PLAYER_CLASS, menuplyr_textures);
 }
 
 
@@ -1174,7 +1174,7 @@ void Draw_TransPicTranslate (int x, int y, qpic_t *pic, byte *translation, int p
 	byte		*src;
 	int		p;
 
-	GL_Bind(menuplyr_textures[p_class-1]);
+	GL_Bind(NULL);
 	dest = trans;
 	for (v = 0; v < 64; v++, dest += 64)
 	{
