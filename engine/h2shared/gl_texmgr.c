@@ -29,10 +29,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static cvar_t	gl_texturemode = { "gl_texturemode", "", CVAR_ARCHIVE };
 static cvar_t	gl_texture_anisotropy = { "gl_texture_anisotropy", "1", CVAR_ARCHIVE };
-static cvar_t	gl_max_size = { "gl_max_size", "0", CVAR_NONE };
+//static cvar_t	gl_max_size = { "gl_max_size", "0", CVAR_NONE };
 static cvar_t	gl_picmip = { "gl_picmip", "0", CVAR_NONE };
 static GLint	gl_hardware_maxsize;
 static cvar_t	gl_texture_NPOT;
+//extern cvar_t gl_max_size;
+cvar_t	gl_max_size = { "gl_max_size", "256", CVAR_ARCHIVE };
 
 #define	MAX_GLTEXTURES	2048
 static gltexture_t	*active_gltextures, *free_gltextures;
@@ -75,6 +77,17 @@ static glmode_t glmodes[] = {
 static int glmode_idx = NUM_GLMODES - 1; //trilinear
 */
 
+glmode_t glmodes[] = {
+	{GL_NEAREST, GL_NEAREST,				"GL_NEAREST"},
+	{GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST,	"GL_NEAREST_MIPMAP_NEAREST"},
+	{GL_NEAREST, GL_NEAREST_MIPMAP_LINEAR,	"GL_NEAREST_MIPMAP_LINEAR"},
+	{GL_LINEAR,  GL_LINEAR,					"GL_LINEAR"},
+	{GL_LINEAR,  GL_LINEAR_MIPMAP_NEAREST,	"GL_LINEAR_MIPMAP_NEAREST"},
+	{GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,	"GL_LINEAR_MIPMAP_LINEAR"},
+};
+
+int glmode_idx = NUM_GLMODES - 1; /* trilinear */
+
 /*
 ===============
 TexMgr_DescribeTextureModes_f -- report available texturemodes
@@ -85,7 +98,7 @@ static void TexMgr_DescribeTextureModes_f(void)
 	int i;
 
 	for (i = 0; i < NUM_GLMODES; i++)
-		Con_SafePrintf("   %2i: %s\n", i + 1, gl_modes[i].name);
+		Con_SafePrintf("   %2i: %s\n", i + 1, glmodes[i].name);
 
 	Con_Printf("%i modes\n", i);
 }
@@ -111,14 +124,14 @@ static void TexMgr_SetFilterModes(gltexture_t *glt)
 	}
 	else if (glt->flags & TEXPREF_MIPMAP)
 	{
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[glmode_idx].magfilter);
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[glmode_idx].minfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[glmode_idx].magfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[glmode_idx].minfilter);
 		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
 	}
 	else
 	{
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[glmode_idx].magfilter);
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[glmode_idx].magfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[glmode_idx].magfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[glmode_idx].magfilter);
 	}
 }
 
@@ -134,7 +147,7 @@ static void TexMgr_TextureMode_f(cvar_t *var)
 
 	for (i = 0; i < NUM_GLMODES; i++)
 	{
-		if (!strcmp(gl_modes[i].name, gl_texturemode.string))
+		if (!strcmp(glmodes[i].name, gl_texturemode.string))
 		{
 			if (glmode_idx != i)
 			{
@@ -150,9 +163,9 @@ static void TexMgr_TextureMode_f(cvar_t *var)
 
 	for (i = 0; i < NUM_GLMODES; i++)
 	{
-		if (!q_strcasecmp(gl_modes[i].name, gl_texturemode.string))
+		if (!q_strcasecmp(glmodes[i].name, gl_texturemode.string))
 		{
-			Cvar_SetQuick(&gl_texturemode, gl_modes[i].name);
+			Cvar_SetQuick(&gl_texturemode, glmodes[i].name);
 			return;
 		}
 	}
@@ -160,12 +173,12 @@ static void TexMgr_TextureMode_f(cvar_t *var)
 	i = atoi(gl_texturemode.string);
 	if (i >= 1 && i <= NUM_GLMODES)
 	{
-		Cvar_SetQuick(&gl_texturemode, gl_modes[i - 1].name);
+		Cvar_SetQuick(&gl_texturemode, glmodes[i - 1].name);
 		return;
 	}
 
 	Con_Printf("\"%s\" is not a valid texturemode\n", gl_texturemode.string);
-	Cvar_SetQuick(&gl_texturemode, gl_modes[glmode_idx].name);
+	Cvar_SetQuick(&gl_texturemode, glmodes[glmode_idx].name);
 }
 
 /*
@@ -191,8 +204,8 @@ static void TexMgr_Anisotropy_f(cvar_t *var)
 			/*  TexMgr_SetFilterModes (glt);*/
 			if (glt->flags & TEXPREF_MIPMAP) {
 				GL_Bind(glt);
-				glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[glmode_idx].magfilter);
-				glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[glmode_idx].minfilter);
+				glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[glmode_idx].magfilter);
+				glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[glmode_idx].minfilter);
 				glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
 			}
 		}
@@ -424,7 +437,6 @@ TexMgr_FreeTexturesForOwner
 void TexMgr_FreeTexturesForOwner(qmodel_t *owner)
 {
 	gltexture_t *glt, *next;
-	int i;
 
 	for (glt = active_gltextures; glt; glt = next)
 	{
@@ -633,7 +645,7 @@ void TexMgr_Init(void)
 	Cvar_RegisterVariable(&gl_picmip);
 	Cvar_RegisterVariable(&gl_texture_anisotropy);
 	Cvar_SetCallback(&gl_texture_anisotropy, &TexMgr_Anisotropy_f);
-	gl_texturemode.string = gl_modes[glmode_idx].name;
+	gl_texturemode.string = glmodes[glmode_idx].name;
 	Cvar_RegisterVariable(&gl_texturemode);
 	Cvar_SetCallback(&gl_texturemode, &TexMgr_TextureMode_f);
 	Cmd_AddCommand("gl_describetexturemodes", &TexMgr_DescribeTextureModes_f);
@@ -1257,7 +1269,6 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 		}
 	}
 
-	/*
 	// fix edges
 	if (glt->flags & TEXPREF_ALPHA)
 		TexMgr_AlphaEdgeFix(trans, glt->width, glt->height);
@@ -1268,10 +1279,7 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 		if (padh)
 			TexMgr_PadEdgeFixH(trans, glt->source_width, glt->source_height);
 	}
-	*/
 
-	//GL_Upload32(trans, glt);
-	// upload it
 	TexMgr_LoadImage32(glt, trans);
 	Hunk_FreeToLowMark(mark);
 }

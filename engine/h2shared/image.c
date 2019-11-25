@@ -36,6 +36,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static char loadfilename[MAX_OSPATH]; //file scope so that error messages can use it
 
+int FS_FileOpenWrite(const char *path);
+int FS_FileWrite(int handle, const void *data, int count);
+void Sys_FileClose(int handle);
+
 typedef struct stdio_buffer_s {
 	FILE *f;
 	unsigned char buffer[1024];

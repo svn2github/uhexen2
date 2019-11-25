@@ -59,7 +59,7 @@ qboolean SV_CheckBottom (edict_t *ent)
 		wclip_hull = &model->hulls[index];
 		if (!wclip_hull) // Invalid hull
 		{
-			Con_Printf ("ERROR: hull %d is null.\n",wclip_hull);
+			Con_Printf ("ERROR: hull %d is null.\n",index);
 			wclip_hull = &model->hulls[0];
 		}
 	}

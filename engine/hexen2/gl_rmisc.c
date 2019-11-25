@@ -45,6 +45,7 @@ qboolean		flush_textures;
 int			gl_texlevel;
 extern int		menu_numcachepics;
 extern cachepic_t	menu_cachepics[MAX_CACHED_PICS];
+extern	cvar_t	gl_max_size;
 
 extern void R_InitBubble (void);
 
@@ -287,7 +288,7 @@ void R_TranslatePlayerSkin (int playernum)
 	char		name[64];
 	int		skinnum;
 
-	gl_max_size.integer = 256; //shan?
+	//gl_max_size.integer = 256; //shan?
 
 	for (i = 0; i < 256; i++)
 		translate[i] = i;

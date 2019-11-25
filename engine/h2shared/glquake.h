@@ -149,16 +149,9 @@ typedef struct
 	int minfilter;
 	char *name;
 } glmode_t;
-static glmode_t gl_modes[] = {
-	{GL_NEAREST, GL_NEAREST,				"GL_NEAREST"},
-	{GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST,	"GL_NEAREST_MIPMAP_NEAREST"},
-	{GL_NEAREST, GL_NEAREST_MIPMAP_LINEAR,	"GL_NEAREST_MIPMAP_LINEAR"},
-	{GL_LINEAR,  GL_LINEAR,					"GL_LINEAR"},
-	{GL_LINEAR,  GL_LINEAR_MIPMAP_NEAREST,	"GL_LINEAR_MIPMAP_NEAREST"},
-	{GL_LINEAR,  GL_LINEAR_MIPMAP_LINEAR,	"GL_LINEAR_MIPMAP_LINEAR"},
-};
+extern glmode_t glmodes[6];
 #define NUM_GLMODES 6
-static int glmode_idx = NUM_GLMODES - 1; /* trilinear */
+extern int glmode_idx; /* trilinear */
 
 
 /* particle enums and types: note that hexen2 and
@@ -172,7 +165,7 @@ static int glmode_idx = NUM_GLMODES - 1; /* trilinear */
 
 /* gl texture objects */
 //extern	GLuint		currenttexture;
-static GLuint	currenttexture[3] = { GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE }; // to avoid unnecessary texture sets
+extern GLuint	currenttexture[3];
 //extern	GLuint		particletexture;
 extern gltexture_t *particletexture, *particletexture1, *particletexture2, *particletexture3, *particletexture4; //johnfitz
 extern gltexture_t *lightmap_textures[MAX_LIGHTMAPS]; //johnfitz -- changed to an array
@@ -294,7 +287,7 @@ extern	cvar_t	gl_coloredlight;
 extern	cvar_t	gl_colored_dynamic_lights;
 extern	cvar_t	gl_extra_dynamic_lights;
 extern	cvar_t	gl_lightmapfmt;
-static	cvar_t	gl_max_size;
+//extern	cvar_t	gl_max_size;
 extern	cvar_t	gl_farclip;
 
 /* other globals */

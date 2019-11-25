@@ -403,7 +403,7 @@ void Fog_NewMap (void)
 	Fog_MarkModels (); //for volumetric fog
 }
 
-GLfloat Fog_SetupState(void);
+void Fog_SetupState(void);
 /*
 =============
 Fog_Init
@@ -433,7 +433,7 @@ Fog_SetupState
 ericw -- moved from Fog_Init, state that needs to be setup when a new context is created
 =============
 */
-GLfloat Fog_SetupState (void)
+void Fog_SetupState (void)
 {
 	glFogi_fp(GL_FOG_MODE, GL_EXP2);
 }

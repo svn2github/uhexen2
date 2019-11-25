@@ -80,6 +80,9 @@ int	vec_to_st[6][3] =
 
 float	skyfog; // ericw
 
+void Fog_DisableGFog(void);
+void Fog_EnableGFog(void);
+
 //==============================================================================
 //
 //  INIT

@@ -45,6 +45,8 @@ static cvar_t	gl_picmip = {"gl_picmip", "0", CVAR_NONE};
 static cvar_t	gl_constretch = {"gl_constretch", "0", CVAR_ARCHIVE};
 static cvar_t	gl_texturemode = {"gl_texturemode", "", CVAR_ARCHIVE};
 static cvar_t	gl_texture_anisotropy = {"gl_texture_anisotropy", "1", CVAR_ARCHIVE};
+extern cvar_t gl_max_size;
+
 
 static gltexture_t		*menuplyr_textures[MAX_PLAYER_CLASS];	// player textures in multiplayer config screens
 //static GLuint		draw_backtile;
@@ -354,14 +356,14 @@ static void Draw_TouchAllFilterModes (void)
 		if (glt->flags & (TEXPREF_NEAREST | TEXPREF_LINEAR))	/* TEX_MIPMAP mustn't be set in this case */
 			continue;
 		GL_Bind (glt);
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[gl_filter_idx].magfilter);
 		if (glt->flags & TEXPREF_MIPMAP)
 		{
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].minfilter);
+			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[gl_filter_idx].minfilter);
 			if (gl_max_anisotropy >= 2)
 				glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
 		}
-		else	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].magfilter);
+		else	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[gl_filter_idx].magfilter);
 	}
 }
 
@@ -371,7 +373,7 @@ static void Draw_TextureMode_f (cvar_t *var)
 
 	for (i = 0; i < NUM_GL_FILTERS; i++)
 	{
-		if (!strcmp (gl_modes[i].name, var->string))
+		if (!strcmp (glmodes[i].name, var->string))
 		{
 			if (gl_filter_idx != i)
 			{
@@ -385,15 +387,15 @@ static void Draw_TextureMode_f (cvar_t *var)
 
 	for (i = 0; i < NUM_GL_FILTERS; i++)
 	{
-		if (!q_strcasecmp (gl_modes[i].name, var->string))
+		if (!q_strcasecmp (glmodes[i].name, var->string))
 		{
-			Cvar_SetQuick (var, gl_modes[i].name);
+			Cvar_SetQuick (var, glmodes[i].name);
 			return;
 		}
 	}
 
 	Con_Printf ("bad filter name\n");
-	Cvar_SetQuick (var, gl_modes[gl_filter_idx].name);
+	Cvar_SetQuick (var, glmodes[gl_filter_idx].name);
 }
 
 static void Draw_TouchMipmapFilterModes (void)
@@ -406,8 +408,8 @@ static void Draw_TouchMipmapFilterModes (void)
 		if (glt->flags & TEXPREF_MIPMAP)
 		{
 			GL_Bind (glt);
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].minfilter);
+			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[gl_filter_idx].magfilter);
+			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[gl_filter_idx].minfilter);
 			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
 		}
 	}
@@ -549,7 +551,7 @@ void Draw_Init (void)
 	{
 		Cvar_RegisterVariable (&gl_picmip);
 		Cvar_RegisterVariable (&gl_constretch);
-		gl_texturemode.string = gl_modes[gl_filter_idx].name;
+		gl_texturemode.string = glmodes[gl_filter_idx].name;
 		Cvar_RegisterVariable (&gl_texturemode);
 		Cvar_RegisterVariable (&gl_texture_anisotropy);
 		Cvar_SetCallback (&gl_texturemode, Draw_TextureMode_f);
@@ -1726,15 +1728,15 @@ static void GL_Upload32 (unsigned int *data, gltexture_t *glt)
 	}
 	else if (glt->flags & TEXPREF_MIPMAP)
 	{
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].minfilter);
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[gl_filter_idx].minfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[gl_filter_idx].magfilter);
 		if (gl_max_anisotropy >= 2)
 			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
 	}
 	else
 	{
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_modes[gl_filter_idx].minfilter);
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_modes[gl_filter_idx].magfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[gl_filter_idx].minfilter);
+		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[gl_filter_idx].magfilter);
 	}
 
 	if (mark)

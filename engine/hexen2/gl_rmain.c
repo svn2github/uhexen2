@@ -42,7 +42,7 @@ int			c_brush_polys, c_alias_polys;
 
 qboolean	r_cache_thrash;			// compatability
 
-//GLuint			currenttexture = GL_UNUSED_TEXTURE;	// to avoid unnecessary texture sets
+GLuint			currenttexture[3] = { GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE }; // to avoid unnecessary texture sets
 
 //GLuint			particletexture;	// little dot for particles
 //GLuint			playertextures[MAX_CLIENTS];	// up to MAX_CLIENTS color translated skins
@@ -127,6 +127,7 @@ cvar_t	gl_farclip = { "gl_farclip", "16384", CVAR_ARCHIVE };
 cvar_t	gl_overbright = { "gl_overbright", "1", CVAR_ARCHIVE };
 cvar_t	gl_fullbrights = { "gl_fullbrights", "1", CVAR_ARCHIVE };
 extern cvar_t	r_vfog;
+extern cvar_t	gl_max_size;
 //johnfitz
 
 //=============================================================================
