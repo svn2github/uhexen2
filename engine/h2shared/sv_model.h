@@ -243,7 +243,7 @@ typedef struct qmodel_s
 	int		numvertexes;
 	mvertex_t	*vertexes;
 
-	int		numnodes;
+	long		numnodes;
 	mnode_t		*nodes;
 
 	int		numtexinfo;

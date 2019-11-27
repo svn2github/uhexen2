@@ -417,7 +417,7 @@ typedef struct qmodel_s
 	int		numedges;
 	medge_t		*edges;
 
-	int		numnodes;
+	long		numnodes;
 	mnode_t		*nodes;
 
 	int		numtexinfo;

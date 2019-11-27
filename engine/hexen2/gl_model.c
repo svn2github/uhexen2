@@ -39,7 +39,12 @@ static void Mod_Print (void);
 
 static cvar_t	external_ents = {"external_ents", "1", CVAR_ARCHIVE};
 
-static byte	mod_novis[MAX_MAP_LEAFS/8];
+//static byte	mod_novis[MAX_MAP_LEAFS/8];
+static byte	*mod_novis;
+static int	mod_novis_capacity;
+
+static byte	*mod_decompressed;
+static int	mod_decompressed_capacity;
 
 // 650 should be enough with model handle recycling, but.. (Pa3PyX)
 #define	MAX_MOD_KNOWN	4096	//spike: boosted for crazy bsp2 maps
@@ -66,7 +71,7 @@ void Mod_Init (void)
 	Cvar_RegisterVariable (&external_ents);
 	Cmd_AddCommand ("mcache", Mod_Print);
 
-	memset (mod_novis, 0xff, sizeof(mod_novis));
+	//memset (mod_novis, 0xff, sizeof(mod_novis));
 
 	//johnfitz -- create notexture miptex
 	r_notexture_mip = (texture_t *)Hunk_AllocName(sizeof(texture_t), "r_notexture_mip");
@@ -141,15 +146,21 @@ Mod_DecompressVis
 */
 static byte *Mod_DecompressVis (byte *in, qmodel_t *model)
 {
-	static byte	decompressed[MAX_MAP_LEAFS/8];
 	int		c;
 	byte	*out;
 	byte	*outend;
 	int		row;
 
-	row = (model->numleafs+7)>>3;
-	out = decompressed;
-	outend = decompressed + row;
+	row = (model->numleafs + 7) >> 3;
+	if (mod_decompressed == NULL || row > mod_decompressed_capacity)
+	{
+		mod_decompressed_capacity = row;
+		mod_decompressed = (byte *)realloc(mod_decompressed, mod_decompressed_capacity);
+		if (!mod_decompressed)
+			Sys_Error("Mod_DecompressVis: realloc() failed on %d bytes", mod_decompressed_capacity);
+	}
+	out = mod_decompressed;
+	outend = mod_decompressed + row;
 
 	if (!in)
 	{	// no vis info, so make all visible
@@ -158,7 +169,7 @@ static byte *Mod_DecompressVis (byte *in, qmodel_t *model)
 			*out++ = 0xff;
 			row--;
 		}
-		return decompressed;
+		return mod_decompressed;
 	}
 
 	do
@@ -175,21 +186,45 @@ static byte *Mod_DecompressVis (byte *in, qmodel_t *model)
 		{
 			if (out == outend)
 			{
-				return decompressed;
+				//if (!model->viswarn) {
+				//	model->viswarn = true;
+				//	Con_Warning("Mod_DecompressVis: output overrun on model \"%s\"\n", model->name);
+				//}
+				return mod_decompressed;
 			}
 			*out++ = 0;
 			c--;
 		}
-	} while (out - decompressed < row);
+	} while (out - mod_decompressed < row);
 
-	return decompressed;
+	return mod_decompressed;
 }
+
+byte *Mod_NoVisPVS(qmodel_t *model);
 
 byte *Mod_LeafPVS (mleaf_t *leaf, qmodel_t *model)
 {
 	if (leaf == model->leafs)
-		return mod_novis;
+		return Mod_NoVisPVS(model);
+		//return mod_novis;
 	return Mod_DecompressVis (leaf->compressed_vis, model);
+}
+
+byte *Mod_NoVisPVS(qmodel_t *model)
+{
+	int pvsbytes;
+
+	pvsbytes = (model->numleafs + 7) >> 3;
+	if (mod_novis == NULL || pvsbytes > mod_novis_capacity)
+	{
+		mod_novis_capacity = pvsbytes;
+		mod_novis = (byte *)realloc(mod_novis, mod_novis_capacity);
+		if (!mod_novis)
+			Sys_Error("Mod_NoVisPVS: realloc() failed on %d bytes", mod_novis_capacity);
+
+		memset(mod_novis, 0xff, mod_novis_capacity);
+	}
+	return mod_novis;
 }
 
 /*

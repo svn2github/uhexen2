@@ -658,13 +658,13 @@ crosses a waterline.
 =============================================================================
 */
 
-static int	fatbytes;
+static long	fatbytes;
 static byte	*fatpvs;
-static int	fatpvs_capacity;
+static long	fatpvs_capacity;
 
 static void SV_AddToFatPVS (vec3_t org, mnode_t *node)
 {
-	int		i;
+	long		i;
 	byte	*pvs;
 	mplane_t	*plane;
 	float	d;

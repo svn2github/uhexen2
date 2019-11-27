@@ -472,7 +472,7 @@ typedef struct qmodel_s
 	int		numplanes;
 	mplane_t	*planes;
 
-	int		numleafs;		// number of visible leafs, not counting 0
+	long		numleafs;		// number of visible leafs, not counting 0
 	mleaf_t		*leafs;
 
 	int		numvertexes;
@@ -481,7 +481,7 @@ typedef struct qmodel_s
 	int		numedges;
 	medge_t		*edges;
 
-	int		numnodes;
+	long		numnodes;
 	mnode_t		*nodes;
 
 	int		numtexinfo;
