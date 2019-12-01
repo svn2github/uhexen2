@@ -3138,6 +3138,7 @@ static void *Mod_LoadSpriteFrame (void *pin, mspriteframe_t **ppframe, int frame
 	mspriteframe_t		*pspriteframe;
 	int			width, height, size, origin[2];
 	char			name[MAX_QPATH];
+	src_offset_t			offset; //johnfitz
 
 	pinframe = (dspriteframe_t *)pin;
 
@@ -3166,9 +3167,10 @@ static void *Mod_LoadSpriteFrame (void *pin, mspriteframe_t **ppframe, int frame
 	pspriteframe->right = width + origin[0];
 
 	q_snprintf (name, sizeof(name), "%s_%i", loadmodel->name, framenum);
+	offset = (src_offset_t)(pinframe + 1) - (src_offset_t)mod_base; //johnfitz
 	//pspriteframe->gltexture = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);
 	pspriteframe->gltexture = TexMgr_LoadImage(loadmodel, name, width, height, SRC_INDEXED, (byte *)(pinframe + 1),
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
+		WADFILENAME, offset, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 
 	return (void *)((byte *)pinframe + sizeof (dspriteframe_t) + size);
 }

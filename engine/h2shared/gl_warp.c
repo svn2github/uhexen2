@@ -1149,7 +1149,7 @@ void R_InitSky (texture_t *mt)
 
 	//solidskytexture = GL_LoadTexture("upsky", (byte *)trans, 128, 128, TEX_RGBA|TEX_LINEAR);
 	solidskytexturez = TexMgr_LoadImage(NULL, WADFILENAME":upsky", 128, 128, SRC_RGBA, (byte *)trans,
-		WADFILENAME, 0, TEXPREF_RGBA | TEXPREF_LINEAR);
+		WADFILENAME, (src_offset_t)trans, TEXPREF_RGBA | TEXPREF_LINEAR);
 		//WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_RGBA);
 
 	for (i = 0; i < 128; i++)
@@ -1166,7 +1166,7 @@ void R_InitSky (texture_t *mt)
 
 	//alphaskytexture = GL_LoadTexture("lowsky", (byte *)trans, 128, 128, TEX_ALPHA|TEX_RGBA|TEX_LINEAR);
 	alphaskytexturez = TexMgr_LoadImage(NULL, WADFILENAME":lowsky", 128, 128, SRC_RGBA, (byte *)trans,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_RGBA | TEXPREF_LINEAR);
+		WADFILENAME, (src_offset_t)trans, TEXPREF_ALPHA | TEXPREF_RGBA | TEXPREF_LINEAR);
 		//WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
 }
 

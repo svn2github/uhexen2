@@ -2211,6 +2211,7 @@ static void VID_ChangeVideoMode (int newmode)
 	// Initialize extensions and default OpenGL parameters
 	GL_Init();
 	VID_Init8bitPalette();
+	TexMgr_ReloadImages();
 
 	// Reload pre-map pics, fonts, console, etc
 	// TexMgr_Init(); //johnfitz

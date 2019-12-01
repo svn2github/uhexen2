@@ -52,7 +52,7 @@ typedef struct gltexture_s {
 	unsigned int		height; //size of image as it exists in opengl
 	unsigned int		flags;
 	char				source_file[MAX_QPATH]; //relative filepath to data source, or "" if source is in memory
-	unsigned int		source_offset; //byte offset into file, or memory address
+	src_offset_t		source_offset; //byte offset into file, or memory address
 	enum srcformat		source_format; //format of pixel data (indexed, lightmap, or rgba)
 	unsigned int		source_width; //size of image in source data
 	unsigned int		source_height; //size of image in source data
@@ -63,8 +63,8 @@ typedef struct gltexture_s {
 	int					visframe; //matches r_framecount if texture was bound this frame
 } gltexture_t;
 
-gltexture_t *notexture;
-gltexture_t *nulltexture;
+extern gltexture_t* notexture;
+extern gltexture_t* nulltexture;
 
 unsigned int d_8to24table[256];
 unsigned int d_8to24table_fbright[256];
@@ -86,7 +86,7 @@ void TexMgr_Init (void);
 
 // IMAGE LOADING
 gltexture_t *TexMgr_LoadImage (qmodel_t *owner, char *name, int width, int height, enum srcformat format,
-							   byte *data, char *source_file, unsigned source_offset, unsigned flags);
+							   byte *data, char *source_file, src_offset_t source_offset, unsigned flags);
 void TexMgr_ReloadImage (gltexture_t *glt, int shirt, int pants);
 void TexMgr_ReloadImages (void);
 void TexMgr_ReloadNobrightImages (void);

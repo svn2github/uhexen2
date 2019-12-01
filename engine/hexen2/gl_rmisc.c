@@ -376,7 +376,7 @@ void R_TranslatePlayerSkin (int playernum)
 
 	q_snprintf(name, sizeof(name), "player_%i", playernum);
 	playertextures[playernum] = TexMgr_LoadImage(NULL, name, scaled_width, scaled_height,
-		SRC_RGBA, (byte *)pixels, paliashdr->gltextures[0][0]->source_file, 0, TEXPREF_RGBA | TEXPREF_LINEAR);
+		SRC_RGBA, (byte *)pixels, paliashdr->gltextures[0][0]->source_file, paliashdr->gltextures[0][0]->source_offset, TEXPREF_RGBA | TEXPREF_LINEAR);
 	//SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
 
 }
