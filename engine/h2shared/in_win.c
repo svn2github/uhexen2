@@ -615,6 +615,8 @@ void IN_ReInit (void)
 	}
 }
 
+extern cvar_t cl_maxpitch; /* johnfitz -- variable pitch clamping */
+extern cvar_t cl_minpitch; /* johnfitz -- variable pitch clamping */
 
 /*
 ===========
@@ -783,10 +785,11 @@ static void IN_MouseMove (usercmd_t *cmd)
 	if ( (in_mlook.state & 1) && !(in_strafe.state & 1))
 	{
 		cl.viewangles[PITCH] += m_pitch.value * mouse_y;
-		if (cl.viewangles[PITCH] > 80)
-			cl.viewangles[PITCH] = 80;
-		if (cl.viewangles[PITCH] < -70)
-			cl.viewangles[PITCH] = -70;
+		/* johnfitz -- variable pitch clamping */
+		if (cl.viewangles[PITCH] > cl_maxpitch.value)
+			cl.viewangles[PITCH] = cl_maxpitch.value;
+		if (cl.viewangles[PITCH] < cl_minpitch.value)
+			cl.viewangles[PITCH] = cl_minpitch.value;
 	}
 	else
 	{
