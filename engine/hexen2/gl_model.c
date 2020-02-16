@@ -3166,6 +3166,11 @@ static void *Mod_LoadSpriteFrame (void *pin, mspriteframe_t **ppframe, int frame
 	pspriteframe->left = origin[0];
 	pspriteframe->right = width + origin[0];
 
+	//johnfitz -- image might be padded
+	pspriteframe->smax = (float)width / (float)TexMgr_PadConditional(width);
+	pspriteframe->tmax = (float)height / (float)TexMgr_PadConditional(height);
+	//johnfitz
+
 	q_snprintf (name, sizeof(name), "%s_%i", loadmodel->name, framenum);
 	offset = (src_offset_t)(pinframe + 1) - (src_offset_t)mod_base; //johnfitz
 	//pspriteframe->gltexture = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);

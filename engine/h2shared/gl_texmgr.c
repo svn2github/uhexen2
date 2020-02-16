@@ -1111,17 +1111,6 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 	qboolean padw = false, padh = false;
 	byte padbyte;
 
-
-	// detect false alpha cases
-	if (glt->flags & TEXPREF_ALPHA && !(glt->flags & TEXPREF_CONCHARS))
-	{
-		for (i = 0; i < (int)(glt->width * glt->height); i++)
-			if (data[i] == 255) //transparent index
-				break;
-		if (i == (int)(glt->width * glt->height))
-			glt->flags -= TEXPREF_ALPHA;
-	}
-
 	// choose palette and padbyte
 	if (glt->flags & TEXPREF_FULLBRIGHT)
 	{

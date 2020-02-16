@@ -239,9 +239,9 @@ SPRITE MODELS
 // FIXME: shorten these?
 typedef struct mspriteframe_s
 {
-	short		width;
-	short		height;
+	int			width, height;
 	float		up, down, left, right;
+	float		smax, tmax; //johnfitz -- image might be padded
 	//GLuint		gl_texturenum;
 	struct gltexture_s	*gltexture;
 } mspriteframe_t;
