@@ -176,8 +176,8 @@ extern int gl_lightmap_format, lightmap_bytes;
 // Multitexture
 extern	qboolean	mtexenabled;
 extern	qboolean	gl_mtexable;
-extern PFNGLMULTITEXCOORD2FARBPROC  GL_MTexCoord2fFunc;
-extern PFNGLACTIVETEXTUREARBPROC    GL_SelectTextureFunc;
+//extern PFNGLMULTITEXCOORD2FARBPROC  glMultiTexCoord2fARB_fp;
+//extern PFNGLACTIVETEXTUREARBPROC    glActiveTextureARB_fp;
 extern PFNGLCLIENTACTIVETEXTUREARBPROC	GL_ClientActiveTextureFunc;
 extern GLint		gl_max_texture_units; //ericw
 

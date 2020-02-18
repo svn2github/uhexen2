@@ -248,8 +248,8 @@ static int	enable_mouse;
 cvar_t		_enable_mouse = {"_enable_mouse", "0", CVAR_ARCHIVE};
 
 // SDL stuff
-PFNGLMULTITEXCOORD2FARBPROC GL_MTexCoord2fFunc = NULL; //johnfitz
-PFNGLACTIVETEXTUREARBPROC GL_SelectTextureFunc = NULL; //johnfitz
+//PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2fARB_fp = NULL; //johnfitz
+//PFNGLACTIVETEXTUREARBPROC glActiveTextureARB_fp = NULL; //johnfitz
 PFNGLCLIENTACTIVETEXTUREARBPROC GL_ClientActiveTextureFunc = NULL; //ericw
 PFNGLBINDBUFFERARBPROC GL_BindBufferFunc = NULL; //ericw
 PFNGLBUFFERDATAARBPROC GL_BufferDataFunc = NULL; //ericw
@@ -832,6 +832,8 @@ static void CheckMultiTextureExtensions (void)
 		}
 
 		glMultiTexCoord2fARB_fp = (glMultiTexCoord2fARB_f) wglGetProcAddress_fp("glMultiTexCoord2fARB");
+		//glMultiTexCoord2fARB_fp = (PFNGLMULTITEXCOORD2FARBPROC)wglGetProcAddress_fp("glMultiTexCoord2fARB");
+		//glActiveTextureARB_fp = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress_fp("glActiveTextureARB");
 		glActiveTextureARB_fp = (glActiveTextureARB_f) wglGetProcAddress_fp("glActiveTextureARB");
 		if (glMultiTexCoord2fARB_fp == NULL || glActiveTextureARB_fp == NULL)
 		{
@@ -2144,7 +2146,7 @@ static void VID_ChangeVideoMode (int newmode)
 
 	// Unload all textures and reset texture counts
 	//D_ClearOpenGLTextures(NULL);
-	TexMgr_DeleteTextureObjects();
+	//TexMgr_DeleteTextureObjects();
 	memset (lightmap_textures, 0, sizeof(lightmap_textures));
 
 	// reset all opengl function pointers

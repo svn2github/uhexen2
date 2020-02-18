@@ -443,6 +443,20 @@ static byte	*mod_base;
 
 /*
 =================
+Mod_CheckFullbrights -- johnfitz
+=================
+*/
+qboolean Mod_CheckFullbrights(byte *pixels, int count)
+{
+	int i;
+	for (i = 0; i < count; i++)
+		if (*pixels++ > 223)
+			return true;
+	return false;
+}
+
+/*
+=================
 Mod_LoadTextures
 =================
 */
@@ -580,9 +594,9 @@ bsp_tex_internal:
 			}
 			memcpy(tx + 1, mt + 1, pixels);
 
-			//tx->update_warp = false; //johnfitz
-			//tx->warpimage = NULL; //johnfitz
-			//tx->fullbright = NULL; //johnfitz
+			tx->update_warp = false; //johnfitz
+			tx->warpimage = NULL; //johnfitz
+			tx->fullbright = NULL; //johnfitz
 
 #ifdef WAL_TEXTURES
 		}
@@ -679,15 +693,15 @@ bsp_tex_internal:
 				{
 					q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name, tx->name);
 					offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
-					//if (Mod_CheckFullbrights((byte *)(tx + 1), pixels))
-					//{
-					//	tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
-					//		SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_NOBRIGHT | extraflags);
-					//	q_snprintf(texturename, sizeof(texturename), "%s:%s_glow", loadmodel->name, tx->name);
-					//	tx->fullbright = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
-					//		SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_FULLBRIGHT | extraflags);
-					//}
-					//else
+					if (Mod_CheckFullbrights((byte *)(tx + 1), pixels))
+					{
+						tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
+							SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_NOBRIGHT | extraflags);
+						q_snprintf(texturename, sizeof(texturename), "%s:%s_glow", loadmodel->name, tx->name);
+						tx->fullbright = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
+							SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_FULLBRIGHT | extraflags);
+					}
+					else
 					{
 						tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
 							SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | extraflags);
@@ -723,7 +737,7 @@ bsp_tex_internal:
 //
 // sequence the animations
 //
-	for (i = 0; i < m->nummiptex; i++)
+	for (i = 0; i < nummiptex; i++)
 	{
 		tx = loadmodel->textures[i];
 		if (!tx || tx->name[0] != '+')
@@ -756,7 +770,7 @@ bsp_tex_internal:
 		else
 			Sys_Error ("Bad animating texture %s", tx->name);
 
-		for (j = i+1; j < m->nummiptex; j++)
+		for (j = i+1; j < nummiptex; j++)
 		{
 			tx2 = loadmodel->textures[j];
 			if (!tx2 || tx2->name[0] != '+')
@@ -829,7 +843,7 @@ void Mod_ReloadTextures (void)
 	int			j;
 	qmodel_t	*mod;
 	texture_t	*tx;
-
+	/*
 	// Reload world (brush models are submodels of world),
 	// don't touch if not yet loaded
 	mod = cl.worldmodel;
@@ -848,7 +862,7 @@ void Mod_ReloadTextures (void)
 			}
 		}
 	}
-
+	*/
 	// Reload alias models and sprites
 	for (j = 0; j < mod_numknown; j++)
 	{
