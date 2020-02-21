@@ -558,7 +558,7 @@ static void R_BlendLightmaps (qboolean Translucent)
 		// if lightmaps were hosed in a video mode change, make
 		// sure we allocate new slots for lightmaps, otherwise
 		// we'll probably overwrite some other existing textures.
-		glGenTextures_fp(MAX_LIGHTMAPS, lightmap_textures);
+		//glGenTextures_fp(MAX_LIGHTMAPS, lightmap_textures);
 	}
 
 	for (i = 0; i < MAX_LIGHTMAPS; i++)
@@ -624,14 +624,15 @@ static void R_UpdateLightmaps (qboolean Translucent)
 	if (r_fullbright.integer)
 		return;
 
-	glActiveTextureARB_fp (GL_TEXTURE1_ARB);
+	//glActiveTextureARB_fp (GL_TEXTURE1_ARB);
+	GL_EnableMultitexture();
 
 	if (! lightmap_textures[0])
 	{
 		// if lightmaps were hosed in a video mode change, make
 		// sure we allocate new slots for lightmaps, otherwise
 		// we'll probably overwrite some other existing textures.
-		glGenTextures_fp(MAX_LIGHTMAPS, lightmap_textures);
+		//glGenTextures_fp(MAX_LIGHTMAPS, lightmap_textures);
 	}
 
 	for (i = 0; i < MAX_LIGHTMAPS; i++)
@@ -653,7 +654,8 @@ static void R_UpdateLightmaps (qboolean Translucent)
 		}
 	}
 
-	glActiveTextureARB_fp (GL_TEXTURE0_ARB);
+	//glActiveTextureARB_fp (GL_TEXTURE0_ARB);
+	GL_DisableMultitexture();
 }
 
 
@@ -740,14 +742,15 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 		}
 		else
 		{
-			glActiveTextureARB_fp(GL_TEXTURE1_ARB);
+			//glActiveTextureARB_fp(GL_TEXTURE1_ARB);
+			GL_EnableMultitexture();
 
 			if (gl_lightmap_format == GL_LUMINANCE)
 				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 			else
 				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-			glEnable_fp(GL_TEXTURE_2D);
+			//glEnable_fp(GL_TEXTURE_2D);
 
 			GL_Bind (lightmap_textures[fa->lightmaptexturenum]);
 			//glEnable_fp (GL_BLEND);
@@ -757,11 +760,12 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 			else
 				DrawGLPolyMTex (fa->polys);
 
-			glDisable_fp(GL_TEXTURE_2D);
+			//glDisable_fp(GL_TEXTURE_2D);
 			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 			//glDisable_fp (GL_BLEND);
+			GL_DisableMultitexture();
 
-			glActiveTextureARB_fp(GL_TEXTURE0_ARB);
+			//glActiveTextureARB_fp(GL_TEXTURE0_ARB);
 		}
 	}
 	else
@@ -1124,8 +1128,9 @@ static void DrawTextureChains (entity_t *e)
 			{
 				glActiveTextureARB_fp(GL_TEXTURE0_ARB);
 				glEnable_fp(GL_TEXTURE_2D);
-				glActiveTextureARB_fp(GL_TEXTURE1_ARB);
-				glEnable_fp(GL_TEXTURE_2D);
+				//glActiveTextureARB_fp(GL_TEXTURE1_ARB);
+				//glEnable_fp(GL_TEXTURE_2D);
+				GL_EnableMultitexture();
 
 				if (gl_lightmap_format == GL_LUMINANCE)
 					glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
@@ -1137,10 +1142,11 @@ static void DrawTextureChains (entity_t *e)
 				for ( ; s ; s = s->texturechain)
 					R_RenderBrushPolyMTex (e, s, false);
 
-				glDisable_fp(GL_TEXTURE_2D);
+				//glDisable_fp(GL_TEXTURE_2D);
 				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 				glDisable_fp (GL_BLEND);
-				glActiveTextureARB_fp(GL_TEXTURE0_ARB);
+				//glActiveTextureARB_fp(GL_TEXTURE0_ARB);
+				GL_DisableMultitexture();
 			}
 			else
 			{
@@ -1759,8 +1765,9 @@ void R_DrawWorld (void)
 	// disable multitexturing - just in case
 	if (gl_mtexable)
 	{
-		glActiveTextureARB_fp (GL_TEXTURE1_ARB);
-		glDisable_fp(GL_TEXTURE_2D);
+		//glActiveTextureARB_fp (GL_TEXTURE1_ARB);
+		//glDisable_fp(GL_TEXTURE_2D);
+		GL_DisableMultitexture();
 		glActiveTextureARB_fp (GL_TEXTURE0_ARB);
 		glEnable_fp(GL_TEXTURE_2D);
 	}
@@ -1988,10 +1995,10 @@ void GL_BuildLightmaps (void)
 
 	r_framecount = 1;		// no dlightcache
 
-	if (! lightmap_textures[0])
-	{
-		glGenTextures_fp(MAX_LIGHTMAPS, lightmap_textures);
-	}
+	//johnfitz -- null out array (the gltexture objects themselves were already freed by Mod_ClearAll)
+	for (i = 0; i < MAX_LIGHTMAPS; i++)
+		lightmap_textures[i] = NULL;
+	//johnfitz
 
 	for (j = 1; j < MAX_MODELS; j++)
 	{
@@ -2006,20 +2013,22 @@ void GL_BuildLightmaps (void)
 
 		for (i = 0; i < m->numsurfaces; i++)
 		{
-			GL_CreateSurfaceLightmap (m->surfaces + i);
 			if (m->surfaces[i].flags & SURF_DRAWTURB)
 				continue;
 #ifndef QUAKE2
 			if (m->surfaces[i].flags & SURF_DRAWSKY)
 				continue;
 #endif
+			GL_CreateSurfaceLightmap(m->surfaces + i);
 			if (!draw_reinit)
-				BuildSurfaceDisplayList (m->surfaces + i);
+				BuildSurfaceDisplayList(m->surfaces + i);
 		}
 	}
 
+	//if (gl_mtexable)
+	//	glActiveTextureARB_fp (GL_TEXTURE1_ARB);
 	if (gl_mtexable)
-		glActiveTextureARB_fp (GL_TEXTURE1_ARB);
+		GL_EnableMultitexture();
 
 	//
 	// upload all lightmaps that were filled
@@ -2038,6 +2047,9 @@ void GL_BuildLightmaps (void)
 				BLOCK_HEIGHT, 0, gl_lightmap_format, GL_UNSIGNED_BYTE,
 				lightmaps + i*BLOCK_WIDTH*BLOCK_HEIGHT*lightmap_bytes);
 				*/
+		if (!allocated[i][0])
+			break;		// no more used
+		lightmap_modified[i] = false;
 
 		//johnfitz -- use texture manager
 		sprintf(name, "lightmap%03i", i);
@@ -2047,7 +2059,9 @@ void GL_BuildLightmaps (void)
 		//johnfitz
 	}
 
+	//if (gl_mtexable)
+	//	glActiveTextureARB_fp (GL_TEXTURE0_ARB);
 	if (gl_mtexable)
-		glActiveTextureARB_fp (GL_TEXTURE0_ARB);
+		GL_DisableMultitexture();
 }
 

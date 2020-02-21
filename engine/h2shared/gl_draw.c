@@ -515,7 +515,7 @@ void Draw_ReInit (void)
 	//D_ClearOpenGLTextures(NULL);
 	TexMgr_DeleteTextureObjects();
 
-	memset (lightmap_textures, 0, sizeof(lightmap_textures));
+	//memset (lightmap_textures, 0, sizeof(lightmap_textures));
 	// make sure all of alias models are cleared
 	Draw_ClearAllModels ();
 

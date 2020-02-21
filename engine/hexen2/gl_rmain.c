@@ -571,6 +571,7 @@ static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum, 
 	trivertx_t	*verts;
 	int		*order;
 	int		count;
+	float	u, v;
 	float		r, g, b;
 	byte		ColorShade;
 
@@ -608,7 +609,17 @@ static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum, 
 		do
 		{
 			// texture coordinates come from the draw list
-			glTexCoord2f_fp (((float *)order)[0], ((float *)order)[1]);
+			//glTexCoord2f_fp (((float *)order)[0], ((float *)order)[1]);
+			u = ((float *)order)[0];
+			v = ((float *)order)[1];
+			if (mtexenabled)
+			{
+				glMultiTexCoord2fARB_fp(GL_TEXTURE0_ARB, u, v);
+				glMultiTexCoord2fARB_fp(GL_TEXTURE1_ARB, u, v);
+			}
+			else
+				glTexCoord2f_fp(u, v);
+
 			order += 2;
 
 			// normals and vertexes come from the frame list
