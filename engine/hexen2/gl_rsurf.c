@@ -688,9 +688,10 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	if ((e->drawflags & MLS_ABSLIGHT) == MLS_ABSLIGHT)
 	{
 		// ent->abslight   0 - 255
-		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glBlendFunc_fp(GL_ONE, GL_ONE);
-		intensity = (float)e->abslight / 255.0f;
+		//shan revisit abslight in fog
+		//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		//glBlendFunc_fp(GL_ONE, GL_ONE);
+		//intensity = (float)e->abslight / 255.0f;
 	}
 	else
 	{
@@ -1393,75 +1394,96 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 		}
 		else
 		{
-			//glDepthMask_fp(0);
-			//one pass with no fog
-			Fog_DisableGFog();
-			for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
+			if (gl_mtexable)
 			{
-				// find which side of the node we are on
-				pplane = psurf->plane;
-
-				dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
-
-				// draw the polygon
-				if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
-					(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+				//Fog_DisableGFog();
+				for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
 				{
-					R_RenderBrushPoly(e, psurf, false, false);
-				}
-			}
-			Fog_EnableGFog();
+					// find which side of the node we are on
+					pplane = psurf->plane;
 
-			//one modulate pass with black fog and shading?
-			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-			Fog_StartAdditive();
-			psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
-			for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
+					dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
+
+					// draw the polygon
+					if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
+						(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+					{
+						R_RenderBrushPoly(e, psurf, false, false);
+					}
+				}
+				//Fog_EnableGFog();
+			}
+			else
 			{
-				// find which side of the node we are on
-				pplane = psurf->plane;
-
-				dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
-
-				// draw the polygon
-				if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
-					(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+				//glDepthMask_fp(0);
+				//one pass with no fog
+				Fog_DisableGFog();
+				for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
 				{
-					R_RenderBrushPoly(e, psurf, false, unlit);
+					// find which side of the node we are on
+					pplane = psurf->plane;
+
+					dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
+
+					// draw the polygon
+					if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
+						(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+					{
+						R_RenderBrushPoly(e, psurf, false, false);
+					}
 				}
-			}
-			Fog_StopAdditive();
-			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+				Fog_EnableGFog();
 
-
-			//one additive pass with black geometry and normal fog
-			glEnable_fp(GL_BLEND);
-			glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
-			glDepthMask_fp(GL_FALSE);
-			glDisable_fp(GL_TEXTURE_2D);
-			glColor3f_fp(0, 0, 0);
-			psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
-			for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
-			{
-				// find which side of the node we are on
-				pplane = psurf->plane;
-
-				dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
-
-				// draw the polygon
-				if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
-					(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+				//one modulate pass with black fog and shading?
+				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+				Fog_StartAdditive();
+				psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
+				for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
 				{
-					R_RenderBrushPoly(e, psurf, false, true);
-				}
-			}
-			glColor3f_fp(1, 1, 1);
-			glEnable_fp(GL_TEXTURE_2D);
-			glDepthMask_fp(GL_TRUE);
-			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glDisable_fp(GL_BLEND);
-			//glDepthMask_fp(1);
+					// find which side of the node we are on
+					pplane = psurf->plane;
 
+					dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
+
+					// draw the polygon
+					if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
+						(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+					{
+						R_RenderBrushPoly(e, psurf, false, unlit);
+					}
+				}
+				Fog_StopAdditive();
+				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+
+				//one additive pass with black geometry and normal fog
+				glEnable_fp(GL_BLEND);
+				glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+				glDepthMask_fp(GL_FALSE);
+				glDisable_fp(GL_TEXTURE_2D);
+				glColor3f_fp(0, 0, 0);
+				psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
+				for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
+				{
+					// find which side of the node we are on
+					pplane = psurf->plane;
+
+					dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
+
+					// draw the polygon
+					if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
+						(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+					{
+						R_RenderBrushPoly(e, psurf, false, true);
+					}
+				}
+				glColor3f_fp(1, 1, 1);
+				glEnable_fp(GL_TEXTURE_2D);
+				glDepthMask_fp(GL_TRUE);
+				glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glDisable_fp(GL_BLEND);
+				//glDepthMask_fp(1);
+			}
 		}
 	}
 	

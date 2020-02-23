@@ -612,7 +612,7 @@ static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum, 
 			//glTexCoord2f_fp (((float *)order)[0], ((float *)order)[1]);
 			u = ((float *)order)[0];
 			v = ((float *)order)[1];
-			if (mtexenabled)
+			if (gl_mtexable)
 			{
 				glMultiTexCoord2fARB_fp(GL_TEXTURE0_ARB, u, v);
 				glMultiTexCoord2fARB_fp(GL_TEXTURE1_ARB, u, v);
@@ -1079,13 +1079,16 @@ static void R_DrawAliasModel (entity_t *e)
 	Fog_EnableGFog();
 	
 	//one modulate pass with black fog
+	//GL_EnableMultitexture();
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	Fog_StartAdditive();
 	R_SetupAliasFrame(e, paliashdr, false);
 	Fog_StopAdditive();
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	
+	//GL_DisableMultitexture();
+
 	//one additive pass with black geometry and normal fog
+	//GL_EnableMultitexture();
 	glEnable_fp(GL_BLEND);
 	glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
 	glDepthMask_fp(GL_FALSE);
@@ -1095,7 +1098,8 @@ static void R_DrawAliasModel (entity_t *e)
 	glDepthMask_fp(GL_TRUE);
 	glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable_fp(GL_BLEND);
-	
+	//GL_DisableMultitexture();
+
 // restore params
 	if ((e->drawflags & DRF_TRANSLUCENT) ||
 	    (e->model->flags & EF_SPECIAL_TRANS) ||
