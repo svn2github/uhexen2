@@ -424,6 +424,7 @@ void R_RenderDynamicLightmaps(msurface_t *fa)
 		if (r_dynamic.value)
 		{
 			lightmap_modified[fa->lightmaptexturenum] = true;
+			theRect = &lightmap_rectchange[fa->lightmaptexturenum];
 			if (fa->light_t < theRect->t) {
 				if (theRect->h)
 					theRect->h += theRect->t - fa->light_t;
