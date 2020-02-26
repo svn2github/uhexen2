@@ -1074,15 +1074,15 @@ static void R_DrawAliasModel (entity_t *e)
 	//R_SetupAliasFrame(e, paliashdr, false);
 	
 	//one pass with no fog
-	Fog_DisableGFog();
+	//Fog_DisableGFog();
 	R_SetupAliasFrame(e, paliashdr, false);
-	Fog_EnableGFog();
+	//Fog_EnableGFog();
 	
 	//one modulate pass with black fog
 	//GL_EnableMultitexture();
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	Fog_StartAdditive();
-	R_SetupAliasFrame(e, paliashdr, false);
+	//R_SetupAliasFrame(e, paliashdr, false);
 	Fog_StopAdditive();
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	//GL_DisableMultitexture();
@@ -1093,7 +1093,7 @@ static void R_DrawAliasModel (entity_t *e)
 	glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
 	glDepthMask_fp(GL_FALSE);
 	glDisable_fp(GL_TEXTURE_2D);
-	R_SetupAliasFrame(e, paliashdr, true);
+	//R_SetupAliasFrame(e, paliashdr, true);
 	glEnable_fp(GL_TEXTURE_2D);
 	glDepthMask_fp(GL_TRUE);
 	glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

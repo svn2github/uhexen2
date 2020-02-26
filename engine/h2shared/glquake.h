@@ -355,6 +355,7 @@ void EmitWaterPolys (msurface_t *fa);
 void EmitBothSkyLayers (msurface_t *fa);
 void R_DrawSkyChain (msurface_t *s);
 void R_DrawWaterSurfaces (void);
+GLfloat Fog_GetDensity(void);
 
 void R_RenderDlights (void);
 void R_MarkLights (dlight_t *light, int bit, mnode_t *node);
