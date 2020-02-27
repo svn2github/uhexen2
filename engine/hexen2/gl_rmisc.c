@@ -336,8 +336,16 @@ void R_TranslatePlayerSkin (int playernum)
 
 	for (i = 0; i < 256; i++)
 		translate32[i] = d_8to24table[translate[i]];
-	scaled_width  = gl_max_size.integer < 512 ? gl_max_size.integer : 512;
-	scaled_height = gl_max_size.integer < 256 ? gl_max_size.integer : 256;
+	if (gl_max_size.integer > 0)
+	{
+		scaled_width = gl_max_size.integer < 512 ? gl_max_size.integer : 512;
+		scaled_height = gl_max_size.integer < 256 ? gl_max_size.integer : 256;
+	}
+	else
+	{
+		scaled_width = paliashdr->skinwidth;
+		scaled_height = paliashdr->skinheight;
+	}
 
 	// allow users to crunch sizes down even more if they want
 	scaled_width >>= gl_playermip.integer;

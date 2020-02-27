@@ -1076,8 +1076,8 @@ static void GL_Init (void)
 
 	//gl_max_size.integer = 256;//shan?
 	glGetIntegerv_fp(GL_MAX_TEXTURE_SIZE, &gl_max_size.integer);
-	if (gl_max_size.integer < 256)	// Refuse to work when less than 256
-		Sys_Error ("hardware capable of min. 256k opengl texture size needed");
+	//if (gl_max_size.integer < 256)	// Refuse to work when less than 256
+	//	Sys_Error ("hardware capable of min. 256k opengl texture size needed");
 	Con_SafePrintf("OpenGL max.texture size: %i\n", gl_max_size);
 
 	is_3dfx = false;

@@ -34,7 +34,7 @@ static cvar_t	gl_picmip = { "gl_picmip", "0", CVAR_NONE };
 static GLint	gl_hardware_maxsize;
 static cvar_t	gl_texture_NPOT;
 //extern cvar_t gl_max_size;
-cvar_t	gl_max_size = { "gl_max_size", "256", CVAR_ARCHIVE };
+cvar_t	gl_max_size = { "gl_max_size", "0", CVAR_ARCHIVE };
 
 #define	MAX_GLTEXTURES	2048
 static gltexture_t	*active_gltextures, *free_gltextures;
