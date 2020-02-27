@@ -2285,7 +2285,7 @@ static void M_OpenGL_Draw (void)
 	M_DrawCheckbox (232, 90 + 8*OGL_COLOREDEXTRA, gl_extra_dynamic_lights.integer);
 
 	M_Print (32 + (5 * 8), 90 + 8*OGL_TEXFILTER,	"Texture filtering");
-	M_Print (232, 90 + 8*OGL_TEXFILTER, glmodes[gl_filter_idx].name);
+	M_Print (232, 90 + 8*OGL_TEXFILTER, glmodes[glmode_idx].name);
 
 	M_Print (32 + (5 * 8), 90 + 8*OGL_ANISOTROPY,	"Anisotropy level:");
 	M_Print (232, 90 + 8*OGL_ANISOTROPY, (gl_max_anisotropy < 2) ? "N/A" :
@@ -2421,7 +2421,7 @@ static void M_OpenGL_Key (int k)
 			break;
 
 		case OGL_TEXFILTER:	// texture filter
-			tex_mode = gl_filter_idx;
+			tex_mode = glmode_idx;
 			switch (k)
 			{
 			case K_LEFTARROW:
