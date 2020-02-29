@@ -897,7 +897,7 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 		glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
 		glDepthMask_fp(1);
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		//glColor4f_fp(128.0f, 0.0f, 240.0f, 0.7f);
+		//glColor4f_fp(128.0f, 0.0f, 240.0f, 0.7f); //shan test color tint?
 	}
 
 
@@ -1254,6 +1254,61 @@ void R_DrawWaterSurfaces (void)
 DrawTextureChains_TextureOnly -- Shanjaq
 ================
 */
+static void DrawTextureChains_NoTexture(entity_t *e)
+{
+	int		i;
+	msurface_t	*s;
+	texture_t	*t;
+
+	for (i = 0; i < cl.worldmodel->numtextures; i++)
+	{
+		t = cl.worldmodel->textures[i];
+
+		if (!t || !t->texturechains[chain_world] || t->texturechains[chain_world]->flags & (SURF_DRAWTURB | SURF_DRAWSKY))
+			continue;
+
+		s = t->texturechains[chain_world];
+
+		if (!s)
+			continue;
+
+		if (i == mirrortexturenum && r_mirroralpha.value != 1.0)
+		{
+			R_MirrorChain(s);
+			continue;
+		}
+		else
+		{
+			qboolean drawFence = false;
+
+			if (s->flags & SURF_DRAWFENCE)
+			{
+				drawFence = true;
+				glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
+			}
+
+			//GL_Bind(R_TextureAnimation(e, s->texinfo->texture)->gltexture);
+			glDisable_fp(GL_TEXTURE_2D);
+
+			for (; s; s = s->texturechain)
+				DrawGLPoly(s->polys);
+
+			glEnable_fp(GL_TEXTURE_2D);
+
+			if (drawFence)
+				glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
+
+		}
+
+		t->texturechains[chain_world] = NULL; // shan what is this for?
+	}
+}
+
+/*
+================
+DrawTextureChains_TextureOnly -- Shanjaq
+================
+*/
 static void DrawTextureChains_TextureOnly(entity_t *e)
 {
 	int		i;
@@ -1297,7 +1352,8 @@ static void DrawTextureChains_TextureOnly(entity_t *e)
 
 		}
 
-		t->texturechains[chain_world] = NULL; // shan what is this for?
+		if (Fog_GetDensity() <= 0.00)
+			t->texturechains[chain_world] = NULL; // shan what is this for?
 	}
 }
 
@@ -1325,12 +1381,13 @@ static void DrawTextureChains_New(entity_t *e)
 	Fog_StartAdditive();
 	R_DrawLightmapChains();
 	Fog_StopAdditive();
+
 	if (Fog_GetDensity() > 0.00)
 	{
 		glBlendFunc_fp(GL_ONE, GL_ONE); //add
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glColor3f_fp(0, 0, 0);
-		DrawTextureChains_TextureOnly(e);
+		DrawTextureChains_NoTexture(e);
 		glColor3f_fp(1, 1, 1);
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	}

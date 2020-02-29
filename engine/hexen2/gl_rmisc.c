@@ -343,8 +343,8 @@ void R_TranslatePlayerSkin (int playernum)
 	}
 	else
 	{
-		scaled_width = paliashdr->skinwidth;
-		scaled_height = paliashdr->skinheight;
+		scaled_width = 512;
+		scaled_height = 256;
 	}
 
 	// allow users to crunch sizes down even more if they want
