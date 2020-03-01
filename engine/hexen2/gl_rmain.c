@@ -627,9 +627,16 @@ static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum, 
 			{
 				l = shadedots[verts->lightnormalindex];
 				if (unlit)
+				{
 					glColor4f_fp(0, 0, 0, model_constant_alpha);
+				}
 				else
-					glColor4f_fp (l * lightcolor[0], l * lightcolor[1], l * lightcolor[2], model_constant_alpha);
+				{
+					if (ColorShade)
+						glColor4f_fp(r*l, g*l, b*l, model_constant_alpha);
+					else
+						glColor4f_fp(l * lightcolor[0], l * lightcolor[1], l * lightcolor[2], model_constant_alpha);
+				}
 			}
 			else
 			{
