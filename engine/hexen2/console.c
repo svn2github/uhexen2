@@ -96,6 +96,62 @@ static void Con_Clear_f (void)
 		con->text[i] = ' ';
 }
 
+/*
+================
+Con_Dump_f -- johnfitz -- adapted from quake2 source
+================
+*/
+static void Con_Dump_f(void)
+{
+	int		l, x, j;
+	const char	*line;
+	FILE	*f;
+	char	buffer[1024];
+	char	name[MAX_OSPATH];
+
+	q_snprintf(name, sizeof(name), "%s/condump.txt", FS_GetGamedir());
+	FS_CreatePath(name);
+	f = fopen(name, "w");
+	if (!f)
+	{
+		Con_Printf("ERROR: couldn't open file %s.\n", name);
+		return;
+	}
+
+	// skip initial empty lines
+	for (l = con->current - con_totallines + 1; l <= con->current; l++)
+	{
+		line = con->text + (l % con_totallines)*con_linewidth;
+		for (x = 0, j = 0; j < con_linewidth; x += sizeof(short), j++)
+			if (line[x] != ' ')
+				break;
+		if (j != con_linewidth)
+			break;
+	}
+
+	// write the remaining lines
+	buffer[con_linewidth] = 0;
+	for (; l <= con->current; l++)
+	{
+		line = con->text + (l%con_totallines)*con_linewidth;
+		for (x = 0, j = 0; j < con_linewidth; x += sizeof(short), j++)
+			if (line[x])
+				buffer[j] = line[x] & 0x7f;
+			else
+				break;
+
+		for (x = con_linewidth - 1; x >= 0; x--)
+			if (buffer[x] == ' ')
+				buffer[x] = 0;
+			else
+				break;
+
+		fprintf(f, "%s\n", buffer);
+	}
+
+	fclose(f);
+	Con_Printf("Dumped console text to %s.\n", name);
+}
 
 /*
 ================
@@ -217,6 +273,7 @@ void Con_Init (void)
 	Cmd_AddCommand ("messagemode", Con_MessageMode_f);
 	Cmd_AddCommand ("messagemode2", Con_MessageMode2_f);
 	Cmd_AddCommand ("clear", Con_Clear_f);
+	Cmd_AddCommand("condump", Con_Dump_f); //johnfitz
 
 	con_initialized = true;
 }
