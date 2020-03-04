@@ -141,7 +141,7 @@ void R_InitParticleTexture (void)
 	}
 
 	//particletexture = GL_LoadTexture("", (byte *)data, TEXSIZE, TEXSIZE, TEX_ALPHA | TEX_RGBA | TEX_LINEAR);
-	particletexture = TexMgr_LoadImage(NULL, "particle", TEXSIZE, TEXSIZE, SRC_RGBA, (byte *)data, "", 0, TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR);
+	particletexture = TexMgr_LoadImage(NULL, "particle", TEXSIZE, TEXSIZE, SRC_RGBA, (byte *)data, "", 0, TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_OVERWRITE);
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 
@@ -384,9 +384,11 @@ void R_TranslatePlayerSkin (int playernum)
 
 	q_snprintf(name, sizeof(name), "player_%i", playernum);
 	playertextures[playernum] = TexMgr_LoadImage(NULL, name, scaled_width, scaled_height,
-		SRC_RGBA, (byte *)pixels, paliashdr->gltextures[0][0]->source_file, paliashdr->gltextures[0][0]->source_offset, TEXPREF_RGBA | TEXPREF_LINEAR);
+		SRC_RGBA, (byte *)pixels, paliashdr->gltextures[0][0]->source_file, paliashdr->gltextures[0][0]->source_offset, TEXPREF_RGBA | TEXPREF_LINEAR | TEXPREF_OVERWRITE);
 	//SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
 
+//now recolor it
+	//TexMgr_ReloadImage(playertextures[playernum], top, bottom);
 }
 
 /*

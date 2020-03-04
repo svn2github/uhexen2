@@ -422,7 +422,6 @@ typedef struct
 	int	owner;
 	vec3_t	movedir;
 	float	message;
-	string_t	message2;
 	float	soundtype;
 	string_t	noise;
 	string_t	noise1;

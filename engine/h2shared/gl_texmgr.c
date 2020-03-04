@@ -1318,13 +1318,16 @@ gltexture_t *TexMgr_LoadImage(qmodel_t *owner, char *name, int width, int height
 	default: /* not reachable but avoids compiler warnings */
 		crc = 0;
 	}
-	if ((flags & TEXPREF_OVERWRITE) && (glt = TexMgr_FindTexture(owner, name)))
+	if (glt = TexMgr_FindTexture(owner, name))
 	{
-		if (glt->source_crc == crc)
+		if ((glt->source_crc == crc) && !(flags & TEXPREF_OVERWRITE))
 			return glt;
 	}
 	else
-		glt = TexMgr_NewTexture();
+		if (glt)
+			return glt;
+		else
+			glt = TexMgr_NewTexture();
 
 	// copy data
 	glt->owner = owner;

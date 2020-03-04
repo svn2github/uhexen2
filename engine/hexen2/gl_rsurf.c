@@ -369,8 +369,14 @@ static void R_UploadLightmap(int lmap)
 	lightmap_modified[lmap] = false;
 
 	theRect = &lightmap_rectchange[lmap];
+	
 	glTexSubImage2D_fp(GL_TEXTURE_2D, 0, 0, theRect->t, BLOCK_WIDTH, theRect->h, gl_lightmap_format,
 		GL_UNSIGNED_BYTE, lightmaps + (lmap* BLOCK_HEIGHT + theRect->t) *BLOCK_WIDTH*lightmap_bytes);
+	/*
+	glTexImage2D_fp(GL_TEXTURE_2D, 0, lightmap_bytes, BLOCK_WIDTH,
+		BLOCK_HEIGHT, 0, gl_lightmap_format, GL_UNSIGNED_BYTE,
+		lightmaps + lmap * BLOCK_WIDTH*BLOCK_HEIGHT*lightmap_bytes);
+		*/
 	theRect->l = BLOCK_WIDTH;
 	theRect->t = BLOCK_HEIGHT;
 	theRect->h = 0;
@@ -381,14 +387,46 @@ void R_UploadLightmaps(void)
 {
 	int lmap;
 
+	if (gl_mtexable)
+		GL_EnableMultitexture();
+
 	for (lmap = 0; lmap < MAX_LIGHTMAPS; lmap++)
 	{
-		if (!lightmap_modified[lmap])
-			continue;
+		//if (!lightmap_modified[lmap])
+		//	continue;
+
+		//GL_Bind(lightmap_textures[lmap]);
+		if (!lightmap_textures[0])
+		{
+			// if lightmaps were hosed in a video mode change, make
+			// sure we allocate new slots for lightmaps, otherwise
+			// we'll probably overwrite some other existing textures.
+			//glGenTextures_fp(MAX_LIGHTMAPS, lightmap_textures);
+		}
+
+		//p = lightmap_polys[lmap];
+		if (!lightmap_polys[lmap])
+			continue;	// skip if no lightmap
 
 		GL_Bind(lightmap_textures[lmap]);
-		R_UploadLightmap(lmap);
+
+		if (lightmap_modified[lmap])
+		{
+			// if current lightmap was changed reload it
+			// and mark as not changed.
+			//lightmap_modified[lmap] = false;
+			R_UploadLightmap(lmap);
+
+			//glTexImage2D_fp(GL_TEXTURE_2D, 0, lightmap_bytes, BLOCK_WIDTH,
+			//	BLOCK_HEIGHT, 0, gl_lightmap_format, GL_UNSIGNED_BYTE,
+			//	lightmaps + lmap * BLOCK_WIDTH*BLOCK_HEIGHT*lightmap_bytes);
+		}
+
+		//R_UploadLightmap(lmap);
 	}
+
+	if (gl_mtexable)
+		GL_DisableMultitexture();
 }
 
 /*
@@ -421,7 +459,7 @@ void R_RenderDynamicLightmaps(msurface_t *fa)
 		|| fa->cached_dlight)			// dynamic previously
 	{
 	dynamic:
-		if (r_dynamic.value)
+		if (r_dynamic.integer)
 		{
 			lightmap_modified[fa->lightmaptexturenum] = true;
 			theRect = &lightmap_rectchange[fa->lightmaptexturenum];
@@ -1306,6 +1344,76 @@ static void DrawTextureChains_NoTexture(entity_t *e)
 
 /*
 ================
+DrawTextureChains_Multitexture -- Shanjaq
+================
+*/
+static void DrawTextureChains_Multitexture(entity_t *e)
+{
+	int		i;
+	msurface_t	*s;
+	texture_t	*t;
+
+	for (i = 0; i < cl.worldmodel->numtextures; i++)
+	{
+		t = cl.worldmodel->textures[i];
+
+		if (!t || !t->texturechains[chain_world] || t->texturechains[chain_world]->flags & (SURF_DRAWTURB | SURF_DRAWSKY))
+			continue;
+
+		s = t->texturechains[chain_world];
+
+		if (!s)
+			continue;
+
+		if (i == mirrortexturenum && r_mirroralpha.value != 1.0)
+		{
+			R_MirrorChain(s);
+			continue;
+		}
+		else
+		{
+			qboolean drawFence = false;
+
+			if (s->flags & SURF_DRAWFENCE)
+			{
+				drawFence = true;
+				glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
+			}
+
+			glActiveTextureARB_fp(GL_TEXTURE0_ARB);
+			glEnable_fp(GL_TEXTURE_2D);
+			//glActiveTextureARB_fp(GL_TEXTURE1_ARB);
+			//glEnable_fp(GL_TEXTURE_2D);
+			GL_EnableMultitexture();
+
+			if (gl_lightmap_format == GL_LUMINANCE)
+				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+			else
+				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+			glEnable_fp(GL_BLEND);
+
+			for (; s; s = s->texturechain)
+				R_RenderBrushPolyMTex(e, s, false);
+
+			//glDisable_fp(GL_TEXTURE_2D);
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			glDisable_fp(GL_BLEND);
+			//glActiveTextureARB_fp(GL_TEXTURE0_ARB);
+
+			GL_DisableMultitexture(); // selects TEXTURE0
+
+			if (drawFence)
+				glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
+		}
+
+		t->texturechains[chain_world] = NULL; // shan what is this for?
+	}
+}
+
+
+/*
+================
 DrawTextureChains_TextureOnly -- Shanjaq
 ================
 */
@@ -1364,37 +1472,59 @@ DrawTextureChains
 */
 static void DrawTextureChains_New(entity_t *e)
 {
-	//case 6: texture in one pass, lightmap in a second pass, fog in third pass
-
-	//to make fog work with multipass lightmapping, need to do one pass
-	//with no fog, one modulate pass with black fog, and one additive
-	//pass with black geometry and normal fog
 	R_BuildLightmapChains(cl.worldmodel, chain_world);
 	R_UploadLightmaps();
 
-	Fog_DisableGFog();
-	DrawTextureChains_TextureOnly(e);
-	Fog_EnableGFog();
-	glDepthMask_fp(GL_FALSE);
-	glEnable_fp(GL_BLEND);
-	glBlendFunc_fp(GL_ZERO, GL_SRC_COLOR); //modulate
-	Fog_StartAdditive();
-	R_DrawLightmapChains();
-	Fog_StopAdditive();
-
-	if (Fog_GetDensity() > 0.00)
+	if (gl_mtexable) //case 4: texture and lightmap in one pass, regular modulation
 	{
-		glBlendFunc_fp(GL_ONE, GL_ONE); //add
+		GL_EnableMultitexture();
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glColor3f_fp(0, 0, 0);
-		DrawTextureChains_NoTexture(e);
-		glColor3f_fp(1, 1, 1);
+		GL_DisableMultitexture();
+		DrawTextureChains_Multitexture(e);
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	}
-	glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable_fp(GL_BLEND);
-	glDepthMask_fp(GL_TRUE);
+	else
+	{
+		//case 6: texture in one pass, lightmap in a second pass, fog in third pass
 
+		//to make fog work with multipass lightmapping, need to do one pass
+		//with no fog, one modulate pass with black fog, and one additive
+		//pass with black geometry and normal fog
+		Fog_DisableGFog();
+		DrawTextureChains_TextureOnly(e);
+		Fog_EnableGFog();
+		glDepthMask_fp(GL_FALSE);
+		glEnable_fp(GL_BLEND);
+		glBlendFunc_fp(GL_ZERO, GL_SRC_COLOR); //modulate
+
+		Fog_StartAdditive();
+
+		if (gl_lightmap_format == GL_LUMINANCE)
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+		else
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+		glEnable_fp(GL_BLEND);
+
+		R_DrawLightmapChains();
+
+		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		//glDisable_fp(GL_BLEND);
+		Fog_StopAdditive();
+
+		if (Fog_GetDensity() > 0.00)
+		{
+			glBlendFunc_fp(GL_ONE, GL_ONE); //add
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glColor3f_fp(0, 0, 0);
+			DrawTextureChains_NoTexture(e);
+			glColor3f_fp(1, 1, 1);
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		}
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable_fp(GL_BLEND);
+		glDepthMask_fp(GL_TRUE);
+	}
 }
 
 /*
@@ -2092,8 +2222,8 @@ void R_DrawWorld (void)
 
 	currenttexture[0] = GL_UNUSED_TEXTURE;
 
-	glColor4f_fp (1.0f,1.0f,1.0f,1.0f);
-	memset (lightmap_polys, 0, sizeof(lightmap_polys));
+	//glColor4f_fp (1.0f,1.0f,1.0f,1.0f);
+	//memset (lightmap_polys, 0, sizeof(lightmap_polys));
 #ifdef QUAKE2
 	R_ClearSkyBox ();
 #endif
@@ -2102,7 +2232,7 @@ void R_DrawWorld (void)
 	DrawTextureChains_New(&r_worldentity);
 
 	// disable multitexturing - just in case
-	if (gl_mtexable)
+/*	if (gl_mtexable)
 	{
 		//glActiveTextureARB_fp (GL_TEXTURE1_ARB);
 		//glDisable_fp(GL_TEXTURE_2D);
@@ -2110,17 +2240,17 @@ void R_DrawWorld (void)
 		glActiveTextureARB_fp (GL_TEXTURE0_ARB);
 		glEnable_fp(GL_TEXTURE_2D);
 	}
-
-	glDepthFunc_fp(GL_EQUAL);
-	glDepthMask_fp(0);
+*/
+	//glDepthFunc_fp(GL_EQUAL);
+	//glDepthMask_fp(0);
 
 	//if (!gl_mtexable)
 	//	R_BlendLightmaps(false);
 	//else
 	//	R_UpdateLightmaps(false);
 
-	glDepthMask_fp(1);
-	glDepthFunc_fp(GL_LEQUAL);
+	//glDepthMask_fp(1);
+	//glDepthFunc_fp(GL_LEQUAL);
 
 #ifdef QUAKE2
 	R_DrawSkyBox ();
@@ -2339,6 +2469,18 @@ void GL_BuildLightmaps (void)
 		lightmap_textures[i] = NULL;
 	//johnfitz
 
+	switch (gl_lightmap_format)
+	{
+	case GL_LUMINANCE:
+		lightmap_bytes = 1;
+		break;
+	case GL_RGBA:
+		lightmap_bytes = 4;
+		break;
+	default:
+		Sys_Error("GL_BuildLightmaps: bad lightmap format");
+	}
+
 	for (j = 1; j < MAX_MODELS; j++)
 	{
 		m = cl.model_precache[j];
@@ -2366,18 +2508,18 @@ void GL_BuildLightmaps (void)
 
 	//if (gl_mtexable)
 	//	glActiveTextureARB_fp (GL_TEXTURE1_ARB);
-	if (gl_mtexable)
-		GL_EnableMultitexture();
+	//if (gl_mtexable)
+	//	GL_EnableMultitexture();
 
 	//
 	// upload all lightmaps that were filled
 	//
 	for (i = 0; i < MAX_LIGHTMAPS; i++)
 	{
-		if (!allocated[i][0])
+		/*if (!allocated[i][0])
 			break;		// no more used
 
-		/*
+		
 		lightmap_modified[i] = false;
 		GL_Bind(lightmap_textures[i]);
 		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -2386,9 +2528,14 @@ void GL_BuildLightmaps (void)
 				BLOCK_HEIGHT, 0, gl_lightmap_format, GL_UNSIGNED_BYTE,
 				lightmaps + i*BLOCK_WIDTH*BLOCK_HEIGHT*lightmap_bytes);
 				*/
+
 		if (!allocated[i][0])
 			break;		// no more used
 		lightmap_modified[i] = false;
+		lightmap_rectchange[i].l = BLOCK_WIDTH;
+		lightmap_rectchange[i].t = BLOCK_HEIGHT;
+		lightmap_rectchange[i].w = 0;
+		lightmap_rectchange[i].h = 0;
 
 		//johnfitz -- use texture manager
 		sprintf(name, "lightmap%03i", i);
@@ -2400,7 +2547,7 @@ void GL_BuildLightmaps (void)
 
 	//if (gl_mtexable)
 	//	glActiveTextureARB_fp (GL_TEXTURE0_ARB);
-	if (gl_mtexable)
-		GL_DisableMultitexture();
+	//if (gl_mtexable)
+	//	GL_DisableMultitexture();
 }
 

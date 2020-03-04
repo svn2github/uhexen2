@@ -2146,7 +2146,7 @@ static void VID_ChangeVideoMode (int newmode)
 
 	// Unload all textures and reset texture counts
 	//D_ClearOpenGLTextures(NULL);
-	//TexMgr_DeleteTextureObjects();
+	TexMgr_DeleteTextureObjects();
 	//memset (lightmap_textures, 0, sizeof(lightmap_textures));
 
 	// reset all opengl function pointers
@@ -2216,7 +2216,7 @@ static void VID_ChangeVideoMode (int newmode)
 	TexMgr_ReloadImages();
 
 	// Reload pre-map pics, fonts, console, etc
-	// TexMgr_Init(); //johnfitz
+	//TexMgr_Init(); //johnfitz
 	Draw_Init();
 	SCR_Init();
 	// R_Init() stuff:
@@ -2234,6 +2234,7 @@ static void VID_ChangeVideoMode (int newmode)
 
 	// Reload model textures and player skins
 	Mod_ReloadTextures();
+	Fog_SetupState();
 	// rebuild the lightmaps
 	GL_BuildLightmaps();
 	// finished reloading all images
@@ -2252,8 +2253,6 @@ static void VID_Restart_f (void)
 		Cvar_SetValueQuick (&vid_mode, vid_modenum);
 		return;
 	}
-
-	TexMgr_DeleteTextureObjects();
 
 	Con_Printf ("Re-initializing video:\n");
 	VID_ChangeVideoMode (vid_mode.integer);

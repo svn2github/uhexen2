@@ -173,7 +173,7 @@ qpic_t *Draw_PicFromWad(const char *name)
 	offset = (src_offset_t)p - (src_offset_t)wad_base + sizeof(int) * 2; //johnfitz
 
 	gl.gltexture = TexMgr_LoadImage(NULL, texturename, p->width, p->height, SRC_INDEXED, p->data, WADFILENAME,
-		offset, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+		offset, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE); //johnfitz -- TexMgr
 	//gl.sl = 0;
 	//gl.sh = 1;
 	//gl.tl = 0;
@@ -239,7 +239,7 @@ qpic_t	*Draw_CachePic (const char *path)
 	pic->pic.height = dat->height;
 
 	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
-		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE); //johnfitz -- TexMgr
 
 	//gl.sl = 0;
 	//gl.sh = 1;
@@ -296,7 +296,7 @@ qpic_t	*Draw_CacheLoadingPic (void)
 	pic->pic.height = dat->height;
 
 	gl.gltexture = TexMgr_LoadImage(NULL, ls_path, dat->width, dat->height, SRC_INDEXED, dat->data, ls_path,
-		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE); //johnfitz -- TexMgr
 	//gl.sl = 0;
 	//gl.sh = 1;
 	//gl.tl = 0;
@@ -318,7 +318,7 @@ Draw_MakePic -- johnfitz -- generate pics from internal data
 */
 qpic_t *Draw_MakePic(const char *name, int width, int height, byte *data)
 {
-	int flags = TEXPREF_NEAREST | TEXPREF_ALPHA | TEXPREF_PERSIST | TEXPREF_NOPICMIP | TEXPREF_PAD;
+	int flags = TEXPREF_NEAREST | TEXPREF_ALPHA | TEXPREF_PERSIST | TEXPREF_NOPICMIP | TEXPREF_PAD | TEXPREF_OVERWRITE;
 	qpic_t		*pic;
 	glpic_t		gl;
 
@@ -568,7 +568,7 @@ void Draw_Init (void)
 	}
 	//char_texture = GL_LoadTexture ("charset", chars, 256, 128, TEX_ALPHA|TEX_NEAREST);
 	char_texture = TexMgr_LoadImage(NULL, "gfx/menu/conchars.lmp", 256, 128, SRC_INDEXED, chars,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS | TEXPREF_OVERWRITE);
 
 	// load the small characters for status bar
 	chars = (byte *) W_GetLumpName("tinyfont");
@@ -579,7 +579,7 @@ void Draw_Init (void)
 	}
 	//char_smalltexture = GL_LoadTexture ("smallcharset", chars, 128, 32, TEX_ALPHA|TEX_NEAREST);
 	char_smalltexture = TexMgr_LoadImage(NULL, "gfx/menu/conchars.lmp", 128, 32, SRC_INDEXED, chars,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS | TEXPREF_OVERWRITE);
 
 	// load the big menu font
 	// Note: old version of demo has bigfont.lmp, not bigfont2.lmp
@@ -594,7 +594,7 @@ void Draw_Init (void)
 	}
 	//char_menufonttexture = GL_LoadTexture ("menufont", p->data, p->width, p->height, TEX_ALPHA|TEX_LINEAR);
 	char_menufonttexture = TexMgr_LoadImage(NULL, WADFILENAME":menufont", p->width, p->height, SRC_INDEXED, p->data,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE);
 
 	// load the console background
 	p = (qpic_t *)FS_LoadTempFile ("gfx/menu/conback.lmp", NULL);
@@ -602,7 +602,7 @@ void Draw_Init (void)
 	SwapPic (p);
 	//conback = GL_LoadTexture ("conback", p->data, p->width, p->height, TEX_LINEAR);
 	conback = TexMgr_LoadImage(NULL, WADFILENAME":conback", p->width, p->height, SRC_INDEXED, p->data,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE);
 
 	// load the backtile
 	//p = (qpic_t *)FS_LoadTempFile("gfx/menu/backtile.lmp", NULL);
@@ -947,7 +947,7 @@ qpic_t *Draw_CachePicNoTrans (const char *path)
 	//gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
 	//	sizeof(int) * 2, TEXPREF_NOPICMIP); //johnfitz -- TexMgr
 	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, WADFILENAME, 
-		sizeof(int) * 2, TEXPREF_RGBA | TEXPREF_LINEAR | TEXPREF_NOPICMIP);
+		sizeof(int) * 2, TEXPREF_RGBA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE);
 
 
 	//gl.sl = 0;
