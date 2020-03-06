@@ -632,8 +632,8 @@ static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum, 
 				}
 				else
 				{
-					if (ColorShade)
-						glColor4f_fp(r*l, g*l, b*l, model_constant_alpha);
+					if (ColorShade) //shan colormap
+						glColor4f_fp(((l+r)/2.0) * lightcolor[0], ((l+g)/2.0) * lightcolor[1], ((l+g)/2.0) * lightcolor[2], model_constant_alpha);
 					else
 						glColor4f_fp(l * lightcolor[0], l * lightcolor[1], l * lightcolor[2], model_constant_alpha);
 				}

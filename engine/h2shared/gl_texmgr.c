@@ -1320,7 +1320,12 @@ gltexture_t *TexMgr_LoadImage(qmodel_t *owner, char *name, int width, int height
 	}
 	if (glt = TexMgr_FindTexture(owner, name))
 	{
-		if ((glt->source_crc == crc) && !(flags & TEXPREF_OVERWRITE))
+		if (flags & TEXPREF_OVERWRITE)
+		{
+			TexMgr_FreeTexture(glt);
+			glt = TexMgr_NewTexture();
+		}
+		else  //if (glt->source_crc == crc)
 			return glt;
 	}
 	else

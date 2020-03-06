@@ -658,19 +658,22 @@ bsp_tex_internal:
 					extraflags |= TEXPREF_ALPHA;
 				// ericw
 
-				//external textures -- first look in "textures/mapname/" then look in "textures/"
-				mark = Hunk_LowMark();
-				COM_StripExtension(loadmodel->name + 5, mapname, sizeof(mapname));
-				q_snprintf(filename, sizeof(filename), "textures/%s/%s", mapname, tx->name);
-				data = Image_LoadImage(filename, &fwidth, &fheight);
-				if (!data)
+				if (r_texture_external.integer)
 				{
-					q_snprintf(filename, sizeof(filename), "textures/%s", tx->name);
+					//external textures -- first look in "textures/mapname/" then look in "textures/"
+					mark = Hunk_LowMark();
+					COM_StripExtension(loadmodel->name + 5, mapname, sizeof(mapname));
+					q_snprintf(filename, sizeof(filename), "textures/%s/%s", mapname, tx->name);
 					data = Image_LoadImage(filename, &fwidth, &fheight);
+					if (!data)
+					{
+						q_snprintf(filename, sizeof(filename), "textures/%s", tx->name);
+						data = Image_LoadImage(filename, &fwidth, &fheight);
+					}
 				}
 
 				//now load whatever we found
-				if (data) //load external image
+				if ((r_texture_external.integer) && (data)) //load external image
 				{
 					tx->gltexture = TexMgr_LoadImage(loadmodel, filename, fwidth, fheight,
 						SRC_RGBA, data, filename, 0, TEXPREF_MIPMAP | extraflags);
@@ -688,6 +691,8 @@ bsp_tex_internal:
 					if (data)
 						tx->fullbright = TexMgr_LoadImage(loadmodel, filename2, fwidth, fheight,
 							SRC_RGBA, data, filename, 0, TEXPREF_MIPMAP | extraflags);
+
+					Hunk_FreeToLowMark(mark);
 				}
 				else //use the texture from the bsp file
 				{
@@ -707,7 +712,6 @@ bsp_tex_internal:
 							SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | extraflags);
 					}
 				}
-				Hunk_FreeToLowMark(mark);
 			}
 		}
 		//johnfitz
