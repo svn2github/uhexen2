@@ -492,7 +492,7 @@ static void R_DrawSpriteModel (entity_t *e)
 
 	glBegin_fp (GL_QUADS);
 
-	glTexCoord2f_fp (0, 1);
+	glTexCoord2f_fp(0, frame->tmax);
 	VectorMA (e->origin, frame->down, r_spritedesc.vup, point);
 	VectorMA (point, frame->left, r_spritedesc.vright, point);
 	glVertex3fv_fp (point);
@@ -502,14 +502,12 @@ static void R_DrawSpriteModel (entity_t *e)
 	VectorMA (point, frame->left, r_spritedesc.vright, point);
 	glVertex3fv_fp (point);
 
-	glTexCoord2f_fp (1, 0);
-	//glTexCoord2f_fp(frame->smax, 0);
+	glTexCoord2f_fp(frame->smax, 0);
 	VectorMA (e->origin, frame->up, r_spritedesc.vup, point);
 	VectorMA (point, frame->right, r_spritedesc.vright, point);
 	glVertex3fv_fp (point);
 
-	glTexCoord2f_fp (1, 1);
-	//glTexCoord2f_fp(frame->smax, frame->tmax);
+	glTexCoord2f_fp(frame->smax, frame->tmax);
 	VectorMA (e->origin, frame->down, r_spritedesc.vup, point);
 	VectorMA (point, frame->right, r_spritedesc.vright, point);
 	glVertex3fv_fp (point);

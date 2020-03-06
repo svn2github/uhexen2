@@ -204,6 +204,7 @@ qpic_t	*Draw_CachePic (const char *path)
 		if (!strcmp (path, pic->name))
 			return &pic->pic;
 	}
+
 	if (menu_numcachepics == MAX_CACHED_PICS)
 		Sys_Error ("menu_numcachepics == MAX_CACHED_PICS");
 	menu_numcachepics++;

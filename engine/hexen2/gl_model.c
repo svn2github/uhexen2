@@ -658,9 +658,9 @@ bsp_tex_internal:
 					extraflags |= TEXPREF_ALPHA;
 				// ericw
 
+				//external textures -- first look in "textures/mapname/" then look in "textures/"
 				if (r_texture_external.integer)
 				{
-					//external textures -- first look in "textures/mapname/" then look in "textures/"
 					mark = Hunk_LowMark();
 					COM_StripExtension(loadmodel->name + 5, mapname, sizeof(mapname));
 					q_snprintf(filename, sizeof(filename), "textures/%s/%s", mapname, tx->name);
@@ -2439,7 +2439,7 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 	char	name[MAX_QPATH];
 	int	s;
 	byte	*skin;
-	int	tex_mode;
+	int	tex_mode = TEXPREF_PAD;
 	int	groupskins;
 	daliasskingroup_t	*pinskingroup;
 	daliasskininterval_t	*pinskinintervals;
@@ -3193,7 +3193,7 @@ static void *Mod_LoadSpriteFrame (void *pin, mspriteframe_t **ppframe, int frame
 	offset = (src_offset_t)(pinframe + 1) - (src_offset_t)mod_base; //johnfitz
 	//pspriteframe->gltexture = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);
 	pspriteframe->gltexture = TexMgr_LoadImage(loadmodel, name, width, height, SRC_INDEXED, (byte *)(pinframe + 1),
-		WADFILENAME, offset, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE);
+		WADFILENAME, offset, TEXPREF_PAD | TEXPREF_ALPHA | TEXPREF_NOPICMIP);
 
 	return (void *)((byte *)pinframe + sizeof (dspriteframe_t) + size);
 }
