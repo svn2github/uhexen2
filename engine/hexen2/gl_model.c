@@ -2452,7 +2452,7 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 
 	s = pheader->skinwidth * pheader->skinheight;
 
-	tex_mode = TEXPREF_NONE | TEXPREF_MIPMAP;
+	//tex_mode = TEXPREF_NONE | TEXPREF_MIPMAP;
 	if (mdl_flags & EF_TRANSPARENT)
 		tex_mode |= TEXPREF_TRANSPARENT;
 	else if (mdl_flags & EF_HOLEY)
@@ -2463,54 +2463,55 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 	for (i = 0; i < numskins; i++)
 	{
 	    k = LittleLong (pskintype->type);		/* aliasskintype_t */
-	    if (k == ALIAS_SKIN_SINGLE) {
-		Mod_FloodFillSkin (skin, pheader->skinwidth, pheader->skinheight);
+		if (k == ALIAS_SKIN_SINGLE) {
+			Mod_FloodFillSkin(skin, pheader->skinwidth, pheader->skinheight);
 
-		// save 8 bit texels for the player model to remap
-		if (!strcmp(loadmodel->name,"models/paladin.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[0]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[0], (byte *)(pskintype + 1), s);
-		}
-		else if (!strcmp(loadmodel->name,"models/crusader.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[1]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[1], (byte *)(pskintype + 1), s);
-		}
-		else if (!strcmp(loadmodel->name,"models/necro.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[2]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[2], (byte *)(pskintype + 1), s);
-		}
-		else if (!strcmp(loadmodel->name,"models/assassin.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[3]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[3], (byte *)(pskintype + 1), s);
-		}
-		else if (!strcmp(loadmodel->name,"models/succubus.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[4]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[4], (byte *)(pskintype + 1), s);
-		}
+			// save 8 bit texels for the player model to remap
+			if (!strcmp(loadmodel->name, "models/paladin.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[0]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[0], (byte *)(pskintype + 1), s);
+			}
+			else if (!strcmp(loadmodel->name, "models/crusader.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[1]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[1], (byte *)(pskintype + 1), s);
+			}
+			else if (!strcmp(loadmodel->name, "models/necro.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[2]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[2], (byte *)(pskintype + 1), s);
+			}
+			else if (!strcmp(loadmodel->name, "models/assassin.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[3]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[3], (byte *)(pskintype + 1), s);
+			}
+			else if (!strcmp(loadmodel->name, "models/succubus.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[4]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[4], (byte *)(pskintype + 1), s);
+			}
 
-		offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
-		q_snprintf (name, sizeof(name), "%s_%i", loadmodel->name, i);
-		pheader->gltextures[i][0] =
-		pheader->gltextures[i][1] =
-		pheader->gltextures[i][2] =
-		pheader->gltextures[i][3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
-			SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
-			
+			offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
+			q_snprintf(name, sizeof(name), "%s_%i", loadmodel->name, i);
+			pheader->gltextures[i][0] =
+				pheader->gltextures[i][1] =
+				pheader->gltextures[i][2] =
+				pheader->gltextures[i][3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+					SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+
 			//GL_LoadTexture (name, (byte *)(pskintype + 1),
 			//pheader->skinwidth, pheader->skinheight, tex_mode);
-		pskintype = (daliasskintype_t *)((byte *)(pskintype+1) + s);
+			pskintype = (daliasskintype_t *)((byte *)(pskintype + 1) + s);
 
-	    } else /*if (k == ALIAS_SKIN_GROUP)*/
+		}
+		else /*if (k == ALIAS_SKIN_GROUP)*/
 	    {						/* animating skin group.  yuck. */
 		pskintype++;
 		pinskingroup = (daliasskingroup_t *)pskintype;
@@ -2524,7 +2525,7 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 			offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
 			q_snprintf (name, sizeof(name), "%s_%i_%i", loadmodel->name, i, j);
 			pheader->gltextures[i][j&3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
-				SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+				SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode);
 				
 				//GL_LoadTexture (name, (byte *)(pskintype),
 				//	pheader->skinwidth, pheader->skinheight, tex_mode);
