@@ -362,8 +362,8 @@ void GL_MakeAliasModelDisplayLists (qmodel_t *m, aliashdr_t *hdr)
 
 		do
 		{
-			*(float *)cmds++ = hscale * (*(float *)loadcmds++);//*(float *)cmds++ = (*(float *)loadcmds++);
-			*(float *)cmds++ = vscale * (*(float *)loadcmds++);//*(float *)cmds++ = (*(float *)loadcmds++);
+			*(float *)cmds++ = hscale * (*(float *)loadcmds++);
+			*(float *)cmds++ = vscale * (*(float *)loadcmds++);
 		} while (--count);
 	}
 	//johnfitz
