@@ -82,9 +82,16 @@ returns a pointer to hunk allocated RGBA data
 TODO: search order: tga png jpg pcx lmp
 ============
 */
-byte *Image_LoadImage (const char *name, int *width, int *height)
+byte *Image_LoadImage (const char *name, int *width, int *height/*, qboolean *malloced*/)
 {
 	FILE	*f;
+
+	//*malloced = false; //for PNG loading
+
+	/*q_snprintf(loadfilename, sizeof(loadfilename), "%s%s.png", prefixes[i], name);
+	COM_FOpenFile(loadfilename, &f, NULL);
+	if (f)
+		return Image_LoadPNG(f, width, height, malloced);*/
 
 	q_snprintf (loadfilename, sizeof(loadfilename), "%s.tga", name);
 	FS_OpenFile (loadfilename, &f, NULL);

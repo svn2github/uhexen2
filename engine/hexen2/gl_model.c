@@ -38,6 +38,7 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer);
 static void Mod_Print (void);
 
 static cvar_t	external_ents = {"external_ents", "1", CVAR_ARCHIVE};
+static cvar_t	gl_load24bit = { "gl_load24bit", "1", CVAR_ARCHIVE };
 
 //static byte	mod_novis[MAX_MAP_LEAFS/8];
 static byte	*mod_novis;
@@ -69,6 +70,7 @@ Mod_Init
 void Mod_Init (void)
 {
 	Cvar_RegisterVariable (&external_ents);
+	Cvar_RegisterVariable (&gl_load24bit);
 	Cmd_AddCommand ("mcache", Mod_Print);
 
 	//memset (mod_novis, 0xff, sizeof(mod_novis));
@@ -2462,7 +2464,7 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 
 	for (i = 0; i < numskins; i++)
 	{
-	    k = LittleLong (pskintype->type);		/* aliasskintype_t */
+		k = LittleLong(pskintype->type);		/* aliasskintype_t */
 		if (k == ALIAS_SKIN_SINGLE) {
 			Mod_FloodFillSkin(skin, pheader->skinwidth, pheader->skinheight);
 
@@ -2498,42 +2500,78 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 				memcpy(player_8bit_texels[4], (byte *)(pskintype + 1), s);
 			}
 
-			offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
-			q_snprintf(name, sizeof(name), "%s_%i", loadmodel->name, i);
-			pheader->gltextures[i][0] =
-				pheader->gltextures[i][1] =
-				pheader->gltextures[i][2] =
-				pheader->gltextures[i][3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
-					SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+			//spike - external model textures with dp naming -- eg progs/foo.mdl_0.tga
+			//always use the alpha channel for external images. gpus prefer aligned data anyway.
+			int mark = Hunk_LowMark();
+			char filename[MAX_QPATH];
+			char filename2[MAX_QPATH];
+			byte *data;
+			int fwidth, fheight;
+			qboolean malloced = false;
+			q_snprintf(filename, sizeof(filename), "%s_%i", loadmodel->name, i);
+			data = !gl_load24bit.value ? NULL : Image_LoadImage(filename, &fwidth, &fheight/*, &malloced*/);
+			//now load whatever we found
+			if (data) //load external image
+			{
+				pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, filename, fwidth, fheight,
+					SRC_RGBA, data, filename, 0, TEXPREF_ALPHA | tex_mode | TEXPREF_MIPMAP);
 
+				//now try to load glow/luma image from the same place
+				if (malloced)
+					free(data);
+				Hunk_FreeToLowMark(mark);
+				q_snprintf(filename2, sizeof(filename2), "%s_glow", filename);
+				data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight, &malloced);
+				if (!data)
+				{
+					q_snprintf(filename2, sizeof(filename2), "%s_luma", filename);
+					data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight, &malloced);
+				}
+
+				if (data)
+					pheader->fbtextures[i][0] = TexMgr_LoadImage(loadmodel, filename2, fwidth, fheight,
+						SRC_RGBA, data, filename, 0, TEXPREF_ALPHA | tex_mode | TEXPREF_MIPMAP);
+				else
+					pheader->fbtextures[i][0] = NULL;
+			}
+			else
+			{
+				offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
+				q_snprintf(name, sizeof(name), "%s_%i", loadmodel->name, i);
+				pheader->gltextures[i][0] =	TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+						SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+			}
 			//GL_LoadTexture (name, (byte *)(pskintype + 1),
 			//pheader->skinwidth, pheader->skinheight, tex_mode);
+			pheader->gltextures[i][3] = pheader->gltextures[i][2] = pheader->gltextures[i][1] = pheader->gltextures[i][0];
+			pheader->fbtextures[i][3] = pheader->fbtextures[i][2] = pheader->fbtextures[i][1] = pheader->fbtextures[i][0];
+			//johnfitz
 			pskintype = (daliasskintype_t *)((byte *)(pskintype + 1) + s);
 
 		}
 		else /*if (k == ALIAS_SKIN_GROUP)*/
-	    {						/* animating skin group.  yuck. */
-		pskintype++;
-		pinskingroup = (daliasskingroup_t *)pskintype;
-		groupskins = LittleLong (pinskingroup->numskins);
-		pinskinintervals = (daliasskininterval_t *)(pinskingroup + 1);
+		{						/* animating skin group.  yuck. */
+			pskintype++;
+			pinskingroup = (daliasskingroup_t *)pskintype;
+			groupskins = LittleLong(pinskingroup->numskins);
+			pinskinintervals = (daliasskininterval_t *)(pinskingroup + 1);
 
-		pskintype = (daliasskintype_t *)(pinskinintervals + groupskins);
-		for (j = 0; j < groupskins; j++)
-		{
-			Mod_FloodFillSkin (skin, pheader->skinwidth, pheader->skinheight);
-			offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
-			q_snprintf (name, sizeof(name), "%s_%i_%i", loadmodel->name, i, j);
-			pheader->gltextures[i][j&3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
-				SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode);
-				
+			pskintype = (daliasskintype_t *)(pinskinintervals + groupskins);
+			for (j = 0; j < groupskins; j++)
+			{
+				Mod_FloodFillSkin(skin, pheader->skinwidth, pheader->skinheight);
+				offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
+				q_snprintf(name, sizeof(name), "%s_%i_%i", loadmodel->name, i, j);
+				pheader->gltextures[i][j & 3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+					SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode);
+
 				//GL_LoadTexture (name, (byte *)(pskintype),
 				//	pheader->skinwidth, pheader->skinheight, tex_mode);
-			pskintype = (daliasskintype_t *)((byte *)(pskintype) + s);
+				pskintype = (daliasskintype_t *)((byte *)(pskintype)+s);
+			}
+			for (k = j; j < 4; j++)
+				pheader->gltextures[i][j & 3] = pheader->gltextures[i][j - k];
 		}
-		for (k = j; j < 4; j++)
-			pheader->gltextures[i][j&3] = pheader->gltextures[i][j - k];
-	    }
 	}
 
 	return (void *)pskintype;
@@ -2945,6 +2983,11 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	mod->maxs[1] = aliasmaxs[1] + 10;
 	mod->maxs[2] = aliasmaxs[2] + 10;
 
+	if (pheader->numskins)
+	{
+		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
+		pheader->skinheight = pheader->gltextures[0][0]->source_height;
+	}
 //
 // build the draw lists
 //
@@ -3124,6 +3167,11 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	mod->maxs[1] = aliasmaxs[1] + 10;
 	mod->maxs[2] = aliasmaxs[2] + 10;
 
+	if (pheader->numskins)
+	{
+		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
+		pheader->skinheight = pheader->gltextures[0][0]->source_height;
+	}
 //
 // build the draw lists
 //

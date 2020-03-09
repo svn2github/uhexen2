@@ -569,7 +569,7 @@ void Draw_Init (void)
 	}
 	//char_texture = GL_LoadTexture ("charset", chars, 256, 128, TEX_ALPHA|TEX_NEAREST);
 	char_texture = TexMgr_LoadImage(NULL, "gfx/menu/conchars.lmp", 256, 128, SRC_INDEXED, chars,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_PERSIST | TEXPREF_CONCHARS);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS);
 
 	// load the small characters for status bar
 	chars = (byte *) W_GetLumpName("tinyfont");
@@ -580,7 +580,7 @@ void Draw_Init (void)
 	}
 	//char_smalltexture = GL_LoadTexture ("smallcharset", chars, 128, 32, TEX_ALPHA|TEX_NEAREST);
 	char_smalltexture = TexMgr_LoadImage(NULL, "gfx/menu/conchars.lmp", 128, 32, SRC_INDEXED, chars,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_PERSIST | TEXPREF_CONCHARS);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP | TEXPREF_CONCHARS);
 
 	// load the big menu font
 	// Note: old version of demo has bigfont.lmp, not bigfont2.lmp
@@ -595,7 +595,7 @@ void Draw_Init (void)
 	}
 	//char_menufonttexture = GL_LoadTexture ("menufont", p->data, p->width, p->height, TEX_ALPHA|TEX_LINEAR);
 	char_menufonttexture = TexMgr_LoadImage(NULL, WADFILENAME":menufont", p->width, p->height, SRC_INDEXED, p->data,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_PERSIST);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE);
 
 	// load the console background
 	p = (qpic_t *)FS_LoadTempFile ("gfx/menu/conback.lmp", NULL);
@@ -603,7 +603,7 @@ void Draw_Init (void)
 	SwapPic (p);
 	//conback = GL_LoadTexture ("conback", p->data, p->width, p->height, TEX_LINEAR);
 	conback = TexMgr_LoadImage(NULL, WADFILENAME":conback", p->width, p->height, SRC_INDEXED, p->data,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_PERSIST);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE);
 
 	// load the backtile
 	//p = (qpic_t *)FS_LoadTempFile("gfx/menu/backtile.lmp", NULL);
