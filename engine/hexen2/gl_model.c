@@ -2871,8 +2871,12 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	pheader->skinwidth = LittleLong (pinmodel->skinwidth);
 	pheader->skinheight = LittleLong (pinmodel->skinheight);
 
-	if (pheader->skinheight > MAX_SKIN_HEIGHT)
-		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);
+	/*if (pheader->skinheight > MAX_SKIN_HEIGHT)
+		Sys_Print("model %s has a skin taller than %d\n", mod->name,
+			MAX_SKIN_HEIGHT);	//Spike -- this was always a bogus error in gl renderers. its width*height that really matters.
+			*/
+	/*if (pheader->skinheight > MAX_SKIN_HEIGHT)
+		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);*/
 
 	pheader->numverts = LittleLong (pinmodel->numverts);
 	pheader->version = LittleLong (pinmodel->num_st_verts);	//hide num_st in version
@@ -2983,11 +2987,11 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	mod->maxs[1] = aliasmaxs[1] + 10;
 	mod->maxs[2] = aliasmaxs[2] + 10;
 
-	if (pheader->numskins)
+	/*if (pheader->numskins)
 	{
 		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
 		pheader->skinheight = pheader->gltextures[0][0]->source_height;
-	}
+	}*/
 //
 // build the draw lists
 //
@@ -3054,8 +3058,8 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	pheader->skinwidth = LittleLong (pinmodel->skinwidth);
 	pheader->skinheight = LittleLong (pinmodel->skinheight);
 
-	if (pheader->skinheight > MAX_SKIN_HEIGHT)
-		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);
+	/*if (pheader->skinheight > MAX_SKIN_HEIGHT)
+		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);*/
 
 	pheader->numverts = LittleLong (pinmodel->numverts);
 	pheader->version = pheader->numverts;	//hide num_st in version
@@ -3167,11 +3171,11 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	mod->maxs[1] = aliasmaxs[1] + 10;
 	mod->maxs[2] = aliasmaxs[2] + 10;
 
-	if (pheader->numskins)
+	/*if (pheader->numskins)
 	{
 		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
 		pheader->skinheight = pheader->gltextures[0][0]->source_height;
-	}
+	}*/
 //
 // build the draw lists
 //

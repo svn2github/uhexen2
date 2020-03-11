@@ -334,10 +334,15 @@ void GL_MakeAliasModelDisplayLists (qmodel_t *m, aliashdr_t *hdr)
 	int		count; //johnfitz -- precompute texcoords for padded skins
 	int		*loadcmds; //johnfitz
 
-	//johnfitz -- padded skins
-	hscale = (float)hdr->skinwidth / (float)TexMgr_PadConditional(hdr->skinwidth);
-	vscale = (float)hdr->skinheight / (float)TexMgr_PadConditional(hdr->skinheight);
-	//johnfitz
+	if (!gl_tex_NPOT)
+	{
+		//johnfitz -- padded skins
+		hscale = (float)hdr->skinwidth / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->width);
+		vscale = (float)hdr->skinheight / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->height);
+		//johnfitz
+	}
+	else
+		hscale = vscale = 1;
 
 	DEBUG_Printf ("meshing %s...\n", m->name);
 	BuildTris ();		// trifans or lists

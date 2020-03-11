@@ -1913,9 +1913,10 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	pmodel->skinwidth = LittleLong (pinmodel->skinwidth);
 	pmodel->skinheight = LittleLong (pinmodel->skinheight);
 
+	/*
 	if (pmodel->skinheight > MAX_SKIN_HEIGHT)
 		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);
-
+		*/
 	pmodel->numverts = LittleLong (pinmodel->numverts);
 	//use the new num
 	pmodel->num_st_verts = LittleLong (pinmodel->num_st_verts);
@@ -2149,10 +2150,10 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	pmodel->numskins = LittleLong (pinmodel->numskins);
 	pmodel->skinwidth = LittleLong (pinmodel->skinwidth);
 	pmodel->skinheight = LittleLong (pinmodel->skinheight);
-
+	/*
 	if (pmodel->skinheight > MAX_SKIN_HEIGHT)
 		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);
-
+		*/
 	pmodel->numverts = LittleLong (pinmodel->numverts);
 	pmodel->num_st_verts = LittleLong (pinmodel->numverts);
 
