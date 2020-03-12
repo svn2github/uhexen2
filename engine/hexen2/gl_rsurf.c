@@ -897,9 +897,9 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	{
 		// ent->abslight   0 - 255
 		//shan revisit abslight in fog
-		//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		//glBlendFunc_fp(GL_ONE, GL_ONE);
-		//intensity = (float)e->abslight / 255.0f;
+		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glBlendFunc_fp(GL_ONE, GL_ONE);
+		intensity = (float)e->abslight / 255.0f;
 	}
 	else
 	{

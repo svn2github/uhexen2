@@ -2503,16 +2503,24 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 			//spike - external model textures with dp naming -- eg progs/foo.mdl_0.tga
 			//always use the alpha channel for external images. gpus prefer aligned data anyway.
 			int mark = Hunk_LowMark();
+			char modelname[MAX_QPATH];
 			char filename[MAX_QPATH];
 			char filename2[MAX_QPATH];
+			int l;
 			byte *data;
 			int fwidth, fheight;
 			qboolean malloced = false;
-			q_snprintf(filename, sizeof(filename), "%s_%i", loadmodel->name, i);
+
+			l = strlen(loadmodel->name);
+			strncpy(modelname, loadmodel->name, l - 4);
+			modelname[l - 4] = '\0';
+
+			q_snprintf(filename, sizeof(filename), "%s_%i", modelname, i);
 			data = !gl_load24bit.value ? NULL : Image_LoadImage(filename, &fwidth, &fheight/*, &malloced*/);
 			//now load whatever we found
 			if (data) //load external image
 			{
+
 				pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, filename, fwidth, fheight,
 					SRC_RGBA, data, filename, 0, TEXPREF_ALPHA | tex_mode | TEXPREF_MIPMAP);
 
