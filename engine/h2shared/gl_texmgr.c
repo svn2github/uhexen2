@@ -32,7 +32,7 @@ static cvar_t	gl_texture_anisotropy = { "gl_texture_anisotropy", "1", CVAR_ARCHI
 //static cvar_t	gl_max_size = { "gl_max_size", "0", CVAR_NONE };
 static cvar_t	gl_picmip = { "gl_picmip", "0", CVAR_NONE };
 static GLint	gl_hardware_maxsize;
-static cvar_t	gl_texture_NPOT;
+cvar_t	gl_texture_NPOT = { "gl_texture_NPOT", "", CVAR_ARCHIVE };
 //extern cvar_t gl_max_size;
 cvar_t	gl_max_size = { "gl_max_size", "0", CVAR_ARCHIVE };
 

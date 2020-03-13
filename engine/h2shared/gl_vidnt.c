@@ -208,7 +208,7 @@ extern cvar_t gl_max_size;
 
 static qboolean	have_NPOT = false;
 qboolean	gl_tex_NPOT = false;
-static cvar_t	gl_texture_NPOT = {"gl_texture_NPOT", "0", CVAR_ARCHIVE};
+extern cvar_t	gl_texture_NPOT;
 
 GLfloat		gl_max_anisotropy;
 float		gldepthmin, gldepthmax;
