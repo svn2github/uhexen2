@@ -903,7 +903,9 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	}
 	else
 	{
-		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE);
+
 	}
 
 	if (!override)
@@ -1289,7 +1291,7 @@ void R_DrawWaterSurfaces (void)
 
 /*
 ================
-DrawTextureChains_TextureOnly -- Shanjaq
+DrawTextureChains_NoTexture -- Shanjaq
 ================
 */
 static void DrawTextureChains_NoTexture(entity_t *e)
@@ -1730,6 +1732,7 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 		(e->drawflags & MLS_ABSLIGHT) != MLS_ABSLIGHT &&
 		!gl_mtexable)
 	{
+		Fog_DisableGFog();
 		for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
 		{
 			// find which side of the node we are on
@@ -1743,19 +1746,56 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 			{
 				//glDepthFunc_fp(GL_EQUAL);
 				//glDepthMask_fp(1);
-				R_RenderBrushPoly(e, psurf, false, false);
+				R_RenderBrushPoly(e, psurf, false, false); //shan door stuff
 				//glDepthMask_fp(0);
 				//glDepthFunc_fp(GL_LEQUAL);
 			}
 		}
+		Fog_EnableGFog();
 
 		glDepthFunc_fp(GL_EQUAL);
 		glDepthMask_fp(0);
-		
-		//R_BlendLightmaps(Translucent);
+		Fog_StartAdditive();
 
+		R_BlendLightmaps(Translucent); //shan door shading
+
+		Fog_StopAdditive();
 		glDepthMask_fp(1);
 		glDepthFunc_fp(GL_LEQUAL);
+
+
+		if (Fog_GetDensity() > 0.00)
+		{
+			psurf = &clmodel->surfaces[clmodel->firstmodelsurface];
+			glEnable_fp(GL_BLEND);
+			glBlendFunc_fp(GL_ONE, GL_ONE); //add
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glColor3f_fp(0, 0, 0);
+			for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
+			{
+				// find which side of the node we are on
+				pplane = psurf->plane;
+
+				dot = DotProduct(modelorg, pplane->normal) - pplane->dist;
+
+				// draw the polygon
+				if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
+					(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
+				{
+					//glDepthFunc_fp(GL_EQUAL);
+					//glDepthMask_fp(1);
+					R_RenderBrushPoly(e, psurf, false, true); //shan door stuff
+					//glDepthMask_fp(0);
+					//glDepthFunc_fp(GL_LEQUAL);
+				}
+			}
+			glColor3f_fp(1, 1, 1);
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		}
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable_fp(GL_BLEND);
+		glDepthMask_fp(GL_TRUE);
+
 	}
 	else
 	{

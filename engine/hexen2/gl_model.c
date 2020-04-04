@@ -2500,47 +2500,55 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 				memcpy(player_8bit_texels[4], (byte *)(pskintype + 1), s);
 			}
 
-			//spike - external model textures with dp naming -- eg progs/foo.mdl_0.tga
-			//always use the alpha channel for external images. gpus prefer aligned data anyway.
-			int mark = Hunk_LowMark();
-			char modelname[MAX_QPATH];
-			char filename[MAX_QPATH];
-			char filename2[MAX_QPATH];
-			int l;
-			byte *data;
-			int fwidth, fheight;
-			qboolean malloced = false;
-
-			l = strlen(loadmodel->name);
-			strncpy(modelname, loadmodel->name, l - 4);
-			modelname[l - 4] = '\0';
-
-			q_snprintf(filename, sizeof(filename), "%s_%i", modelname, i);
-			data = !gl_load24bit.value ? NULL : Image_LoadImage(filename, &fwidth, &fheight/*, &malloced*/);
-			//now load whatever we found
-			if (data) //load external image
+			if (r_texture_external.integer)
 			{
+				//spike - external model textures with dp naming -- eg progs/foo.mdl_0.tga
+				//always use the alpha channel for external images. gpus prefer aligned data anyway.
+				int mark = Hunk_LowMark();
+				char modelname[MAX_QPATH];
+				char filename[MAX_QPATH];
+				char filename2[MAX_QPATH];
+				int l;
+				byte *data;
+				int fwidth, fheight;
+				qboolean malloced = false;
 
-				pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, filename, fwidth, fheight,
-					SRC_RGBA, data, filename, 0, TEXPREF_ALPHA | tex_mode | TEXPREF_MIPMAP);
+				COM_StripExtension(loadmodel->name, modelname, sizeof(modelname));
+				q_snprintf(filename, sizeof(filename), "%s_%i", modelname, i);
+				data = !gl_load24bit.value ? NULL : Image_LoadImage(filename, &fwidth, &fheight/*, &malloced*/);
 
-				//now try to load glow/luma image from the same place
-				if (malloced)
-					free(data);
-				Hunk_FreeToLowMark(mark);
-				q_snprintf(filename2, sizeof(filename2), "%s_glow", filename);
-				data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight, &malloced);
-				if (!data)
+				//now load whatever we found
+				if (data) //load external image
 				{
-					q_snprintf(filename2, sizeof(filename2), "%s_luma", filename);
-					data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight, &malloced);
-				}
 
-				if (data)
-					pheader->fbtextures[i][0] = TexMgr_LoadImage(loadmodel, filename2, fwidth, fheight,
+					pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, filename, fwidth, fheight,
 						SRC_RGBA, data, filename, 0, TEXPREF_ALPHA | tex_mode | TEXPREF_MIPMAP);
+
+					//now try to load glow/luma image from the same place
+					if (malloced)
+						free(data);
+					Hunk_FreeToLowMark(mark);
+					q_snprintf(filename2, sizeof(filename2), "%s_glow", filename);
+					data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight, &malloced);
+					if (!data)
+					{
+						q_snprintf(filename2, sizeof(filename2), "%s_luma", filename);
+						data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight, &malloced);
+					}
+
+					if (data)
+						pheader->fbtextures[i][0] = TexMgr_LoadImage(loadmodel, filename2, fwidth, fheight,
+							SRC_RGBA, data, filename, 0, TEXPREF_ALPHA | tex_mode | TEXPREF_MIPMAP);
+					else
+						pheader->fbtextures[i][0] = NULL;
+				}
 				else
-					pheader->fbtextures[i][0] = NULL;
+				{
+					offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
+					q_snprintf(name, sizeof(name), "%s_%i", loadmodel->name, i);
+					pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+						SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+				}
 			}
 			else
 			{
@@ -2994,8 +3002,8 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	mod->maxs[0] = aliasmaxs[0] + 10;
 	mod->maxs[1] = aliasmaxs[1] + 10;
 	mod->maxs[2] = aliasmaxs[2] + 10;
-
-	/*if (pheader->numskins)
+	/*
+	if (pheader->numskins)
 	{
 		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
 		pheader->skinheight = pheader->gltextures[0][0]->source_height;
@@ -3183,7 +3191,8 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	{
 		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
 		pheader->skinheight = pheader->gltextures[0][0]->source_height;
-	}*/
+	}
+	*/
 //
 // build the draw lists
 //

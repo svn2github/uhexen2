@@ -334,15 +334,16 @@ void GL_MakeAliasModelDisplayLists (qmodel_t *m, aliashdr_t *hdr)
 	int		count; //johnfitz -- precompute texcoords for padded skins
 	int		*loadcmds; //johnfitz
 
-	//if (!gl_tex_NPOT)
-	{
-		//johnfitz -- padded skins
-		hscale = (float)(hdr->gltextures[0][0]->source_width) / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->source_width);
-		vscale = (float)(hdr->gltextures[0][0]->source_height) / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->source_height);
-		//johnfitz
-	}
-	//else
-		//hscale = vscale = 1;
+	//johnfitz -- padded skins
+	hscale = (float)(hdr->gltextures[0][0]->source_width) / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->source_width);
+	vscale = (float)(hdr->gltextures[0][0]->source_height) / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->source_height);
+	//hscale = (float)(hdr->skinwidth) / (float)TexMgr_PadConditional(hdr->skinwidth);
+	//vscale = (float)(hdr->skinheight) / (float)TexMgr_PadConditional(hdr->skinheight);
+	//hscale = (float)(hdr->skinwidth) / (float)TexMgr_PadConditional(hdr->skinwidth);
+	//vscale = (float)(hdr->skinheight) / (float)TexMgr_PadConditional(hdr->skinheight);
+	//hscale = 1.0f;
+	//vscale = 1.0f;
+	//johnfitz
 
 	DEBUG_Printf ("meshing %s...\n", m->name);
 	BuildTris ();		// trifans or lists
