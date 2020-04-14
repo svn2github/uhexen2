@@ -1319,7 +1319,7 @@ gltexture_t *TexMgr_LoadImage(qmodel_t *owner, char *name, int width, int height
 		crc = 0;
 	}
 	
-	/*
+	
 	if ((flags & TEXPREF_OVERWRITE) && (glt = TexMgr_FindTexture(owner, name)))
 	{
 		if (glt->source_crc == crc)
@@ -1327,8 +1327,8 @@ gltexture_t *TexMgr_LoadImage(qmodel_t *owner, char *name, int width, int height
 	}
 	else
 		glt = TexMgr_NewTexture();
-	*/
 	
+	/*
 	if (glt = TexMgr_FindTexture(owner, name))
 	{
 		if (flags & TEXPREF_OVERWRITE)
@@ -1344,7 +1344,7 @@ gltexture_t *TexMgr_LoadImage(qmodel_t *owner, char *name, int width, int height
 			return glt;
 		else
 			glt = TexMgr_NewTexture();
-	
+	*/
 
 	// copy data
 	glt->owner = owner;

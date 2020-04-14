@@ -903,8 +903,8 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	}
 	else
 	{
-		//glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE);
+		////glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE); //shan this may cause problems...
 
 	}
 
@@ -1728,6 +1728,8 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 	//glEnable_fp(GL_BLEND);
 	//Fog_EnableGFog();
 
+	//glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
+
 	if (!Translucent &&
 		(e->drawflags & MLS_ABSLIGHT) != MLS_ABSLIGHT &&
 		!gl_mtexable)
@@ -1771,6 +1773,7 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 			glBlendFunc_fp(GL_ONE, GL_ONE); //add
 			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glColor3f_fp(0, 0, 0);
+
 			for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
 			{
 				// find which side of the node we are on
@@ -1782,16 +1785,17 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 				if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
 					(!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON)))
 				{
-					//glDepthFunc_fp(GL_EQUAL);
-					//glDepthMask_fp(1);
+					glDepthFunc_fp(GL_EQUAL);
+					glDepthMask_fp(1);
 					R_RenderBrushPoly(e, psurf, false, true); //shan door stuff
-					//glDepthMask_fp(0);
-					//glDepthFunc_fp(GL_LEQUAL);
+					glDepthMask_fp(0);
+					glDepthFunc_fp(GL_LEQUAL);
 				}
 			}
 			glColor3f_fp(1, 1, 1);
 			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 		}
+
 		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable_fp(GL_BLEND);
 		glDepthMask_fp(GL_TRUE);
@@ -1974,7 +1978,8 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 			}
 		}
 	}
-	
+	glDisable_fp(GL_ALPHA_TEST); // Flip on alpha test
+
 	//Fog_EnableGFog();
 
 /*
