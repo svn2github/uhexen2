@@ -923,7 +923,7 @@ static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t
 			ref_ent = &build_ent;
 
 			build_ent.index = e;
-			build_ent.origin[0] = ent->baseline.origin[0];
+			build_ent.origin[0] = ent->baseline.origin[0]; //shan nack networking?
 			build_ent.origin[1] = ent->baseline.origin[1];
 			build_ent.origin[2] = ent->baseline.origin[2];
 			build_ent.angles[0] = ent->baseline.angles[0];
@@ -950,6 +950,8 @@ static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t
 			ref_ent->index = e;
 		}
 		*set_ent = *ref_ent;
+
+		IgnoreEnt = ((!VectorCompare(ent->v.origin, vec3_origin)) && VectorCompare(ent->v.origin, ent->baseline.origin) && (FoundInList == true) ? true : false);
 
 		if (IgnoreEnt)
 			continue;
@@ -1093,7 +1095,7 @@ static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t
 		if (bits & U_EFFECTS)
 			MSG_WriteByte(msg, ent->v.effects);
 		if (bits & U_ORIGIN1)
-			MSG_WriteCoord(msg, ent->v.origin[0]);
+			MSG_WriteCoord(msg, ent->v.origin[0]); //shan nack networking?
 		if (bits & U_ANGLE1)
 			MSG_WriteAngle(msg, ent->v.angles[0]);
 		if (bits & U_ORIGIN2)
@@ -1118,6 +1120,8 @@ static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t
 	MSG_WriteByte(msg, NumToRemove);
 	for (i = 0; i < NumToRemove; i++)
 		MSG_WriteShort(msg, RemoveList[i]);
+
+	client->refreshed = true;
 }
 
 /*

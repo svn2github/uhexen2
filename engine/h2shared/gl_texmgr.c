@@ -34,7 +34,7 @@ static cvar_t	gl_picmip = { "gl_picmip", "0", CVAR_NONE };
 static GLint	gl_hardware_maxsize;
 cvar_t	gl_texture_NPOT = { "gl_texture_NPOT", "", CVAR_ARCHIVE };
 //extern cvar_t gl_max_size;
-cvar_t	gl_max_size = { "gl_max_size", "0", CVAR_ARCHIVE };
+cvar_t	gl_max_size = { "gl_max_size", "256", CVAR_ARCHIVE };
 
 #define	MAX_GLTEXTURES	2048
 static gltexture_t	*active_gltextures, *free_gltextures;
@@ -641,17 +641,19 @@ void TexMgr_Init(void)
 	// palette
 	TexMgr_LoadPalette();
 
-	Cvar_RegisterVariable(&gl_max_size);
-	Cvar_RegisterVariable(&gl_picmip);
-	Cvar_RegisterVariable(&gl_texture_anisotropy);
-	Cvar_SetCallback(&gl_texture_anisotropy, &TexMgr_Anisotropy_f);
-	gl_texturemode.string = glmodes[glmode_idx].name;
-	Cvar_RegisterVariable(&gl_texturemode);
-	Cvar_SetCallback(&gl_texturemode, &TexMgr_TextureMode_f);
-	Cmd_AddCommand("gl_describetexturemodes", &TexMgr_DescribeTextureModes_f);
-	Cmd_AddCommand("imagelist", &TexMgr_Imagelist_f);
-	Cmd_AddCommand("imagedump", &TexMgr_Imagedump_f);
-
+	if (!Cmd_Exists("gl_describetexturemodes"))
+	{
+		Cvar_RegisterVariable(&gl_max_size);
+		Cvar_RegisterVariable(&gl_picmip);
+		Cvar_RegisterVariable(&gl_texture_anisotropy);
+		Cvar_SetCallback(&gl_texture_anisotropy, &TexMgr_Anisotropy_f);
+		gl_texturemode.string = glmodes[glmode_idx].name;
+		Cvar_RegisterVariable(&gl_texturemode);
+		Cvar_SetCallback(&gl_texturemode, &TexMgr_TextureMode_f);
+		Cmd_AddCommand("gl_describetexturemodes", &TexMgr_DescribeTextureModes_f);
+		Cmd_AddCommand("imagelist", &TexMgr_Imagelist_f);
+		Cmd_AddCommand("imagedump", &TexMgr_Imagedump_f);
+	}
 	// poll max size from hardware
 	glGetIntegerv_fp(GL_MAX_TEXTURE_SIZE, &gl_hardware_maxsize);
 
