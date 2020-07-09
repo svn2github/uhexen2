@@ -213,7 +213,7 @@ qpic_t	*Draw_CachePic (const char *path)
 //
 // load the pic from disk
 //
-	dat = (qpic_t *)FS_LoadTempFile (path, NULL);
+	dat = (qpic_t *)FS_LoadTempFile (path, NULL, NULL);
 	Draw_PicCheckError (dat, path);
 	SwapPic (dat);
 
@@ -280,7 +280,7 @@ qpic_t	*Draw_CacheLoadingPic (void)
 	if (menu_numcachepics == MAX_CACHED_PICS)
 		Sys_Error ("menu_numcachepics == MAX_CACHED_PICS");
 
-	dat = (qpic_t *)FS_LoadTempFile (ls_path, NULL);
+	dat = (qpic_t *)FS_LoadTempFile (ls_path, NULL, NULL);
 	Draw_PicCheckError (dat, ls_path);
 	SwapPic (dat);
 	if (fs_filesize != 17592 || dat->width != 157 || dat->height != 112)
@@ -560,7 +560,7 @@ void Draw_Init (void)
 	}
 
 	// load the charset: 8*8 graphic characters
-	chars = FS_LoadTempFile ("gfx/menu/conchars.lmp", NULL);
+	chars = FS_LoadTempFile ("gfx/menu/conchars.lmp", NULL, NULL);
 	Draw_PicCheckError (chars, "gfx/menu/conchars.lmp");
 	for (i = 0; i < 256*128; i++)
 	{
@@ -584,8 +584,8 @@ void Draw_Init (void)
 
 	// load the big menu font
 	// Note: old version of demo has bigfont.lmp, not bigfont2.lmp
-	p = (qpic_t *)FS_LoadTempFile("gfx/menu/bigfont2.lmp", NULL);
-	if (!p) p = (qpic_t *)FS_LoadTempFile("gfx/menu/bigfont.lmp", NULL);
+	p = (qpic_t *)FS_LoadTempFile("gfx/menu/bigfont2.lmp", NULL, NULL);
+	if (!p) p = (qpic_t *)FS_LoadTempFile("gfx/menu/bigfont.lmp", NULL, NULL);
 	Draw_PicCheckError (p, "gfx/menu/bigfont2.lmp");
 	SwapPic (p);
 	for (i = 0; i < p->width * p->height; i++)	// MUST be 160 * 80
@@ -598,7 +598,7 @@ void Draw_Init (void)
 		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE);
 
 	// load the console background
-	p = (qpic_t *)FS_LoadTempFile ("gfx/menu/conback.lmp", NULL);
+	p = (qpic_t *)FS_LoadTempFile ("gfx/menu/conback.lmp", NULL, NULL);
 	Draw_PicCheckError (p, "gfx/menu/conback.lmp");
 	SwapPic (p);
 	//conback = GL_LoadTexture ("conback", p->data, p->width, p->height, TEX_LINEAR);
@@ -931,7 +931,7 @@ qpic_t *Draw_CachePicNoTrans (const char *path)
 //
 // load the pic from disk
 //
-	dat = (qpic_t *)FS_LoadTempFile (path, NULL);
+	dat = (qpic_t *)FS_LoadTempFile (path, NULL, NULL);
 	Draw_PicCheckError (dat, path);
 	SwapPic (dat);
 

@@ -37,6 +37,7 @@ typedef void (*MIDI_SETVOL)(void **, float);
 
 typedef struct midi_driver_s
 {
+	qboolean done;
 	qboolean available;
 	const char *desc;
 	MIDI_INIT mididrv_initialize;

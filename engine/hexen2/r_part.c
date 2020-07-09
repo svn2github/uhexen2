@@ -209,7 +209,7 @@ void R_ReadPointFile_f (void)
 	color = (byte)Cvar_VariableValue("leak_color");
 	q_snprintf (name, sizeof(name), "maps/%s.pts", cl.mapname);
 
-	FS_OpenFile (name, &f, NULL);
+	FS_OpenFile (name, &f, NULL, NULL);
 	if (!f)
 	{
 		Con_Printf ("couldn't open %s\n", name);

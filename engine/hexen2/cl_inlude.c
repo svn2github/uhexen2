@@ -141,7 +141,7 @@ void CL_SetupIntermission (int num)
 		cl.intermission_pic = "gfx/end-3.lmp";
 		cl.lasting_time = 0;
 		cl.intermission_next = 0;
-		Host_LoadStrings ();
+		Host_LoadStrings (NULL);
 		break;
 
 	default: /* unexpected: */

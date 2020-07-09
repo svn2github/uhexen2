@@ -152,7 +152,7 @@ void R_InitExtraTextures (void)
 	for (i = 0; i < MAX_EXTRA_TEXTURES; i++)
 		gl_extra_textures[i] = GL_UNUSED_TEXTURE;
 
-	// see R_TranslatePlayerSkin() below
+	// see R_TranslateNewPlayerSkin() below
 	//glGenTextures_fp(MAX_CLIENTS, playertextures);
 }
 
@@ -249,7 +249,7 @@ void R_Init (void)
 	R_InitParticleTexture ();
 	R_InitExtraTextures ();
 
-	playerTranslation = (byte *)FS_LoadHunkFile ("gfx/player.lmp", NULL);
+	playerTranslation = (byte *)FS_LoadHunkFile ("gfx/player.lmp", NULL, NULL);
 	if (!playerTranslation)
 		Sys_Error ("Couldn't load gfx/player.lmp");
 
@@ -267,7 +267,7 @@ Translates a skin texture by the per-player color lookup
 */
 extern	byte	player_8bit_texels[MAX_PLAYER_CLASS][620*245];
 
-void R_TranslatePlayerSkin (int playernum)
+void R_TranslatePlayerSkin_Old (int playernum)
 {
 	int		top, bottom;
 	byte		translate[256];
@@ -389,6 +389,77 @@ void R_TranslatePlayerSkin (int playernum)
 
 //now recolor it
 	//TexMgr_ReloadImage(playertextures[playernum], top, bottom);
+}
+
+
+/*
+===============
+R_TranslatePlayerSkin -- johnfitz -- rewritten.  also, only handles new colors, not new skins
+===============
+*/
+void R_TranslatePlayerSkin(int playernum)
+{
+	int			top, bottom;
+
+	top = (cl.scores[playernum].colors & 0xf0) >> 4;
+	bottom = cl.scores[playernum].colors & 15;
+
+	//FIXME: if gl_nocolors is on, then turned off, the textures may be out of sync with the scoreboard colors.
+	if (!gl_nocolors.value)
+		if (playertextures[playernum])
+			TexMgr_ReloadImage(playertextures[playernum], top, bottom);
+}
+
+/*
+===============
+R_TranslateNewPlayerSkin -- johnfitz -- split off of TranslatePlayerSkin -- this is called when
+the skin or model actually changes, instead of just new colors
+added bug fix from bengt jardup
+===============
+*/
+void R_TranslateNewPlayerSkin(int playernum)
+{
+	char		name[64];
+	byte		*pixels;
+	aliashdr_t	*paliashdr;
+	int		skinnum;
+	int		playerclass = (int)cl.scores[playernum].playerclass;
+
+	//get correct texture pixels
+	currententity = &cl_entities[1 + playernum];
+
+	if (!currententity->model || currententity->model->type != mod_alias)
+		return;
+
+	paliashdr = (aliashdr_t *)Mod_Extradata(currententity->model);
+
+	skinnum = currententity->skinnum;
+
+	if (paliashdr->numskins)
+	{
+		//TODO: move these tests to the place where skinnum gets received from the server
+		if (skinnum < 0 || skinnum >= paliashdr->numskins)
+		{
+			Con_DPrintf("(%d): Invalid player skin #%d\n", playernum, skinnum);
+			skinnum = 0;
+		}
+
+		pixels = (byte *)paliashdr + *player_8bit_texels[playerclass - 1]; // This is not a persistent place!
+
+	//upload new image
+		q_snprintf(name, sizeof(name), "player_%i", playernum);
+		playertextures[playernum] = TexMgr_LoadImage(currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
+			SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
+	}
+	else
+	{
+		q_snprintf(name, sizeof(name), "player_%i", playernum);
+		playertextures[playernum] = TexMgr_LoadImage(currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
+			SRC_EXTERNAL, NULL, "skins/base.pcx", 0, TEXPREF_PAD | TEXPREF_OVERWRITE);
+	}
+
+	//now recolor it
+	R_TranslatePlayerSkin(playernum);
 }
 
 /*

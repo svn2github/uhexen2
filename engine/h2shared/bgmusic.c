@@ -644,7 +644,15 @@ void BGM_Update (void)
 		}
 	}
 	if (midi_handle.handle)
-		midi_handle.driver->mididrv_advance (& midi_handle.handle);
+	{
+		if (midi_handle.driver->done)
+		{
+			midi_handle.driver->done = false;
+			midi_handle.driver->mididrv_setvol(&midi_handle.handle, bgmvolume.value);
+		}
+
+		midi_handle.driver->mididrv_advance(&midi_handle.handle);
+	}
 	if (bgmstream)
 		BGM_UpdateStream ();
 }

@@ -34,7 +34,7 @@ static cvar_t	gl_picmip = { "gl_picmip", "0", CVAR_NONE };
 static GLint	gl_hardware_maxsize;
 cvar_t	gl_texture_NPOT = { "gl_texture_NPOT", "", CVAR_ARCHIVE };
 //extern cvar_t gl_max_size;
-cvar_t	gl_max_size = { "gl_max_size", "256", CVAR_ARCHIVE };
+cvar_t	gl_max_size = { "gl_max_size", "0", CVAR_ARCHIVE };
 
 #define	MAX_GLTEXTURES	2048
 static gltexture_t	*active_gltextures, *free_gltextures;
@@ -480,7 +480,7 @@ void TexMgr_LoadPalette(void)
 	int i, mark;
 	FILE *f;
 
-	FS_OpenFile("gfx/palette.lmp", &f, NULL);
+	FS_OpenFile("gfx/palette.lmp", &f, NULL, NULL);
 	if (!f)
 		Sys_Error("Couldn't load gfx/palette.lmp");
 
@@ -1412,7 +1412,7 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants)
 		//lump inside file
 		long size;
 		FILE *f;
-		FS_OpenFile(glt->source_file, &f, NULL);
+		FS_OpenFile(glt->source_file, &f, NULL, NULL);
 		if (!f)
 			goto invalid;
 		fseek(f, glt->source_offset, SEEK_CUR);

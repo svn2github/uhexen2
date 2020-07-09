@@ -308,7 +308,7 @@ static void Cmd_Exec_f (void)
 
 	// FIXME: is this safe freeing the hunk here???
 	mark = Hunk_LowMark ();
-	f = (char *)FS_LoadHunkFile (Cmd_Argv(1), NULL);
+	f = (char *)FS_LoadHunkFile (Cmd_Argv(1), NULL, NULL);
 	if (!f)
 	{
 		Con_Printf ("couldn't exec %s\n",Cmd_Argv(1));

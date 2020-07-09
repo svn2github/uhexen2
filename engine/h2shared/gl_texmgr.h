@@ -37,7 +37,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define	TEXPREF_TRANSPARENT		0x2000	// Transparent sprite
 
 
-enum srcformat {SRC_INDEXED, SRC_LIGHTMAP, SRC_RGBA};
+enum srcformat {SRC_INDEXED, SRC_LIGHTMAP, SRC_RGBA, SRC_EXTERNAL};
 
 typedef uintptr_t src_offset_t;
 

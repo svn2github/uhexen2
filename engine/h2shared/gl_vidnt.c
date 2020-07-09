@@ -1327,7 +1327,7 @@ static void VID_InitPalette (const unsigned char *palette)
 
 	// Initialize the palettized textures data
 	mark = Hunk_LowMark ();
-	inverse_pal = (unsigned char *) FS_LoadHunkFile (INVERSE_PALNAME, NULL);
+	inverse_pal = (unsigned char *) FS_LoadHunkFile (INVERSE_PALNAME, NULL, NULL);
 	if (inverse_pal != NULL && fs_filesize != INVERSE_PAL_SIZE)
 	{
 		Hunk_FreeToLowMark (mark);

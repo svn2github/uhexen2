@@ -835,7 +835,7 @@ FS_OpenFile
 Finds the file in the search path, returns fs_filesize.
 ===========
 */
-size_t FS_OpenFile (const char *filename, FILE **file, unsigned int *path_id)
+size_t FS_OpenFile (const char *filename, FILE **file, unsigned int *path_id, unsigned int *dir_path_id)
 {
 	searchpath_t	*search;
 	pack_t		*pak;
@@ -854,6 +854,10 @@ size_t FS_OpenFile (const char *filename, FILE **file, unsigned int *path_id)
 			{
 				if (strcmp(pak->files[i].name, filename) != 0)
 					continue;
+
+				if ((dir_path_id) && (search->path_id != *dir_path_id))
+					continue;
+
 				/* found it! */
 				fs_filesize = (size_t) pak->files[i].filelen;
 				file_from_pak = 1;
@@ -875,6 +879,10 @@ size_t FS_OpenFile (const char *filename, FILE **file, unsigned int *path_id)
 			fs_filesize = (size_t) Sys_filesize (ospath);
 			if (fs_filesize == (size_t)-1)
 				continue;
+
+			if ((dir_path_id) && (search->path_id != *dir_path_id))
+				continue;
+
 			if (path_id)
 				*path_id = search->path_id;
 			if (!file) /* for FS_FileExists() */
@@ -902,7 +910,7 @@ Returns whether the file is found in the hexen2 filesystem.
 */
 qboolean FS_FileExists (const char *filename, unsigned int *path_id)
 {
-	size_t ret = FS_OpenFile (filename, NULL, path_id);
+	size_t ret = FS_OpenFile (filename, NULL, path_id, NULL);
 	return (ret == (size_t)-1) ? false : true;
 }
 
@@ -927,6 +935,63 @@ qboolean FS_FileInGamedir (const char *filename)
 
 	return false;
 }
+
+
+/*
+===========
+FS_GetPathId
+
+Finds the file in the search path, returns path_id.
+===========
+*/
+unsigned int *FS_GetPathId(const char *filename, unsigned int *dir_path_id)
+{
+	searchpath_t	*search;
+	pack_t		*pak;
+	char	ospath[MAX_OSPATH];
+	int	i;
+	unsigned int *path_id;
+
+	file_from_pak = 0;
+
+	/* search through the path, one element at a time */
+	for (search = fs_searchpaths; search; search = search->next)
+	{
+		if (search->pack)	/* look through all the pak file elements */
+		{
+			pak = search->pack;
+			for (i = 0; i < pak->numfiles; i++)
+			{
+				if (strcmp(pak->files[i].name, filename) != 0)
+					continue;
+				/* found it! */
+
+				file_from_pak = 1;
+				return &search->path_id;
+			}
+		}
+		else	/* check a file in the directory tree */
+		{
+			q_snprintf(ospath, sizeof(ospath), "%s/%s", search->filename, filename);
+			fs_filesize = (size_t)Sys_filesize(ospath);
+
+			if (dir_path_id)
+				*dir_path_id = search->path_id;
+
+			if (fs_filesize == (size_t)-1)
+				continue;
+
+			return &search->path_id;
+		}
+	}
+
+	Sys_DPrintf("%s: can't find %s\n", __thisfunc__, filename);
+
+	dir_path_id = NULL;
+
+	return NULL;
+}
+
 
 /*
 ============
@@ -955,7 +1020,7 @@ static int		zone_num;
 #define Draw_EndDisc()
 #endif	/* SERVERONLY */
 
-static byte *FS_LoadFile (const char *path, int usehunk, unsigned int *path_id)
+static byte *FS_LoadFile (const char *path, int usehunk, unsigned int *path_id, unsigned int *dir_path_id)
 {
 	FILE	*h;
 	byte	*buf;
@@ -963,7 +1028,7 @@ static byte *FS_LoadFile (const char *path, int usehunk, unsigned int *path_id)
 	size_t	len;
 
 /* look for it in the filesystem or pack files */
-	len = FS_OpenFile (path, &h, path_id);
+	len = FS_OpenFile (path, &h, path_id, dir_path_id);
 	if (!h)
 		return NULL;
 
@@ -1013,46 +1078,46 @@ static byte *FS_LoadFile (const char *path, int usehunk, unsigned int *path_id)
 	return buf;
 }
 
-byte *FS_LoadHunkFile (const char *path, unsigned int *path_id)
+byte *FS_LoadHunkFile (const char *path, unsigned int *path_id, unsigned int *dir_path_id)
 {
-	return FS_LoadFile (path, LOADFILE_HUNK, path_id);
+	return FS_LoadFile (path, LOADFILE_HUNK, path_id, dir_path_id);
 }
 
-byte *FS_LoadZoneFile (const char *path, int zone_id, unsigned int *path_id)
+byte *FS_LoadZoneFile (const char *path, int zone_id, unsigned int *path_id, unsigned int *dir_path_id)
 {
 	zone_num = zone_id;
-	return FS_LoadFile (path, LOADFILE_ZONE, path_id);
+	return FS_LoadFile (path, LOADFILE_ZONE, path_id, dir_path_id);
 }
 
-byte *FS_LoadTempFile (const char *path, unsigned int *path_id)
+byte *FS_LoadTempFile (const char *path, unsigned int *path_id, unsigned int *dir_path_id)
 {
-	return FS_LoadFile (path, LOADFILE_TEMPHUNK, path_id);
+	return FS_LoadFile (path, LOADFILE_TEMPHUNK, path_id, dir_path_id);
 }
 
 #if !defined(SERVERONLY)
-void FS_LoadCacheFile (const char *path, struct cache_user_s *cu, unsigned int *path_id)
+void FS_LoadCacheFile (const char *path, struct cache_user_s *cu, unsigned int *path_id, unsigned int *dir_path_id)
 {
 	loadcache = cu;
-	FS_LoadFile (path, LOADFILE_CACHE, path_id);
+	FS_LoadFile (path, LOADFILE_CACHE, path_id, dir_path_id);
 }
 #endif	/* SERVERONLY */
 
 /* uses temp hunk if larger than bufsize */
-byte *FS_LoadStackFile (const char *path, void *buffer, size_t bufsize, unsigned int *path_id)
+byte *FS_LoadStackFile (const char *path, void *buffer, size_t bufsize, unsigned int *path_id, unsigned int *dir_path_id)
 {
 	byte	*buf;
 
 	loadbuf = (byte *)buffer;
 	loadsize = bufsize;
-	buf = FS_LoadFile (path, LOADFILE_STACK, path_id);
+	buf = FS_LoadFile (path, LOADFILE_STACK, path_id, dir_path_id);
 
 	return buf;
 }
 
 /* returns malloc'd memory */
-byte *FS_LoadMallocFile (const char *path, unsigned int *path_id)
+byte *FS_LoadMallocFile (const char *path, unsigned int *path_id, unsigned int *dir_path_id)
 {
-	return FS_LoadFile (path, LOADFILE_MALLOC, path_id);
+	return FS_LoadFile (path, LOADFILE_MALLOC, path_id, dir_path_id);
 }
 
 
@@ -1231,7 +1296,7 @@ static int CheckRegistered (void)
 	unsigned short	check[128];
 	int	i;
 
-	FS_OpenFile("gfx/pop.lmp", &h, NULL);
+	FS_OpenFile("gfx/pop.lmp", &h, NULL, NULL);
 	if (!h)
 		return -1;
 

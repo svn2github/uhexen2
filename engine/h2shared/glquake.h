@@ -374,7 +374,8 @@ void R_InitNetgraphTexture (void);
 #endif
 
 void R_ReadPointFile_f (void);
-void R_TranslatePlayerSkin (int playernum);
+void R_TranslateNewPlayerSkin(int playernum);
+void R_TranslatePlayerSkin(int playernum);
 
 void DrawGLPoly(glpoly_t *p);
 #endif	/* GLQUAKE_H */

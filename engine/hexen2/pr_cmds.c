@@ -440,6 +440,50 @@ static void PF_centerprint (void)
 	MSG_WriteString (&client->message, s);
 }
 
+/*
+=================
+PF_centerprintf
+
+single print to a specific client with token
+
+centerprintf(clientent, string, value)
+=================
+*/
+static void PF_centerprintf(void)
+{
+	client_t	*client;
+
+	int			entnum;
+	const char	*s;
+	char *temp;
+	char str[256];
+	float		v;
+
+	entnum = G_EDICTNUM(OFS_PARM0);
+	s = G_STRING(OFS_PARM1);
+
+	if (entnum < 1 || entnum > svs.maxclients)
+	{
+		Con_Printf("tried to sprint to a non-client\n");
+		return;
+	}
+
+	v = G_FLOAT(OFS_PARM2);
+
+
+	temp = PR_GetTempString();
+	if (v == (int)v)
+		sprintf(temp, "%d", (int)v);
+	else
+		sprintf(temp, "%5.1f", v);
+
+	q_snprintf(str, sizeof(str), s, temp);
+
+	client = &svs.clients[entnum - 1];
+
+	MSG_WriteChar(&client->message, svc_centerprint);
+	MSG_WriteString(&client->message, str);
+}
 
 /*
 =================
@@ -3441,7 +3485,7 @@ static builtin_t pr_builtin[] =
 	PF_set_extra_flags,	// void(string model, int flags) set_extra_flags	= #107
 	PF_set_fx_color,	// void(string model, float r, float g, float b, float a) set_fx_color	= #108
 	PF_strhash,		// float(string s1) strhash = #109
-	PF_Fixme,
+	PF_centerprintf,
 	PF_Fixme,
 	PF_Fixme,
 	PF_Fixme,

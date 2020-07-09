@@ -933,7 +933,7 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 
 	if (fa->flags & SURF_DRAWFENCE)
 	{
-		glAlphaFunc_fp(GL_GREATER, 0);
+		glAlphaFunc_fp(GL_GREATER, 0.0);
 		glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
 		glDepthMask_fp(1);
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);

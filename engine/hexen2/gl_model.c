@@ -373,7 +373,7 @@ static qmodel_t *Mod_LoadModel (qmodel_t *mod, qboolean crash)
 //
 // load the file
 //
-	buf = FS_LoadStackFile (mod->name, stackbuf, sizeof(stackbuf), & mod->path_id);
+	buf = FS_LoadStackFile (mod->name, stackbuf, sizeof(stackbuf), & mod->path_id, NULL);
 	if (!buf)
 	{
 		if (crash)
@@ -893,7 +893,7 @@ void Mod_ReloadTextures (void)
 	{
 		for (j = 0; j < cl.maxclients && j < cl.num_entities + 1; j++)
 		{
-			R_TranslatePlayerSkin(j);
+			R_TranslateNewPlayerSkin(j);
 		}
 	}
 }
@@ -932,7 +932,7 @@ static void Mod_LoadLighting (lump_t *l)
 			q_strlcat(litfilename, ".lit", sizeof(litfilename));
 			Con_DPrintf("trying to load %s\n", litfilename);
 			mark = Hunk_LowMark();
-			data = (byte*) FS_LoadHunkFile (litfilename, &path_id);
+			data = (byte*) FS_LoadHunkFile (litfilename, &path_id, NULL);
 			if (data == NULL)
 				goto _load_internal;
 			// use lit file only from the same gamedir as the map
@@ -1084,7 +1084,7 @@ static void Mod_LoadEntities (lump_t *l)
 	q_strlcat(entfilename, ".ent", sizeof(entfilename));
 	Con_DPrintf("trying to load %s\n", entfilename);
 	mark = Hunk_LowMark();
-	ents = (char *) FS_LoadHunkFile (entfilename, &path_id);
+	ents = (char *) FS_LoadHunkFile (entfilename, &path_id, NULL);
 	if (ents)
 	{
 		// use ent file only from the same gamedir as the map

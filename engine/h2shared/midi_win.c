@@ -52,6 +52,7 @@ static void MIDI_SetVolume (void **handle, float value);
 
 static midi_driver_t midi_win_ms =
 {
+	false, /* stream has reached the end */
 	false, /* init success */
 	"midiStream for Windows",
 	MIDI_Init,
@@ -76,6 +77,8 @@ static qboolean	midi_file_open, midi_playing, midi_paused;
 static UINT	device_id = MIDI_MAPPER, callback_status;
 static int	buf_num, num_empty_bufs;
 static DWORD	volume_cache[MIDI_CHANNELS];
+static DWORD	volume_cache2[MIDI_CHANNELS];
+static DWORD	old_starttime[MIDI_CHANNELS];
 static qboolean	hw_vol_capable = false;
 
 static HMIDISTRM	hStream;
@@ -87,7 +90,7 @@ static void FreeBuffers (void);
 static int  StreamBufferSetup (const char *filename);
 static void CALLBACK MidiProc (HMIDIIN, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR);
 static void SetAllChannelVolumes (DWORD volume_percent);
-/*static void SetChannelVolume (DWORD channel_num, DWORD volume_percent);*/
+static void SetChannelVolume (DWORD channel_num, DWORD volume_percent);
 
 
 #define CHECK_MIDI_ALIVE()		\
@@ -129,7 +132,6 @@ static void MIDI_SetVolume (void **handle, float value)
 static void MIDI_Rewind (void **handle)
 {
 	CHECK_MIDI_ALIVE();
-
 	/* handled by converter module */
 }
 
@@ -396,7 +398,7 @@ static int StreamBufferSetup(const char *filename)
 		return 1;
 
 	for (i = 0; i < MIDI_CHANNELS; i++)
-		volume_cache[i] = VOL_CACHE_INIT;
+		volume_cache[i] = VOL_CACHE_INIT * bgmvolume.value;
 
 	mptd.cbStruct = sizeof(mptd);
 	mptd.dwTimeDiv = mfs.timediv;
@@ -477,6 +479,7 @@ static void CALLBACK MidiProc(HMIDIIN hMidi, UINT uMsg, DWORD_PTR dwInstance, DW
 	MIDIEVENT *me;
 	MIDIHDR *mh;
 	MMRESULT mmr;
+	DWORD event, status, vol;
 	int err;
 
 	switch (uMsg)
@@ -557,18 +560,29 @@ static void CALLBACK MidiProc(HMIDIIN hMidi, UINT uMsg, DWORD_PTR dwInstance, DW
 			buf_num = (buf_num + 1) % NUM_STREAM_BUFFERS;
 			num_empty_bufs--;
 		}
+
+		if ((stream_bufs[buf_num].starttime < old_starttime[buf_num]) && (midi_win_ms.done == false))
+			midi_win_ms.done = true;
+
+		old_starttime[buf_num] = stream_bufs[buf_num].starttime;
 		break;
 
 	case MOM_POSITIONCB:
 		mh = (MIDIHDR *)dwParam1;
 		me = (MIDIEVENT *)(mh->lpData + mh->dwOffset);
+		//midi_win_ms.done = true;
 		if (MIDIEVENT_TYPE(me->dwEvent) == MIDICMD_CONTROL)
 		{
 			if (MIDIEVENT_DATA1(me->dwEvent) != MIDICTL_MSB_MAIN_VOLUME)
 				break;
 
 			/* mask off the channel number and cache the volume data byte */
-			volume_cache[MIDIEVENT_CHANNEL(me->dwEvent)] = MIDIEVENT_VOLUME(me->dwEvent);
+			DWORD blah = MIDIEVENT_CHANNEL(me->dwEvent);
+			volume_cache2[MIDIEVENT_CHANNEL(me->dwEvent)] = MIDIEVENT_VOLUME(me->dwEvent);
+			volume_cache[MIDIEVENT_CHANNEL(me->dwEvent)] = (volume_cache2[MIDIEVENT_CHANNEL(me->dwEvent)] * bgmvolume.value);
+			//volume_cache[MIDIEVENT_CHANNEL(me->dwEvent)] = (MIDIEVENT_VOLUME(me->dwEvent) * bgmvolume.value);
+			if (midi_win_ms.done == false)
+				midi_win_ms.done = true;
 		}
 		break;
 
@@ -593,7 +607,7 @@ static void SetAllChannelVolumes(DWORD volume_percent)
 
 	for (i = 0, status = MIDICMD_CONTROL; i < MIDI_CHANNELS; i++, status++)
 	{
-		vol = (volume_cache[i] * volume_percent) / 1000;
+		vol = (volume_cache2[i] * volume_percent) / 1000;
 		event = status | ((DWORD)MIDICTL_MSB_MAIN_VOLUME << 8) | ((DWORD)vol << 16);
 		mmr = midiOutShortMsg((HMIDIOUT)hStream, event);
 		if (mmr != MMSYSERR_NOERROR)
@@ -609,7 +623,7 @@ static void SetAllChannelVolumes(DWORD volume_percent)
  * Given a percent in tenths of a percent, sets volume
  * on a specified channel to reflect the new value.
  */
-#if 0	/* not used */
+//#if 0	/* not used */
 static void SetChannelVolume(DWORD channel_num, DWORD volume_percent)
 {
 	DWORD event, vol;
@@ -625,5 +639,5 @@ static void SetChannelVolume(DWORD channel_num, DWORD volume_percent)
 	if (mmr != MMSYSERR_NOERROR)
 		MidiErrorMessageBox(mmr);
 }
-#endif	/* #if 0 */
+//#endif	/* #if 0 */
 

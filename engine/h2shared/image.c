@@ -94,12 +94,12 @@ byte *Image_LoadImage (const char *name, int *width, int *height/*, qboolean *ma
 		return Image_LoadPNG(f, width, height, malloced);*/
 
 	q_snprintf (loadfilename, sizeof(loadfilename), "%s.tga", name);
-	FS_OpenFile (loadfilename, &f, NULL);
+	FS_OpenFile (loadfilename, &f, NULL, NULL);
 	if (f)
 		return Image_LoadTGA (f, width, height);
 
 	q_snprintf (loadfilename, sizeof(loadfilename), "%s.pcx", name);
-	FS_OpenFile (loadfilename, &f, NULL);
+	FS_OpenFile (loadfilename, &f, NULL, NULL);
 	if (f)
 		return Image_LoadPCX (f, width, height);
 

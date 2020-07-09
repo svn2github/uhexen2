@@ -159,7 +159,7 @@ int CFG_OpenConfig (const char *cfg_name)
 
 	CFG_CloseConfig ();
 
-	length = FS_OpenFile (cfg_name, &f, NULL);
+	length = FS_OpenFile (cfg_name, &f, NULL, NULL);
 	pak = file_from_pak;
 	if (length == (size_t)-1)
 		return -1;

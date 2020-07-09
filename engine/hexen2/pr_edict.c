@@ -1401,7 +1401,7 @@ static const char maplist_name[] = "maplist.txt";
 	unsigned int	id0, id1;
 	fshandle_t	FH;
 
-	FH.length = (long) FS_OpenFile (maplist_name, & FH.file, &id1);
+	FH.length = (long) FS_OpenFile (maplist_name, & FH.file, &id1, NULL);
 	FH.pak = file_from_pak;
 	if (FH.file == NULL)
 		return def_progname;
@@ -1545,7 +1545,7 @@ void PR_LoadProgs (void)
 		gefvCache[i].field[0] = 0;
 
 	progname = PR_GetProgFilename();
-	progs = (dprograms_t *)FS_LoadHunkFile (progname, NULL);
+	progs = (dprograms_t *)FS_LoadHunkFile (progname, NULL, NULL);
 	if (!progs)
 		Host_Error ("%s: couldn't load %s", __thisfunc__, progname);
 	Con_DPrintf ("Programs occupy %luK.\n", (unsigned long)(fs_filesize/1024));

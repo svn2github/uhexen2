@@ -951,8 +951,8 @@ static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t
 		}
 		*set_ent = *ref_ent;
 
-		IgnoreEnt = ((!VectorCompare(ent->v.origin, vec3_origin)) && VectorCompare(ent->v.origin, ent->baseline.origin) && (FoundInList == true) ? true : false);
-
+		//IgnoreEnt = ((!VectorCompare(ent->v.origin, vec3_origin)) && VectorCompare(ent->v.origin, ent->baseline.origin) && (FoundInList == true) ? true : false);
+		//IgnoreEnt = false;
 		if (IgnoreEnt)
 			continue;
 
@@ -2058,7 +2058,14 @@ void SV_SpawnServer (const char *server, const char *startspot)
 	current_loading_size += 10;
 	D_ShowLoadingSize();
 #endif
-	Host_LoadStrings();
+
+	char		modelname[MAX_QPATH];	// maps/<name>.bsp, for model_precache[0]
+
+	q_snprintf(modelname, sizeof(modelname), "maps/%s.bsp", server);
+	unsigned int dir_path_id;
+	FS_GetPathId(modelname, &dir_path_id);
+
+	Host_LoadStrings(&dir_path_id);
 #if !defined(SERVERONLY)
 	current_loading_size += 5;
 	D_ShowLoadingSize();

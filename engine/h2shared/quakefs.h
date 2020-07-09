@@ -91,7 +91,7 @@ int FS_CreatePath (char *path);
 	 * be created, it must have the trailing path seperator. Returns 0 on success,
 	 * non-zero on error. */
 
-size_t FS_OpenFile (const char *filename, FILE **file, unsigned int *path_id);
+size_t FS_OpenFile (const char *filename, FILE **file, unsigned int *path_id, unsigned int *dir_path_id);
 	/* Opens a file (a standalone file or a file in pak) in the hexen2 filesystem,
 	 * returns fs_filesize on success or (size_t)-1 on failure.  if path_id is not
 	 * NULL, the id number of the opened file's gamedir is stored in path_id.  */
@@ -104,26 +104,31 @@ qboolean FS_FileInGamedir (const char *filename);
 	/* Reports the existance of a file with read permissions in
 	 * fs_gamedir or fs_userdir. *NOT* for files in pakfiles!  */
 
+unsigned int *FS_GetPathId(const char *filename, unsigned int *dir_path_id);
+/* Reports the search path_id of a file with read permissions in
+ * fs_gamedir or fs_userdir. */
+
+
 /* these procedures open a file using FS_OpenFile and loads it into a proper
  * buffer. the buffer is allocated with a total size of fs_filesize + 1. the
  * procedures differ by their buffer allocation method.  */
-byte *FS_LoadZoneFile (const char *path, int zone_id, unsigned int *path_id);
+byte *FS_LoadZoneFile (const char *path, int zone_id, unsigned int *path_id, unsigned int *dir_path_id);
 	/* allocates the buffer on the zone. zone_id: which zone to use.  */
-byte *FS_LoadTempFile (const char *path, unsigned int *path_id);
+byte *FS_LoadTempFile (const char *path, unsigned int *path_id, unsigned int *dir_path_id);
 	/* allocates the buffer on the temp hunk.  */
-byte *FS_LoadHunkFile (const char *path, unsigned int *path_id);
+byte *FS_LoadHunkFile (const char *path, unsigned int *path_id, unsigned int *dir_path_id);
 	/* allocates the buffer on the hunk.  */
-byte *FS_LoadMallocFile (const char *path, unsigned int *path_id);
+byte *FS_LoadMallocFile (const char *path, unsigned int *path_id, unsigned int *dir_path_id);
 	/* allocates the buffer on the system mem (malloc).  */
 byte *FS_LoadStackFile (const char *path, void *buffer, size_t bufsize,
-							unsigned int *path_id);
+							unsigned int *path_id, unsigned int *dir_path_id);
 	/* uses the specified stack stack buffer with the specified size
 	 * of bufsize. if bufsize is too short, uses temp hunk. the bufsize
 	 * must include the +1  */
 
 struct cache_user_s;
 void  FS_LoadCacheFile (const char *path, struct cache_user_s *cu,
-							unsigned int *path_id);
+							unsigned int *path_id, unsigned int *dir_path_id);
 	/* uses cache mem for allocating the buffer.  */
 
 #define	FS_BASEDIR	0	/* host_parms->basedir (i.e.:  fs_basedir) */
