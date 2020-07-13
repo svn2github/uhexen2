@@ -195,7 +195,7 @@ Sky_LoadSkyBox
 const char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 void Sky_LoadSkyBox (const char *name)
 {
-	int		i, mark, width, height;
+	int		i, mark, width, height, namelen;
 	char	filename[MAX_OSPATH];
 	byte	*data;
 	qboolean nonefound = true;
@@ -218,11 +218,24 @@ void Sky_LoadSkyBox (const char *name)
 		return;
 	}
 
+	namelen = 0;
+	while (true)
+	{
+		if (name[namelen] == 0)
+			break;
+
+		namelen++;
+	}
+
 	//load textures
 	for (i=0; i<6; i++)
 	{
 		mark = Hunk_LowMark ();
-		q_snprintf (filename, sizeof(filename), "gfx/env/%s%s", name, suf[i]);
+		if (name[namelen-1] == '_')
+			q_snprintf (filename, sizeof(filename), "gfx/env/%s%s", name, suf[i]);
+		else
+			q_snprintf(filename, sizeof(filename), "gfx/env/%s_%s", name, suf[i]);
+
 		data = Image_LoadImage (filename, &width, &height);
 		if (data)
 		{
@@ -231,8 +244,22 @@ void Sky_LoadSkyBox (const char *name)
 		}
 		else
 		{
-			Con_Printf ("Couldn't load %s\n", filename);
-			skybox_textures[i] = notexture;
+			if (name[namelen - 1] == '_')
+				q_snprintf(filename, sizeof(filename), "skies/%s%s", name, suf[i]);
+			else
+				q_snprintf(filename, sizeof(filename), "skies/%s_%s", name, suf[i]);
+
+			data = Image_LoadImage(filename, &width, &height);
+			if (data)
+			{
+				skybox_textures[i] = TexMgr_LoadImage(cl.worldmodel, filename, width, height, SRC_RGBA, data, filename, 0, TEXPREF_NONE);
+				nonefound = false;
+			}
+			else
+			{
+				Con_Printf("Couldn't load %s\n", filename);
+				skybox_textures[i] = notexture;
+			}
 		}
 		Hunk_FreeToLowMark (mark);
 	}
