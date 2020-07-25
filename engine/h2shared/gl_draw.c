@@ -100,8 +100,6 @@ static const char	*cs_data = {
 
 int		gl_filter_idx = 4; /* Bilinear */
 
-gltexture_t	gltextures[MAX_GLTEXTURES];
-
 static GLuint GL_LoadPixmap (const char *name, const char *data);
 static void GL_Upload32 (unsigned int *data, gltexture_t *glt);
 static void GL_Upload8 (byte *data, gltexture_t *glt);
@@ -342,32 +340,6 @@ qpic_t *Draw_MakePic(const char *name, int width, int height, byte *data)
 	return pic;
 }
 
-/*
-===============
-Draw_TextureMode_f
-===============
-*/
-static void Draw_TouchAllFilterModes (void)
-{
-	gltexture_t	*glt;
-	int	i;
-
-	for (i = 0, glt = gltextures; i < numgltextures; i++, glt++)
-	{
-		if (glt->flags & (TEXPREF_NEAREST | TEXPREF_LINEAR))	/* TEX_MIPMAP mustn't be set in this case */
-			continue;
-		GL_Bind (glt);
-		glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[gl_filter_idx].magfilter);
-		if (glt->flags & TEXPREF_MIPMAP)
-		{
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[gl_filter_idx].minfilter);
-			if (gl_max_anisotropy >= 2)
-				glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
-		}
-		else	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[gl_filter_idx].magfilter);
-	}
-}
-
 static void Draw_TextureMode_f (cvar_t *var)
 {
 	int	i;
@@ -380,7 +352,7 @@ static void Draw_TextureMode_f (cvar_t *var)
 			{
 				gl_filter_idx = i;
 				// change all the existing mipmap texture objects
-				Draw_TouchAllFilterModes ();
+				//Draw_TouchAllFilterModes ();
 			}
 			return;
 		}
@@ -397,40 +369,6 @@ static void Draw_TextureMode_f (cvar_t *var)
 
 	Con_Printf ("bad filter name\n");
 	Cvar_SetQuick (var, glmodes[gl_filter_idx].name);
-}
-
-static void Draw_TouchMipmapFilterModes (void)
-{
-	gltexture_t	*glt;
-	int	i;
-
-	for (i = 0, glt = gltextures; i < numgltextures; i++, glt++)
-	{
-		if (glt->flags & TEXPREF_MIPMAP)
-		{
-			GL_Bind (glt);
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, glmodes[gl_filter_idx].magfilter);
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, glmodes[gl_filter_idx].minfilter);
-			glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_texture_anisotropy.value);
-		}
-	}
-}
-
-static void Draw_Anisotropy_f (cvar_t *var)
-{
-	if (var->value < 1)
-	{
-		Cvar_SetQuick (var, "1");
-	}
-	else if (var->value > gl_max_anisotropy)
-	{
-		Cvar_SetValueQuick (var, gl_max_anisotropy);
-	}
-	else
-	{
-		if (gl_max_anisotropy >= 2)
-			Draw_TouchMipmapFilterModes ();
-	}
 }
 
 /*
@@ -548,6 +486,7 @@ void Draw_Init (void)
 	byte		*chars;
 	int		i;
 
+	/*
 	if (!draw_reinit)
 	{
 		Cvar_RegisterVariable (&gl_picmip);
@@ -558,6 +497,7 @@ void Draw_Init (void)
 		Cvar_SetCallback (&gl_texturemode, Draw_TextureMode_f);
 		Cvar_SetCallback (&gl_texture_anisotropy, Draw_Anisotropy_f);
 	}
+	*/
 
 	// load the charset: 8*8 graphic characters
 	chars = FS_LoadTempFile ("gfx/menu/conchars.lmp", NULL, NULL);
@@ -1149,11 +1089,11 @@ Draw_TransPic
 */
 void Draw_TransPic (int x, int y, qpic_t *pic)
 {
-	if (x < 0 || (x + pic->width) > vid.width ||
-	    y < 0 || (y + pic->height) > vid.height)
-	{
-		Sys_Error ("%s: bad coordinates", __thisfunc__);
-	}
+	//if (x < 0 || (x + pic->width) > vid.width ||
+	//    y < 0 || (y + pic->height) > vid.height)
+	//{
+		//Sys_Error ("%s: bad coordinates", __thisfunc__);
+	//}
 
 	Draw_Pic (x, y, pic);
 }

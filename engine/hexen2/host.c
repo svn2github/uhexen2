@@ -659,7 +659,7 @@ not reinitialize anything.
 void Host_ClearMemory (void)
 {
 	Con_DPrintf ("Clearing memory\n");
-	D_FlushCaches ();
+	//D_FlushCaches ();
 	Mod_ClearAll ();
 	//TexMgr_FreeTexturesForOwner(NULL);
 	//TexMgr_FreeTexturesForOwner(sv.worldmodel);
@@ -1080,7 +1080,7 @@ void Host_Init (void)
 #ifdef GLQUAKE
 /* analogous to host_hunklevel, this will mark OpenGL texture
  * beyond which everything will need to be purged on new map */
-	gl_texlevel = numgltextures;
+	TexMgr_SetTexLevel();
 #endif
 
 	Hunk_AllocName (0, "-HOST_HUNKLEVEL-");

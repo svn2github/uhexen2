@@ -1493,26 +1493,33 @@ static void DrawTextureChains_New(entity_t *e)
 		//with no fog, one modulate pass with black fog, and one additive
 		//pass with black geometry and normal fog
 		Fog_DisableGFog();
-		DrawTextureChains_TextureOnly(e);
+		if (!r_lightmap.integer)
+			DrawTextureChains_TextureOnly(e);
+		else
+			DrawTextureChains_NoTexture(e);
 		Fog_EnableGFog();
+
 		glDepthMask_fp(GL_FALSE);
 		glEnable_fp(GL_BLEND);
 		glBlendFunc_fp(GL_ZERO, GL_SRC_COLOR); //modulate
 
-		Fog_StartAdditive();
+		if (!r_fullbright.integer)
+		{
+			Fog_StartAdditive();
 
-		if (gl_lightmap_format == GL_LUMINANCE)
-			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-		else
-			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			if (gl_lightmap_format == GL_LUMINANCE)
+				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+			else
+				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-		glEnable_fp(GL_BLEND);
+			glEnable_fp(GL_BLEND);
 
-		R_DrawLightmapChains();
+			R_DrawLightmapChains();
 
-		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		//glDisable_fp(GL_BLEND);
-		Fog_StopAdditive();
+			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			//glDisable_fp(GL_BLEND);
+			Fog_StopAdditive();
+		}
 
 		if (Fog_GetDensity() > 0.00)
 		{

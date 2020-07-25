@@ -42,7 +42,6 @@ cvar_t			gl_purge_maptex = {"gl_purge_maptex", "1", CVAR_ARCHIVE};
 				// are purged on map change. default == yes
 
 qboolean		flush_textures;
-int			gl_texlevel;
 extern int		menu_numcachepics;
 extern cachepic_t	menu_cachepics[MAX_CACHED_PICS];
 extern	cvar_t	gl_max_size;
@@ -506,42 +505,3 @@ void R_NewMap (void)
 	R_LoadSkys ();
 #endif
 }
-
-
-/* D_ClearOpenGLTexture
-   this procedure (called by Host_ClearMemory/SV_SpawnServer in hexen2 on new
-   map, or by CL_ClearState/CL_ParseServerData in HW on new connection) will
-   purge all OpenGL textures beyond static ones (console, menu, etc, whatever
-   was loaded at initialization time). This will save a lot of video memory,
-   because the textures won't keep accumulating from map to map, thus bloating
-   more and more the more time the client is running, which gets pretty nasty
-   on 8-16-32M machines with OpenGL drivers like nVidia, which cache all
-   textures in system memory. (Pa3PyX)
-*/
-void D_ClearOpenGLTextures (int last_tex)
-{
-	int		i;
-
-	// Delete OpenGL textures
-	for (i = last_tex; i < numgltextures; i++)
-		glDeleteTextures_fp(1, &(gltextures[i].texnum));
-
-	memset(&(gltextures[last_tex]), 0, (numgltextures - last_tex) * sizeof(gltexture_t));
-	numgltextures = last_tex;
-
-	if (currenttexture[0] >= (GLuint)last_tex)
-		currenttexture[0] = GL_UNUSED_TEXTURE;
-
-	// Clear menu pic cache
-	memset(menu_cachepics, 0, menu_numcachepics * sizeof(cachepic_t));
-	menu_numcachepics = 0;
-
-	Con_DPrintf ("Purged OpenGL textures\n");
-}
-
-void D_FlushCaches (void)
-{
-	if (numgltextures - gl_texlevel > 0 && flush_textures && gl_purge_maptex.integer)
-		D_ClearOpenGLTextures (gl_texlevel);
-}
-

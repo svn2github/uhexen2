@@ -335,12 +335,12 @@ void GL_MakeAliasModelDisplayLists (qmodel_t *m, aliashdr_t *hdr)
 	int		*loadcmds; //johnfitz
 
 	//johnfitz -- padded skins
-	hscale = (float)(hdr->gltextures[0][0]->source_width) / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->source_width);
-	vscale = (float)(hdr->gltextures[0][0]->source_height) / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->source_height);
+	//hscale = (float)(hdr->gltextures[0][0]->source_width) / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->source_width);
+	//vscale = (float)(hdr->gltextures[0][0]->source_height) / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->source_height);
 	//hscale = (float)(hdr->skinwidth) / (float)TexMgr_PadConditional(hdr->skinwidth);
 	//vscale = (float)(hdr->skinheight) / (float)TexMgr_PadConditional(hdr->skinheight);
-	//hscale = (float)(hdr->skinwidth) / (float)TexMgr_PadConditional(hdr->skinwidth);
-	//vscale = (float)(hdr->skinheight) / (float)TexMgr_PadConditional(hdr->skinheight);
+	hscale = (float)(hdr->skinwidth) / (float)TexMgr_PadConditional(hdr->skinwidth);
+	vscale = (float)(hdr->skinheight) / (float)TexMgr_PadConditional(hdr->skinheight);
 	//hscale = 1.0f;
 	//vscale = 1.0f;
 	//johnfitz

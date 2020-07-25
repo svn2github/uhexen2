@@ -193,12 +193,7 @@ extern GLint		gl_max_texture_units; //ericw
 		}							\
 	} while (0)
 */
-extern	int		gl_texlevel;
-//int			numgltextures;
-int numgltextures;
-extern	int		numgltextures;
 extern	qboolean	flush_textures;
-extern	gltexture_t	gltextures[MAX_GLTEXTURES];
 
 extern	int		gl_filter_idx;
 extern	float		gldepthmin, gldepthmax;
@@ -374,8 +369,8 @@ void R_InitNetgraphTexture (void);
 #endif
 
 void R_ReadPointFile_f (void);
-void R_TranslateNewPlayerSkin(int playernum);
 void R_TranslatePlayerSkin(int playernum);
+void R_TranslateNewPlayerSkin(int playernum);  //johnfitz -- this handles cases when the actual texture changes
 
 void DrawGLPoly(glpoly_t *p);
 #endif	/* GLQUAKE_H */

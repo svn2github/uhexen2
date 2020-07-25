@@ -589,7 +589,7 @@ static void CL_ParseUpdate (int bits)
 		else	forcelink = true;	// hack to make null model players work
 #ifdef GLQUAKE
 		if (num > 0 && num <= cl.maxclients)
-			R_TranslateNewPlayerSkin(num - 1);
+			R_TranslateNewPlayerSkin(num - 1); //johnfitz -- was R_TranslatePlayerSkin
 #endif
 	}
 

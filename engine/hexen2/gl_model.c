@@ -350,7 +350,7 @@ Mod_LoadModel
 Loads a model into the cache
 ==================
 */
-static qmodel_t *Mod_LoadModel (qmodel_t *mod, qboolean crash)
+qmodel_t *Mod_LoadModel (qmodel_t *mod, qboolean crash)
 {
 	byte	*buf;
 	byte	stackbuf[1024];		// avoid dirtying the cache heap
@@ -849,7 +849,9 @@ void Mod_ReloadTextures (void)
 	int			j;
 	qmodel_t	*mod;
 	texture_t	*tx;
-	/*
+	src_offset_t		offset;
+
+	
 	// Reload world (brush models are submodels of world),
 	// don't touch if not yet loaded
 	mod = cl.worldmodel;
@@ -863,12 +865,15 @@ void Mod_ReloadTextures (void)
 				if (!q_strncasecmp(tx->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
 					Sky_LoadTexture(tx);
 				else
+				{
+					//offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
 					tx->gltexture = TexMgr_LoadImage(loadmodel, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
 						WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
+				}
 			}
 		}
 	}
-	*/
+	
 	// Reload alias models and sprites
 	for (j = 0; j < mod_numknown; j++)
 	{
@@ -2435,7 +2440,7 @@ static void Mod_FloodFillSkin (byte *skin, int skinwidth, int skinheight)
 Mod_LoadAllSkins
 ===============
 */
-static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int mdl_flags)
+void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int mdl_flags)
 {
 	int	i, j, k;
 	char	name[MAX_QPATH];
@@ -2862,6 +2867,7 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	start = Hunk_LowMark ();
 
 	pinmodel = (newmdl_t *)buffer;
+	mod_base = (byte *)buffer; //johnfitz
 
 	version = LittleLong (pinmodel->version);
 	if (version != ALIAS_NEWVERSION)
@@ -3002,8 +3008,8 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	mod->maxs[0] = aliasmaxs[0] + 10;
 	mod->maxs[1] = aliasmaxs[1] + 10;
 	mod->maxs[2] = aliasmaxs[2] + 10;
-	/*
-	if (pheader->numskins)
+	
+	/*if (pheader->numskins)
 	{
 		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
 		pheader->skinheight = pheader->gltextures[0][0]->source_height;
@@ -3033,7 +3039,7 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 Mod_LoadAliasModel
 =================
 */
-static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
+void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 {
 	int			i, j;
 	mdl_t			*pinmodel;
@@ -3050,6 +3056,7 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	start = Hunk_LowMark ();
 
 	pinmodel = (mdl_t *)buffer;
+	mod_base = (byte *)buffer; //johnfitz
 
 	version = LittleLong (pinmodel->version);
 	if (version != ALIAS_VERSION)
@@ -3191,8 +3198,8 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	{
 		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
 		pheader->skinheight = pheader->gltextures[0][0]->source_height;
-	}
-	*/
+	}*/
+	
 //
 // build the draw lists
 //

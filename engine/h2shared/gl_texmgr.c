@@ -37,8 +37,10 @@ cvar_t	gl_texture_NPOT = { "gl_texture_NPOT", "", CVAR_ARCHIVE };
 cvar_t	gl_max_size = { "gl_max_size", "0", CVAR_ARCHIVE };
 
 #define	MAX_GLTEXTURES	2048
+static int numgltextures;
 static gltexture_t	*active_gltextures, *free_gltextures;
 gltexture_t		*notexture, *nulltexture;
+
 
 unsigned int d_8to24table[256];
 unsigned int d_8to24table_fbright[256];
@@ -101,6 +103,19 @@ static void TexMgr_DescribeTextureModes_f(void)
 		Con_SafePrintf("   %2i: %s\n", i + 1, glmodes[i].name);
 
 	Con_Printf("%i modes\n", i);
+}
+
+/*
+================
+TexMgr_SetTexLevel
+
+analogous to host_hunklevel, this will mark OpenGL texture
+beyond which everything will need to be purged on new map
+================
+*/
+void TexMgr_SetTexLevel(void)
+{
+	return; // try using a gltexture as the marker?
 }
 
 /*
@@ -1160,7 +1175,7 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 		}
 	}
 
-
+	
 	s = glt->width * glt->height;
 	mark = Hunk_LowMark();
 	trans = (unsigned int *)Hunk_AllocName(s * sizeof(unsigned int), "texbuf_upload8");
@@ -1182,10 +1197,10 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 				if (noalpha)
 					noalpha = false;
 
-				/* transparent, so scan around for another color
-				 * to avoid alpha fringes */
-				 /* this is a replacement from Quake II for Raven's
-				  * "neighboring colors" code */
+				// transparent, so scan around for another color
+				// to avoid alpha fringes
+				// this is a replacement from Quake II for Raven's
+				// "neighboring colors" code
 				if (i > glt->width && data[i - glt->width] != 255)
 					p = data[i - glt->width];
 				else if (i < s - glt->width && data[i + glt->width] != 255)
@@ -1196,7 +1211,7 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 					p = data[i + 1];
 				else
 					p = 0;
-				/* copy rgb components */
+				// copy rgb components
 				((byte *)&trans[i])[0] = ((byte *)&d_8to24table[p])[0];
 				((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
 				((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
@@ -1249,8 +1264,8 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 	}
 	else
 	{
-		if (s & 3)
-			Sys_Error("%s: s&3", __thisfunc__);
+		//if (s & 3)
+		//	Sys_Error("%s: s&3", __thisfunc__);
 		for (i = 0; i < s; i += 4)
 		{
 			trans[i] = d_8to24table[data[i]];
@@ -1259,6 +1274,7 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 			trans[i + 3] = d_8to24table[data[i + 3]];
 		}
 	}
+	
 
 	// fix edges
 	if (glt->flags & TEXPREF_ALPHA)
@@ -1273,6 +1289,25 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 
 	TexMgr_LoadImage32(glt, trans);
 	Hunk_FreeToLowMark(mark);
+	
+/*
+	// convert to 32bit
+	data = (byte *)TexMgr_8to32(data, glt->width * glt->height, usepal);
+
+	// fix edges
+	if (glt->flags & TEXPREF_ALPHA)
+		TexMgr_AlphaEdgeFix(data, glt->width, glt->height);
+	else
+	{
+		if (padw)
+			TexMgr_PadEdgeFixW(data, glt->source_width, glt->source_height);
+		if (padh)
+			TexMgr_PadEdgeFixH(data, glt->source_width, glt->source_height);
+	}
+
+	// upload it
+	TexMgr_LoadImage32(glt, (unsigned *)data);
+	*/
 }
 
 /*

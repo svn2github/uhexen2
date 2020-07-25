@@ -75,6 +75,7 @@ unsigned int d_8to24table_pants[256];
 
 // TEXTURE MANAGER
 
+void TexMgr_SetTexLevel(void);
 float TexMgr_FrameUsage (void);
 gltexture_t *TexMgr_FindTexture (qmodel_t *owner, char *name);
 gltexture_t *TexMgr_NewTexture (void);

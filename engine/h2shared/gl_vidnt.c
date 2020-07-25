@@ -2147,6 +2147,7 @@ static void VID_ChangeVideoMode (int newmode)
 	// Unload all textures and reset texture counts
 	//D_ClearOpenGLTextures(NULL);
 	TexMgr_DeleteTextureObjects();
+	//TexMgr_FreeTextures(0, true);
 	//memset (lightmap_textures, 0, sizeof(lightmap_textures));
 
 	// reset all opengl function pointers
@@ -2220,8 +2221,8 @@ static void VID_ChangeVideoMode (int newmode)
 	Draw_Init();
 	SCR_Init();
 	// R_Init() stuff:
-	R_InitParticleTexture();
-	R_InitExtraTextures ();
+	//R_InitParticleTexture();
+	//R_InitExtraTextures ();
 #if defined(H2W)
 	R_InitNetgraphTexture();
 #endif	/* H2W */
@@ -2233,10 +2234,10 @@ static void VID_ChangeVideoMode (int newmode)
 	BGM_Resume ();
 
 	// Reload model textures and player skins
-	Mod_ReloadTextures();
+	//Mod_ReloadTextures();
 	Fog_SetupState();
 	// rebuild the lightmaps
-	GL_BuildLightmaps();
+	//GL_BuildLightmaps();
 	// finished reloading all images
 	draw_reinit = false;
 	scr_disabled_for_loading = temp;
