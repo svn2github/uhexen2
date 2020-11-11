@@ -253,21 +253,23 @@ static void R_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 
 			if (gl_lightmap_format == GL_RGBA)
 			{
-				for (i = 0, j = 0; i < size; i++)
+				//johnfitz -- lit support via lordhavoc
+				bl = blocklightscolor;
+				for (i = 0; i < size; i++)
 				{
-					blocklightscolor[i * 3 + 0] += lightmap[j] * scale;
-					blocklightscolor[i * 3 + 1] += lightmap[++j] * scale;
-					blocklightscolor[i * 3 + 2] += lightmap[++j] * scale;
-					j++;
+					*bl++ += *lightmap++ * scale;
+					*bl++ += *lightmap++ * scale;
+					*bl++ += *lightmap++ * scale;
 				}
-
-				lightmap += size * 3;
+				//johnfitz
 			}
 			else
 			{
+				//johnfitz -- lit support via lordhavoc
+				bl = blocklights;
 				for (i = 0; i < size; i++)
-					blocklights[i] += lightmap[i] * scale;
-				lightmap += size;	// skip to next lightmap
+					*bl++ += *lightmap++ * scale;
+				//johnfitz
 			}
 		}
 	}
@@ -281,54 +283,28 @@ store:
 	switch (gl_lightmap_format)
 	{
 	case GL_RGBA:
-		stride -= (smax << 2);
-
-		blcr = &blocklightscolor[0];
-		blcg = &blocklightscolor[1];
-		blcb = &blocklightscolor[2];
-
+		stride -= smax * 4;
+		bl = blocklightscolor;
 		for (i = 0; i < tmax; i++, dest += stride)
 		{
 			for (j = 0; j < smax; j++)
 			{
-				q = *blcr;
-				q >>= 7;
-				r = *blcg;
-				r >>= 7;
-				s = *blcb;
-				s >>= 7;
-
-				if (q > 255)
-					q = 255;
-				if (r > 255)
-					r = 255;
-				if (s > 255)
-					s = 255;
-
-				if (gl_coloredlight.integer)
+				if (gl_coloredlight.value)
 				{
-					dest[0] = q; //255 - q;
-					dest[1] = r; //255 - r;
-					dest[2] = s; //255 - s;
-					dest[3] = 255; //(q+r+s)/3;
+					blcr = *bl++ >> 7;
+					blcg = *bl++ >> 7;
+					blcb = *bl++ >> 7;
 				}
 				else
 				{
-					t = (int)((float)q * 0.33f + (float)s * 0.33f + (float)r * 0.33f);
-
-					if (t > 255)
-						t = 255;
-					dest[0] = t;
-					dest[1] = t;
-					dest[2] = t;
-					dest[3] = 255; //t;
+					blcr = 255;
+					blcg = 255;
+					blcb = 255;
 				}
-
-				dest += 4;
-
-				blcr += 3;
-				blcg += 3;
-				blcb += 3;
+				*dest++ = (blcr > 255) ? 255 : blcr;
+				*dest++ = (blcg > 255) ? 255 : blcg;
+				*dest++ = (blcb > 255) ? 255 : blcb;
+				*dest++ = 255;
 			}
 		}
 		break;
@@ -369,14 +345,8 @@ static void R_UploadLightmap(int lmap)
 	lightmap_modified[lmap] = false;
 
 	theRect = &lightmap_rectchange[lmap];
-	
 	glTexSubImage2D_fp(GL_TEXTURE_2D, 0, 0, theRect->t, BLOCK_WIDTH, theRect->h, gl_lightmap_format,
 		GL_UNSIGNED_BYTE, lightmaps + (lmap* BLOCK_HEIGHT + theRect->t) *BLOCK_WIDTH*lightmap_bytes);
-	/*
-	glTexImage2D_fp(GL_TEXTURE_2D, 0, lightmap_bytes, BLOCK_WIDTH,
-		BLOCK_HEIGHT, 0, gl_lightmap_format, GL_UNSIGNED_BYTE,
-		lightmaps + lmap * BLOCK_WIDTH*BLOCK_HEIGHT*lightmap_bytes);
-		*/
 	theRect->l = BLOCK_WIDTH;
 	theRect->t = BLOCK_HEIGHT;
 	theRect->h = 0;
@@ -392,37 +362,11 @@ void R_UploadLightmaps(void)
 
 	for (lmap = 0; lmap < MAX_LIGHTMAPS; lmap++)
 	{
-		//if (!lightmap_modified[lmap])
-		//	continue;
-
-		//GL_Bind(lightmap_textures[lmap]);
-		if (!lightmap_textures[0])
-		{
-			// if lightmaps were hosed in a video mode change, make
-			// sure we allocate new slots for lightmaps, otherwise
-			// we'll probably overwrite some other existing textures.
-			//glGenTextures_fp(MAX_LIGHTMAPS, lightmap_textures);
-		}
-
-		//p = lightmap_polys[lmap];
-		if (!lightmap_polys[lmap])
-			continue;	// skip if no lightmap
+		if (!lightmap_modified[lmap])
+			continue;
 
 		GL_Bind(lightmap_textures[lmap]);
-
-		if (lightmap_modified[lmap])
-		{
-			// if current lightmap was changed reload it
-			// and mark as not changed.
-			//lightmap_modified[lmap] = false;
-			R_UploadLightmap(lmap);
-
-			//glTexImage2D_fp(GL_TEXTURE_2D, 0, lightmap_bytes, BLOCK_WIDTH,
-			//	BLOCK_HEIGHT, 0, gl_lightmap_format, GL_UNSIGNED_BYTE,
-			//	lightmaps + lmap * BLOCK_WIDTH*BLOCK_HEIGHT*lightmap_bytes);
-		}
-
-		//R_UploadLightmap(lmap);
+		R_UploadLightmap(lmap);
 	}
 
 	if (gl_mtexable)
@@ -513,8 +457,9 @@ static void R_BuildLightmapChains(qmodel_t *mod, texchain_t chain)
 
 		s = t->texturechains[chain_world];
 
-		for (; s; s = s->texturechain)
-			R_RenderDynamicLightmaps(s);
+		for (s = t->texturechains[chain]; s; s = s->texturechain)
+			if (!s->culled)
+				R_RenderDynamicLightmaps(s);
 	}
 }
 

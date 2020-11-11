@@ -273,9 +273,12 @@ static void SCR_CheckDrawCenterString (void)
 	if (Key_GetDest() != key_game)
 		return;
 #if !defined(H2W)
-	if (intro_playing)
+	if (intro_playing || (scr_centerstring[0] == '_')) /* If the intro is running or the first character in the message is an underscore - Inky */
 	{
-		Bottom_Plaque_Draw(scr_centerstring);
+		if (scr_centerstring[0] == '_')
+			Bottom_Plaque_Draw(scr_centerstring+1);
+		else
+			Bottom_Plaque_Draw(scr_centerstring);
 		return;
 	}
 #endif	/* H2W */

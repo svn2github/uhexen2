@@ -1180,7 +1180,9 @@ const char *ED_ParseEdict (const char *data, edict_t *ent)
 		key = ED_FindField (keyname);
 		if (!key)
 		{
-			Con_Printf ("'%s' is not a field\n", keyname);
+			//johnfitz -- HACK -- suppress error becuase fog/sky/alpha fields might not be mentioned in defs.qc
+			if (strncmp(keyname, "sky", 3) && strcmp(keyname, "fog") && strcmp(keyname, "alpha"))
+				Con_Printf ("'%s' is not a field\n", keyname);
 			continue;
 		}
 
