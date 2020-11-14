@@ -289,18 +289,20 @@ store:
 		{
 			for (j = 0; j < smax; j++)
 			{
-				if (gl_coloredlight.value)
+				blcr = q = *bl++ >> 7;
+				blcg = r = *bl++ >> 7;
+				blcb = s = *bl++ >> 7;
+
+				if (!gl_coloredlight.value)
 				{
-					blcr = *bl++ >> 7;
-					blcg = *bl++ >> 7;
-					blcb = *bl++ >> 7;
+					t = (int)((float)q * 0.33f + (float)s * 0.33f + (float)r * 0.33f);
+					if (t > 255)
+						t = 255;
+					blcr = t;
+					blcg = t;
+					blcb = t;
 				}
-				else
-				{
-					blcr = 255;
-					blcg = 255;
-					blcb = 255;
-				}
+
 				*dest++ = (blcr > 255) ? 255 : blcr;
 				*dest++ = (blcg > 255) ? 255 : blcg;
 				*dest++ = (blcb > 255) ? 255 : blcb;
@@ -1427,7 +1429,10 @@ static void DrawTextureChains_New(entity_t *e)
 		GL_EnableMultitexture();
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		GL_DisableMultitexture();
-		DrawTextureChains_Multitexture(e);
+		if (r_fullbright.integer)
+			DrawTextureChains_TextureOnly(e);
+		else
+			DrawTextureChains_Multitexture(e);
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	}
 	else

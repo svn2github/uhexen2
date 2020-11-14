@@ -214,7 +214,7 @@ void Sbar_Draw(void)
 	char	tempStr[80];
 	int	mana, maxMana;
 
-	if (intro_playing)		// the mission pack intro is active
+	if (intro_playing || cl.v.cameramode)		// the mission pack intro is active or cameramode is active
 	{
 		scr_fullupdate = 0;
 		scr_copyeverything = 1;
