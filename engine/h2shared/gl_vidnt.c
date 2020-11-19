@@ -2215,6 +2215,13 @@ static void VID_ChangeVideoMode (int newmode)
 	GL_Init();
 	VID_Init8bitPalette();
 	TexMgr_ReloadImages();
+	if (cls.state == ca_active)
+	{
+		for (int j = 0; j < cl.maxclients && j < cl.num_entities + 1; j++)
+		{
+			R_TranslateNewPlayerSkin(j);
+		}
+	}
 
 	// Reload pre-map pics, fonts, console, etc
 	//TexMgr_Init(); //johnfitz

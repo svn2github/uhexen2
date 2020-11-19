@@ -1436,6 +1436,7 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants)
 {
 	byte	translation[256];
 	byte	*src, *dst, *data = NULL, *translated;
+	byte		*sourceA, *sourceB, *colorA, *colorB;
 	int	mark, size, i;
 	//
 	// get source data
@@ -1491,11 +1492,28 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants)
 		else
 			Con_Printf("TexMgr_ReloadImage: can't colormap a non SRC_INDEXED texture: %s\n", glt->name);
 	}
+
+	//colorA = playerTranslation + 256 + color_offsets[playerclass - 1];
+	colorA = playerTranslation + 256 + color_offsets[1 - 1];
+	colorB = colorA + 256;
+	sourceA = colorB + 256 + (shirt * 256);
+	sourceB = colorB + 256 + (pants * 256);
+
 	if (glt->shirt > -1 && glt->pants > -1)
 	{
 		//create new translation table
 		for (i = 0; i < 256; i++)
 			translation[i] = i;
+
+		/*
+		for (i = 0; i < 256; i++, colorA++, colorB++, sourceA++, sourceB++)
+		{
+			if (shirt >= 0 && (*colorA != 255))
+				translation[i] = *sourceA;
+			if (pants >= 0 && (*colorB != 255))
+				translation[i] = *sourceB;
+		}
+		*/
 
 		shirt = glt->shirt * 16;
 		if (shirt < 128)
@@ -1549,6 +1567,148 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants)
 
 	Hunk_FreeToLowMark(mark);
 }
+
+/*
+================
+TexMgr_ReloadImage_Player -- reloads a player texture, and colormaps it if needed
+================
+*/
+void TexMgr_ReloadImage_Player(gltexture_t *glt, int shirt, int pants, int playernum)
+{
+	byte	translation[256];
+	byte	*src, *dst, *data = NULL, *translated;
+	byte		*sourceA, *sourceB, *colorA, *colorB;
+	int		playerclass = (int)cl.scores[playernum].playerclass;
+	int	mark, size, i;
+	//
+	// get source data
+	//
+	mark = Hunk_LowMark();
+
+	if (glt->source_file[0] && glt->source_offset)
+	{
+		//lump inside file
+		long size;
+		FILE *f;
+		FS_OpenFile(glt->source_file, &f, NULL, NULL);
+		if (!f)
+			goto invalid;
+		fseek(f, glt->source_offset, SEEK_CUR);
+		size = (long)(glt->source_width * glt->source_height);
+		/* should be SRC_INDEXED, but no harm being paranoid:  */
+		if (glt->source_format == SRC_RGBA)
+			size *= 4;
+		else if (glt->source_format == SRC_LIGHTMAP)
+			size *= lightmap_bytes;
+		data = (byte *)Hunk_Alloc(size);
+		fread(data, 1, size, f);
+		fclose(f);
+	}
+	else if (glt->source_file[0] && !glt->source_offset)
+		data = Image_LoadImage(glt->source_file, (int *)&glt->source_width, (int *)&glt->source_height); //simple file
+	else if (!glt->source_file[0] && glt->source_offset)
+		data = (byte *)glt->source_offset; //image in memory
+
+	if (!data)
+	{
+	invalid:
+		Con_Printf("TexMgr_ReloadImage: invalid source for %s\n", glt->name);
+		Hunk_FreeToLowMark(mark);
+		return;
+	}
+
+	glt->width = glt->source_width;
+	glt->height = glt->source_height;
+	//
+	// apply shirt and pants colors
+	//
+	// if shirt and pants are -1,-1, use existing shirt and pants colors
+	// if existing shirt and pants colors are -1,-1, don't bother colormapping
+	if (shirt > -1 && pants > -1)
+	{
+		if (glt->source_format == SRC_INDEXED)
+		{
+			glt->shirt = shirt;
+			glt->pants = pants;
+		}
+		else
+			Con_Printf("TexMgr_ReloadImage: can't colormap a non SRC_INDEXED texture: %s\n", glt->name);
+	}
+
+	colorA = playerTranslation + 256 + color_offsets[playerclass - 1];
+	//colorA = playerTranslation + 256 + color_offsets[1 - 1];
+	colorB = colorA + 256;
+	sourceA = colorB + 256 + (shirt * 256);
+	sourceB = colorB + 256 + (pants * 256);
+
+	if (glt->shirt > -1 && glt->pants > -1)
+	{
+		//create new translation table
+		for (i = 0; i < 256; i++)
+			translation[i] = i;
+
+		for (i = 0; i < 256; i++, colorA++, colorB++, sourceA++, sourceB++)
+		{
+			if (shirt >= 0 && (*colorA != 255))
+				translation[i] = *sourceA;
+			if (pants >= 0 && (*colorB != 255))
+				translation[i] = *sourceB;
+		}
+
+		/*
+				shirt = glt->shirt * 16;
+				if (shirt < 128)
+				{
+					for (i = 0; i < 16; i++)
+						translation[TOP_RANGE + i] = shirt + i;
+				}
+				else
+				{
+					for (i = 0; i < 16; i++)
+						translation[TOP_RANGE + i] = shirt + 15 - i;
+				}
+
+				pants = glt->pants * 16;
+				if (pants < 128)
+				{
+					for (i = 0; i < 16; i++)
+						translation[BOTTOM_RANGE + i] = pants + i;
+				}
+				else
+				{
+					for (i = 0; i < 16; i++)
+						translation[BOTTOM_RANGE + i] = pants + 15 - i;
+				}
+		*/
+		//translate texture
+		size = glt->width * glt->height;
+		dst = translated = (byte *)Hunk_Alloc(size);
+		src = data;
+
+		for (i = 0; i < size; i++)
+			*dst++ = translation[*src++];
+
+		data = translated;
+	}
+	//
+	// upload it
+	//
+	switch (glt->source_format)
+	{
+	case SRC_INDEXED:
+		TexMgr_LoadImage8(glt, data);
+		break;
+	case SRC_LIGHTMAP:
+		TexMgr_LoadLightmap(glt, data);
+		break;
+	case SRC_RGBA:
+		TexMgr_LoadImage32(glt, (unsigned *)data);
+		break;
+	}
+
+	Hunk_FreeToLowMark(mark);
+}
+
 
 /*
 ================

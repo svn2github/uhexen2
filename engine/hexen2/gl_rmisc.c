@@ -406,7 +406,7 @@ void R_TranslatePlayerSkin(int playernum)
 	//FIXME: if gl_nocolors is on, then turned off, the textures may be out of sync with the scoreboard colors.
 	if (!gl_nocolors.value)
 		if (playertextures[playernum])
-			TexMgr_ReloadImage(playertextures[playernum], top, bottom);
+			TexMgr_ReloadImage_Player(playertextures[playernum], top, bottom, playernum);
 }
 
 /*
@@ -416,7 +416,7 @@ the skin or model actually changes, instead of just new colors
 added bug fix from bengt jardup
 ===============
 */
-void R_TranslateNewPlayerSkin(int playernum)
+void R_TranslateNewPlayerSkin_QS(int playernum)
 {
 	char		name[64];
 	byte		*pixels;
@@ -460,6 +460,142 @@ void R_TranslateNewPlayerSkin(int playernum)
 	//now recolor it
 	R_TranslatePlayerSkin(playernum);
 }
+
+
+void R_TranslateNewPlayerSkin(int playernum)
+{
+	int		top, bottom;
+	byte		translate[256];
+	unsigned int	translate32[256];
+	unsigned int	i, j;
+	qmodel_t	*model;
+	aliashdr_t	*paliashdr;
+	byte		*original;
+	unsigned int	pixels[512 * 256], *out;
+	unsigned int	scaled_width, scaled_height;
+	int		inwidth, inheight;
+	byte		*inrow;
+	unsigned int	frac, fracstep;
+	byte		*sourceA, *sourceB, *colorA, *colorB;
+	int		playerclass = (int)cl.scores[playernum].playerclass;
+	int		s;
+	//	char		texname[20];
+	char		name[64];
+	int		skinnum;
+
+	//gl_max_size.integer = 256; //shan?
+
+	for (i = 0; i < 256; i++)
+		translate[i] = i;
+
+	top = (cl.scores[playernum].colors & 0xf0) >> 4;
+	bottom = (cl.scores[playernum].colors & 15);
+
+	if (top > 10)
+		top = 0;
+	if (bottom > 10)
+		bottom = 0;
+
+	top -= 1;
+	bottom -= 1;
+
+	colorA = playerTranslation + 256 + color_offsets[playerclass - 1];
+	colorB = colorA + 256;
+	sourceA = colorB + 256 + (top * 256);
+	sourceB = colorB + 256 + (bottom * 256);
+	for (i = 0; i < 256; i++, colorA++, colorB++, sourceA++, sourceB++)
+	{
+		if (top >= 0 && (*colorA != 255))
+			translate[i] = *sourceA;
+		if (bottom >= 0 && (*colorB != 255))
+			translate[i] = *sourceB;
+	}
+
+	//get correct texture pixels
+	currententity = &cl_entities[1 + playernum];
+
+	//
+	// locate the original skin pixels
+	//
+	model = cl_entities[1 + playernum].model;
+	if (!model)
+		return;		// player doesn't have a model yet
+
+	// class limit is mission pack dependant
+	s = (gameflags & GAME_PORTALS) ? MAX_PLAYER_CLASS : MAX_PLAYER_CLASS - PORTALS_EXTRA_CLASSES;
+	if (playerclass >= 1 && playerclass <= s)
+		original = player_8bit_texels[playerclass - 1];
+	else	original = player_8bit_texels[0];
+
+	paliashdr = (aliashdr_t *)Mod_Extradata(model);
+	s = paliashdr->skinwidth * paliashdr->skinheight;
+	if (s & 3)
+		Sys_Error("%s: s&3", __thisfunc__);
+
+	for (i = 0; i < 256; i++)
+		translate32[i] = d_8to24table[translate[i]];
+	if (gl_max_size.integer > 0)
+	{
+		scaled_width = gl_max_size.integer < 512 ? gl_max_size.integer : 512;
+		scaled_height = gl_max_size.integer < 256 ? gl_max_size.integer : 256;
+	}
+	else
+	{
+		scaled_width = 512;
+		scaled_height = 256;
+	}
+
+	// allow users to crunch sizes down even more if they want
+	scaled_width >>= gl_playermip.integer;
+	scaled_height >>= gl_playermip.integer;
+
+	inwidth = paliashdr->skinwidth;
+	inheight = paliashdr->skinheight;
+	out = pixels;
+	fracstep = inwidth * 0x10000 / scaled_width;
+	for (i = 0; i < scaled_height; i++, out += scaled_width)
+	{
+		inrow = original + inwidth * (i*inheight / scaled_height);
+		frac = fracstep >> 1;
+		for (j = 0; j < scaled_width; j += 4)
+		{
+			out[j] = translate32[inrow[frac >> 16]];
+			frac += fracstep;
+			out[j + 1] = translate32[inrow[frac >> 16]];
+			frac += fracstep;
+			out[j + 2] = translate32[inrow[frac >> 16]];
+			frac += fracstep;
+			out[j + 3] = translate32[inrow[frac >> 16]];
+			frac += fracstep;
+		}
+	}
+
+	// playertextures doesn't like GL_LoadTexture() and its associated glDeleteTextures()
+	// call, not sure why for now, so I have to do this the old way until I figure it out.
+	//	q_snprintf(texname, 19, "player%i", playernum);
+	//	playertextures[playernum] = GL_LoadTexture(texname, (byte *)pixels, scaled_width, scaled_height, TEX_RGBA|TEX_LINEAR);
+		//GL_Bind(playertextures[playernum]);
+		//glTexImage2D_fp(GL_TEXTURE_2D, 0, gl_solid_format, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+		//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		//glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		//glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//upload new image
+	q_snprintf(name, sizeof(name), "player_%i", playernum);
+	playertextures[playernum] = TexMgr_LoadImage(currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
+		SRC_INDEXED, pixels, paliashdr->gltextures[currententity->skinnum][0]->source_file, paliashdr->gltextures[currententity->skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
+
+	//playertextures[playernum] = TexMgr_LoadImage(NULL, name, scaled_width, scaled_height,
+		//SRC_RGBA, (byte *)pixels, paliashdr->gltextures[0][0]->source_file, paliashdr->gltextures[0][0]->source_offset, TEXPREF_RGBA | TEXPREF_LINEAR | TEXPREF_OVERWRITE);
+	//SRC_INDEXED, (byte *)pixels, paliashdr->gltextures[0][0]->source_file, paliashdr->gltextures[0][0]->source_offset, TEXPREF_RGBA | TEXPREF_LINEAR | TEXPREF_OVERWRITE);
+	//SRC_INDEXED, pixels, paliashdr->gltextures[currententity->skinnum][0]->source_file, paliashdr->gltextures[currententity->skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
+
+//now recolor it
+	//TexMgr_ReloadImage(playertextures[playernum], top, bottom);
+	R_TranslatePlayerSkin(playernum);
+
+}
+
 
 /*
 ===============
