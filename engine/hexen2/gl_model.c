@@ -2553,14 +2553,20 @@ void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int mdl_flags
 					q_snprintf(name, sizeof(name), "%s_%i", loadmodel->name, i);
 					pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
 						SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+					//pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, name, pheader->gltextures[i][0]->source_width, pheader->gltextures[i][0]->source_height,
+					//	SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
 				}
 			}
 			else
 			{
 				offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
 				q_snprintf(name, sizeof(name), "%s_%i", loadmodel->name, i);
-				pheader->gltextures[i][0] =	TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
-						SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+				//pheader->gltextures[i][0] =	TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+				//		SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+				pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+					SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+				//pheader->skinwidth = TexMgr_PadConditional(pheader->gltextures[i][0]->source_width);
+				//pheader->skinheight = TexMgr_PadConditional(pheader->gltextures[i][0]->source_height);
 			}
 			//GL_LoadTexture (name, (byte *)(pskintype + 1),
 			//pheader->skinwidth, pheader->skinheight, tex_mode);

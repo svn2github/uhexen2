@@ -123,7 +123,7 @@ static byte dottexture[TEXSIZE][TEXSIZE] =
 void R_InitParticleTexture (void)
 {
 	int		x, y;
-	byte	data[TEXSIZE][TEXSIZE][4];
+	static byte	data[TEXSIZE][TEXSIZE][4];
 
 	//
 	// particle texture
@@ -140,7 +140,8 @@ void R_InitParticleTexture (void)
 	}
 
 	//particletexture = GL_LoadTexture("", (byte *)data, TEXSIZE, TEXSIZE, TEX_ALPHA | TEX_RGBA | TEX_LINEAR);
-	particletexture = TexMgr_LoadImage(NULL, "particle", TEXSIZE, TEXSIZE, SRC_RGBA, (byte *)data, "", 0, TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_OVERWRITE);
+	//particletexture = TexMgr_LoadImage(NULL, "particle", TEXSIZE, TEXSIZE, SRC_RGBA, (byte *)data, "", 0, TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_OVERWRITE);
+	particletexture = TexMgr_LoadImage(NULL, "particle", TEXSIZE, TEXSIZE, SRC_RGBA, (byte *)data, "", (src_offset_t)data, TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR);
 	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 }
 

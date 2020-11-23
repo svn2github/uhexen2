@@ -482,7 +482,7 @@ Draw_Init
 */
 void Draw_Init (void)
 {
-	qpic_t		*p;
+	static qpic_t		*p;
 	byte		*chars;
 	int		i;
 
@@ -534,16 +534,19 @@ void Draw_Init (void)
 			p->data[i] = 255;	// proper transparent color
 	}
 	//char_menufonttexture = GL_LoadTexture ("menufont", p->data, p->width, p->height, TEX_ALPHA|TEX_LINEAR);
-	char_menufonttexture = TexMgr_LoadImage(NULL, WADFILENAME":menufont", p->width, p->height, SRC_INDEXED, p->data,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE);
+
+	char_menufonttexture = TexMgr_LoadImage(NULL, WADFILENAME":menufont", p->width, p->height, SRC_INDEXED, (byte *)p->data,
+		WADFILENAME, (src_offset_t)p->data, TEXPREF_PERSIST | TEXPREF_NOPICMIP | TEXPREF_ALPHA | TEXPREF_LINEAR);
+
 
 	// load the console background
 	p = (qpic_t *)FS_LoadTempFile ("gfx/menu/conback.lmp", NULL, NULL);
 	Draw_PicCheckError (p, "gfx/menu/conback.lmp");
 	SwapPic (p);
 	//conback = GL_LoadTexture ("conback", p->data, p->width, p->height, TEX_LINEAR);
-	conback = TexMgr_LoadImage(NULL, WADFILENAME":conback", p->width, p->height, SRC_INDEXED, p->data,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR | TEXPREF_NOPICMIP | TEXPREF_OVERWRITE);
+
+	conback = TexMgr_LoadImage(NULL, WADFILENAME":conback", p->width, p->height, SRC_INDEXED, (byte *)p->data, 
+		WADFILENAME, (src_offset_t)p->data, TEXPREF_PERSIST | TEXPREF_NOPICMIP | TEXPREF_ALPHA | TEXPREF_LINEAR);
 
 	// load the backtile
 	//p = (qpic_t *)FS_LoadTempFile("gfx/menu/backtile.lmp", NULL);

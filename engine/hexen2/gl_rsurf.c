@@ -882,7 +882,7 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	{
 		glAlphaFunc_fp(GL_GREATER, 0.0);
 		glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
-		glDepthMask_fp(1);
+		//glDepthMask_fp(1);
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		//glColor4f_fp(128.0f, 0.0f, 240.0f, 0.7f); //shan test color tint?
 	}
@@ -909,8 +909,15 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 			//glEnable_fp(GL_TEXTURE_2D);
+			//glDepthFunc_fp(GL_EQUAL);
+			//glDepthMask_fp(0);
+			Fog_StartAdditive();
 
-			GL_Bind (lightmap_textures[fa->lightmaptexturenum]);
+			GL_Bind(lightmap_textures[fa->lightmaptexturenum]);
+
+			Fog_StopAdditive();
+			//glDepthMask_fp(1);
+			//glDepthFunc_fp(GL_LEQUAL);
 			//glEnable_fp (GL_BLEND);
 
 			if (fa->flags & SURF_UNDERWATER)
@@ -938,7 +945,7 @@ void R_RenderBrushPoly (entity_t *e, msurface_t *fa, qboolean override, qboolean
 	{
 		glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off
 		glAlphaFunc_fp(GL_GREATER, 0.632);
-		glDepthMask_fp(0);
+		//glDepthMask_fp(0);
 	}
 
 // add the poly to the proper lightmap chain
@@ -1455,31 +1462,44 @@ static void DrawTextureChains_New(entity_t *e)
 
 		if (!r_fullbright.integer)
 		{
-			Fog_StartAdditive();
+			//Fog_StartAdditive();
 
 			if (gl_lightmap_format == GL_LUMINANCE)
 				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
 			else
 				glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-			glEnable_fp(GL_BLEND);
+			//glEnable_fp(GL_BLEND);
+
+			glDepthFunc_fp(GL_EQUAL);
+			//glDepthMask_fp(0);
+			Fog_StartAdditive();
 
 			R_DrawLightmapChains();
 
+			Fog_StopAdditive();
+			//glDepthMask_fp(1);
+			glDepthFunc_fp(GL_LEQUAL);
+
 			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 			//glDisable_fp(GL_BLEND);
-			Fog_StopAdditive();
+			//Fog_StopAdditive();
 		}
-
+		
 		if (Fog_GetDensity() > 0.00)
 		{
+			glDepthFunc_fp(GL_EQUAL);
+			glEnable_fp(GL_BLEND);
 			glBlendFunc_fp(GL_ONE, GL_ONE); //add
 			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 			glColor3f_fp(0, 0, 0);
 			DrawTextureChains_NoTexture(e);
 			glColor3f_fp(1, 1, 1);
 			glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			glDisable_fp(GL_BLEND);
+			glDepthFunc_fp(GL_LEQUAL);
 		}
+		
 		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable_fp(GL_BLEND);
 		glDepthMask_fp(GL_TRUE);
@@ -1763,10 +1783,10 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 		if (Translucent)
 		{
 			//glDepthFunc_fp(GL_EQUAL);
-			glDepthMask_fp(0);
+			//glDepthMask_fp(0);
 			//one pass with no fog
 			//Fog_DisableGFog();
-			Fog_StartAdditive();
+			//Fog_StartAdditive();
 			glBlendFunc_fp(GL_ONE, GL_ONE);
 			for (i = 0; i < clmodel->nummodelsurfaces; i++, psurf++)
 			{
@@ -1783,8 +1803,11 @@ void R_DrawBrushModel (entity_t *e, qboolean Translucent, qboolean unlit)
 				}
 			}
 			glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			Fog_StopAdditive();
+			//Fog_StopAdditive();
 			//Fog_EnableGFog();
+			//glDepthMask_fp(1);
+			//glDepthFunc_fp(GL_LEQUAL);
+
 
 			//one modulate pass with black fog
 			glDisable_fp(GL_BLEND);

@@ -521,7 +521,7 @@ void TexMgr_LoadPalette(void)
 	((byte *)&d_8to24table[0])[0] = 0;
 	((byte *)&d_8to24table[0])[1] = 0;
 	((byte *)&d_8to24table[0])[2] = 0;
-	((byte *)&d_8to24table[0])[3] = 0;
+	((byte *)&d_8to24table[0])[3] = 255;
 
 	//fullbright palette, 0-223 are black (for additive blending)
 	src = pal + 224 * 3;
@@ -1153,7 +1153,7 @@ static void TexMgr_LoadImage8(gltexture_t *glt, byte *data)
 	else
 	{
 		usepal = d_8to24table;
-		padbyte = 255;
+		padbyte = 0;
 	}
 
 	// pad each dimension, but only if it's not going to be downsampled later
@@ -1505,16 +1505,6 @@ void TexMgr_ReloadImage(gltexture_t *glt, int shirt, int pants)
 		for (i = 0; i < 256; i++)
 			translation[i] = i;
 
-		/*
-		for (i = 0; i < 256; i++, colorA++, colorB++, sourceA++, sourceB++)
-		{
-			if (shirt >= 0 && (*colorA != 255))
-				translation[i] = *sourceA;
-			if (pants >= 0 && (*colorB != 255))
-				translation[i] = *sourceB;
-		}
-		*/
-
 		shirt = glt->shirt * 16;
 		if (shirt < 128)
 		{
@@ -1655,31 +1645,6 @@ void TexMgr_ReloadImage_Player(gltexture_t *glt, int shirt, int pants, int playe
 				translation[i] = *sourceB;
 		}
 
-		/*
-				shirt = glt->shirt * 16;
-				if (shirt < 128)
-				{
-					for (i = 0; i < 16; i++)
-						translation[TOP_RANGE + i] = shirt + i;
-				}
-				else
-				{
-					for (i = 0; i < 16; i++)
-						translation[TOP_RANGE + i] = shirt + 15 - i;
-				}
-
-				pants = glt->pants * 16;
-				if (pants < 128)
-				{
-					for (i = 0; i < 16; i++)
-						translation[BOTTOM_RANGE + i] = pants + i;
-				}
-				else
-				{
-					for (i = 0; i < 16; i++)
-						translation[BOTTOM_RANGE + i] = pants + 15 - i;
-				}
-		*/
 		//translate texture
 		size = glt->width * glt->height;
 		dst = translated = (byte *)Hunk_Alloc(size);
