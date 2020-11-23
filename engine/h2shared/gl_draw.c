@@ -238,16 +238,12 @@ qpic_t	*Draw_CachePic (const char *path)
 	pic->pic.height = dat->height;
 
 	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
-		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_PAD | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
 
-	//gl.sl = 0;
-	//gl.sh = 1;
-	//gl.tl = 0;
-	//gl.th = 1;
 	gl.sl = 0;
-	gl.sh = (float)dat->width / (float)TexMgr_PadConditional(dat->width); //johnfitz
+	gl.sh = 1;
 	gl.tl = 0;
-	gl.th = (float)dat->height / (float)TexMgr_PadConditional(dat->height); //johnfitz
+	gl.th = 1;
 	memcpy (pic->pic.data, &gl, sizeof(glpic_t));
 
 	return &pic->pic;

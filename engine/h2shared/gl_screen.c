@@ -1037,8 +1037,12 @@ static void Bottom_Plaque_Draw (const char *message)
 		return;
 
 	FindTextBreaks(message, PLAQUE_WIDTH);
+	
+	if (intro_playing || cl.v.cameramode)
+		by = (((vid.height) / 8) - lines - 2) * 8;
+	else
+		by = (((vid.height - 37) / 8) - lines - 2) * 8;
 
-	by = (((vid.height) / 8) - lines - 2) * 8;
 	M_DrawTextBox (32, by - 16, PLAQUE_WIDTH + 4, lines + 2);
 
 	for (i = 0; i < lines; i++, by += 8)
@@ -1339,7 +1343,13 @@ void SCR_UpdateScreen (void)
 		Sbar_Draw();
 		SCR_DrawFPS();
 
-		Plaque_Draw(plaquemessage, false);
+		if (plaquemessage[0] == '_')
+		{
+			Bottom_Plaque_Draw(plaquemessage+1, false);
+		}
+		else
+			Plaque_Draw(plaquemessage, false);
+
 		SCR_DrawConsole();
 		M_Draw();
 

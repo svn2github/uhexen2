@@ -339,7 +339,7 @@ void GL_MakeAliasModelDisplayLists (qmodel_t *m, aliashdr_t *hdr)
 	//vscale = (float)(hdr->gltextures[0][0]->source_height) / (float)TexMgr_PadConditional(hdr->gltextures[0][0]->source_height);
 	//hscale = (float)(hdr->skinwidth) / (float)TexMgr_PadConditional(hdr->skinwidth);
 	//vscale = (float)(hdr->skinheight) / (float)TexMgr_PadConditional(hdr->skinheight);
-
+	
 	hscale = (float)(hdr->gltextures[0][0]->source_width) / (float)(hdr->gltextures[0][0]->width);
 	vscale = (float)(hdr->gltextures[0][0]->source_height) / (float)(hdr->gltextures[0][0]->height);
 
