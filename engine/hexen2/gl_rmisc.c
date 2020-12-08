@@ -301,8 +301,8 @@ void R_TranslatePlayerSkin_Old (int playernum)
 	if (bottom > 10)
 		bottom = 0;
 
-	top -= 1;
-	bottom -= 1;
+	top += 1;
+	bottom += 1;
 
 	colorA = playerTranslation + 256 + color_offsets[playerclass-1];
 	colorB = colorA + 256;
@@ -388,7 +388,7 @@ void R_TranslatePlayerSkin_Old (int playernum)
 	//SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
 
 //now recolor it
-	//TexMgr_ReloadImage(playertextures[playernum], top, bottom);
+	TexMgr_ReloadImage(playertextures[playernum], top, bottom);
 }
 
 
@@ -529,6 +529,7 @@ void R_TranslateNewPlayerSkin(int playernum)
 	else	original = player_8bit_texels[0];
 
 	paliashdr = (aliashdr_t *)Mod_Extradata(model);
+	skinnum = currententity->skinnum;
 	s = paliashdr->skinwidth * paliashdr->skinheight;
 	if (s & 3)
 		Sys_Error("%s: s&3", __thisfunc__);
@@ -584,7 +585,7 @@ void R_TranslateNewPlayerSkin(int playernum)
 	//upload new image
 	q_snprintf(name, sizeof(name), "player_%i", playernum);
 	playertextures[playernum] = TexMgr_LoadImage(currententity->model, name, paliashdr->skinwidth, paliashdr->skinheight,
-		SRC_INDEXED, pixels, paliashdr->gltextures[currententity->skinnum][0]->source_file, paliashdr->gltextures[currententity->skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
+		SRC_INDEXED, pixels, paliashdr->gltextures[skinnum][0]->source_file, paliashdr->gltextures[skinnum][0]->source_offset, TEXPREF_PAD | TEXPREF_OVERWRITE);
 
 	//playertextures[playernum] = TexMgr_LoadImage(NULL, name, scaled_width, scaled_height,
 		//SRC_RGBA, (byte *)pixels, paliashdr->gltextures[0][0]->source_file, paliashdr->gltextures[0][0]->source_offset, TEXPREF_RGBA | TEXPREF_LINEAR | TEXPREF_OVERWRITE);

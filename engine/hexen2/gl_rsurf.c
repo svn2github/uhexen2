@@ -31,8 +31,8 @@ gltexture_t        *lightmap_textures[MAX_LIGHTMAPS]; //johnfitz -- changed to a
 static unsigned int	blocklights[MAX_SURFACE_LIGHTMAP*MAX_SURFACE_LIGHTMAP];
 static unsigned int	blocklightscolor[MAX_SURFACE_LIGHTMAP*MAX_SURFACE_LIGHTMAP*3];	// colored light support. *3 for RGB to the definitions at the top
 
-#define	BLOCK_WIDTH	256
-#define	BLOCK_HEIGHT	256
+#define	BLOCK_WIDTH	128
+#define	BLOCK_HEIGHT	128
 
 typedef struct glRect_s {
 	unsigned char l, t, w, h;
@@ -233,6 +233,8 @@ static void R_BuildLightMap(msurface_t *surf, byte *dest, int stride)
 	}
 
 	// clear to no light
+	memset(&blocklightscolor[0], 0, size * 3 * sizeof(unsigned int)); //johnfitz -- lit support via lordhavoc
+
 	for (i = 0; i < size; i++)
 	{
 		if (gl_lightmap_format == GL_RGBA)
@@ -650,12 +652,11 @@ static void R_DrawLightmapChains()
 
 	for (i = 0; i < MAX_LIGHTMAPS; i++)
 	{
-		p = lightmap_polys[i];
-		if (!p)
+		if (!lightmap_polys[i])
 			continue;	// skip if no lightmap
 
 		GL_Bind(lightmap_textures[i]);
-		for (; p; p = p->chain)
+		for (p = lightmap_polys[i]; p; p = p->chain)
 		{
 			if (p->flags & SURF_UNDERWATER)
 				DrawGLWaterPolyLightmap(p);
@@ -695,7 +696,7 @@ static void R_BlendLightmaps (qboolean Translucent)
 	if (gl_lightmap_format == GL_RGBA)
 	{
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glColor4f_fp (1.0f,1.0f,1.0f, 1.0f);
+		glColor4f_fp (1.0f,1.0f,0.0f, 1.0f);
 		glBlendFunc_fp (GL_ZERO, GL_SRC_COLOR);
 	}
 	else if (gl_lightmap_format == GL_LUMINANCE)
@@ -2247,8 +2248,8 @@ void R_DrawWorld (void)
 
 	currenttexture[0] = GL_UNUSED_TEXTURE;
 
-	//glColor4f_fp (1.0f,1.0f,1.0f,1.0f);
-	//memset (lightmap_polys, 0, sizeof(lightmap_polys));
+	glColor4f_fp (1.0f,1.0f,1.0f,1.0f);
+	memset (lightmap_polys, 0, sizeof(lightmap_polys));
 #ifdef QUAKE2
 	R_ClearSkyBox ();
 #endif

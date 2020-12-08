@@ -1625,6 +1625,14 @@ void TexMgr_ReloadImage_Player(gltexture_t *glt, int shirt, int pants, int playe
 			Con_Printf("TexMgr_ReloadImage: can't colormap a non SRC_INDEXED texture: %s\n", glt->name);
 	}
 
+	if (shirt > 10)
+		shirt = 0;
+	if (pants > 10)
+		pants = 0;
+
+	shirt -= 1;
+	pants -= 1;
+
 	colorA = playerTranslation + 256 + color_offsets[playerclass - 1];
 	//colorA = playerTranslation + 256 + color_offsets[1 - 1];
 	colorB = colorA + 256;
