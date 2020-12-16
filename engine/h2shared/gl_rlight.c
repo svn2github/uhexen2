@@ -596,10 +596,10 @@ float R_LightPointColor (vec3_t p)
 
 	end[0] = p[0];
 	end[1] = p[1];
-	end[2] = p[2] - 2048;
+	end[2] = p[2] - 8192; //johnfitz -- was 2048
 
 	lightcolor[0] = lightcolor[1] = lightcolor[2] = 0;
 	RecursiveLightPointColor (lightcolor, cl.worldmodel->nodes, p, end);
-	return (lightcolor[0] + lightcolor[1] + lightcolor[2]) / 3.0;
+	return ((lightcolor[0] + lightcolor[1] + lightcolor[2]) * (1.0f / 3.0f));
 }
 

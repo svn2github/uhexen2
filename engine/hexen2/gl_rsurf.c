@@ -31,8 +31,8 @@ gltexture_t        *lightmap_textures[MAX_LIGHTMAPS]; //johnfitz -- changed to a
 static unsigned int	blocklights[MAX_SURFACE_LIGHTMAP*MAX_SURFACE_LIGHTMAP];
 static unsigned int	blocklightscolor[MAX_SURFACE_LIGHTMAP*MAX_SURFACE_LIGHTMAP*3];	// colored light support. *3 for RGB to the definitions at the top
 
-#define	BLOCK_WIDTH	128
-#define	BLOCK_HEIGHT	128
+#define	BLOCK_WIDTH	256
+#define	BLOCK_HEIGHT	256
 
 typedef struct glRect_s {
 	unsigned char l, t, w, h;
