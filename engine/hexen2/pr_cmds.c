@@ -571,19 +571,24 @@ float vectoyaw(vector)
 static void PF_vectoyaw (void)
 {
 	float	*value1;
+	float value2;
 	float	yaw;
 
 	value1 = G_VECTOR(OFS_PARM0);
+	value2 = params_used[OFS_PARM1] ? G_FLOAT(OFS_PARM1) : 0;
 
 	if (value1[1] == 0 && value1[0] == 0)
 		yaw = 0;
 	else
 	{
-		yaw = (int) (atan2(value1[1], value1[0]) * 180 / M_PI);
+		if (value2 != 0)
+			yaw = (atan2(value1[1], value1[0]) * 180 / M_PI);
+		else
+			yaw = (int)(atan2(value1[1], value1[0]) * 180 / M_PI);
+
 		if (yaw < 0)
 			yaw += 360;
 	}
-
 	G_FLOAT(OFS_RETURN) = yaw;
 }
 

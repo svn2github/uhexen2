@@ -1759,6 +1759,12 @@ static void PR_AllocStringSlots (void)
 	pr_knownstrings = (const char **) Z_Realloc ((void *)pr_knownstrings, pr_maxknownstrings * sizeof(char *), Z_MAINZONE);
 }
 
+const float* PR_GetFloat(int num)
+{
+	params_used[num] = false;
+	return &pr_globals[num];
+}
+
 const char *PR_GetString (int num)
 {
 	if (num >= 0 && num < pr_stringssize)

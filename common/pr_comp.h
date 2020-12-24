@@ -54,6 +54,8 @@ typedef enum
 #define	OFS_PARM7		25
 #define	RESERVED_OFS	28
 
+qboolean params_used[32];
+
 #define	IMMEDIATE_NAME	"I+"		/* was "IMMEDIATE" in qcc */
 
 enum
