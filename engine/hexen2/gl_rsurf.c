@@ -659,7 +659,9 @@ static void R_DrawLightmapChains()
 		for (p = lightmap_polys[i]; p; p = p->chain)
 		{
 			if (p->flags & SURF_UNDERWATER)
+			{
 				DrawGLWaterPolyLightmap(p);
+			}
 			else
 			{
 				glBegin_fp(GL_POLYGON);
@@ -696,7 +698,7 @@ static void R_BlendLightmaps (qboolean Translucent)
 	if (gl_lightmap_format == GL_RGBA)
 	{
 		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-		glColor4f_fp (1.0f,1.0f,0.0f, 1.0f);
+		//glColor4f_fp (1.0f,1.0f,0.0f, 1.0f);
 		glBlendFunc_fp (GL_ZERO, GL_SRC_COLOR);
 	}
 	else if (gl_lightmap_format == GL_LUMINANCE)
@@ -1286,7 +1288,14 @@ static void DrawTextureChains_NoTexture(entity_t *e)
 			glDisable_fp(GL_TEXTURE_2D);
 
 			for (; s; s = s->texturechain)
-				DrawGLPoly(s->polys);
+			{
+				if (s->flags & SURF_UNDERWATER)
+					DrawGLWaterPoly(s->polys);
+				else
+					DrawGLPoly(s->polys);
+
+				//DrawGLPoly(s->polys);
+			}
 
 			glEnable_fp(GL_TEXTURE_2D);
 
@@ -1384,7 +1393,7 @@ static void DrawTextureChains_TextureOnly(entity_t *e)
 	{
 		t = cl.worldmodel->textures[i];
 
-		if (!t || !t->texturechains[chain_world] || t->texturechains[chain_world]->flags & (SURF_DRAWTURB | SURF_DRAWSKY))
+		if (!t || !t->texturechains[chain_world])
 			continue;
 
 		s = t->texturechains[chain_world];
@@ -1401,16 +1410,25 @@ static void DrawTextureChains_TextureOnly(entity_t *e)
 		{
 			qboolean drawFence = false;
 
+			if ((s->flags & (SURF_DRAWTURB | SURF_DRAWSKY)) && r_wateralpha.value != 1.0)
+				continue;	// draw translucent water later
+
 			if (s->flags & SURF_DRAWFENCE)
 			{
 				drawFence = true;
 				glEnable_fp(GL_ALPHA_TEST); // Flip on alpha test
 			}
 
+
 			GL_Bind(R_TextureAnimation(e, s->texinfo->texture)->gltexture);
 
 			for (; s; s = s->texturechain)
-				DrawGLPoly(s->polys);
+			{
+				if (s->flags & SURF_UNDERWATER)
+					DrawGLWaterPoly(s->polys);
+				else
+					DrawGLPoly(s->polys);
+			}
 
 			if (drawFence)
 				glDisable_fp(GL_ALPHA_TEST); // Flip alpha test back off

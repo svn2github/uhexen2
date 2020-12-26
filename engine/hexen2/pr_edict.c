@@ -1761,7 +1761,7 @@ static void PR_AllocStringSlots (void)
 
 const float* PR_GetFloat(int num)
 {
-	params_used[num] = false;
+	params_used[num] = false; //reset usage flag when param is used
 	return &pr_globals[num];
 }
 
