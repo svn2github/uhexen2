@@ -32,7 +32,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define LODEPNG_NO_COMPILE_ANCILLARY_CHUNKS
 #define LODEPNG_NO_COMPILE_ERROR_TEXT
 #include "lodepng.h"
+#include "q_stdinc.h"
 //#include "lodepng.c"
+
+byte *Image_LoadTGA(FILE *f, int *width, int *height);
+byte *Image_LoadPCX(FILE *f, int *width, int *height);
+byte *Image_LoadImage(const char *name, int *width, int *height);
+
 
 static char loadfilename[MAX_OSPATH]; //file scope so that error messages can use it
 

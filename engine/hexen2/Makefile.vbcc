@@ -432,6 +432,8 @@ COMMONOBJS = \
 	$(SYSOBJ_CDA) \
 	$(SYSOBJ_MIDI) \
 	$(SYSOBJ_NET) \
+	lodepng.o \
+	image.o \
 	net_dgrm.o \
 	net_loop.o \
 	net_main.o \
