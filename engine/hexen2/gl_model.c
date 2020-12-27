@@ -2544,11 +2544,11 @@ void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int mdl_flags
 						free(data);
 					Hunk_FreeToLowMark(mark);
 					q_snprintf(filename2, sizeof(filename2), "%s_glow", filename);
-					data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight, &malloced);
+					data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight/*, &malloced*/);
 					if (!data)
 					{
 						q_snprintf(filename2, sizeof(filename2), "%s_luma", filename);
-						data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight, &malloced);
+						data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight/*, &malloced*/);
 					}
 
 					if (data)

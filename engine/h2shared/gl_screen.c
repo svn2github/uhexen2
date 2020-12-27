@@ -1345,7 +1345,7 @@ void SCR_UpdateScreen (void)
 
 		if (plaquemessage[0] == '_')
 		{
-			Bottom_Plaque_Draw(plaquemessage+1, false);
+			Bottom_Plaque_Draw(plaquemessage+1);
 		}
 		else
 			Plaque_Draw(plaquemessage, false);
