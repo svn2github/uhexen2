@@ -225,7 +225,7 @@ qmodel_t *Mod_FindName (const char *name)
 				if (mod->type == mod_alias)
 				{
 					if (Cache_Check (&mod->cache))
-						Cache_Free (&mod->cache);
+						Cache_Free (&mod->cache, true);
 				}
 				else if (mod->type == mod_sprite)
 					mod->cache.data = NULL;

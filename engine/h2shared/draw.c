@@ -198,10 +198,10 @@ qpic_t *Draw_CachePicResize (const char *path, int targetWidth, int targetHeight
 		if (targetWidth == dat->width && targetHeight == dat->height)
 			return dat;
 		else
-			Cache_Free (&pic->cache);
+			Cache_Free (&pic->cache, true);
 	}
 	// Allocate original data temporarily
-	temp = (qpic_t *)FS_LoadTempFile(path, NULL);
+	temp = (qpic_t *)FS_LoadTempFile(path, NULL, NULL);
 	Draw_PicCheckError (temp, path);
 	SwapPic(temp);
 	/* I wish Carmack would thought of something more intuitive than
