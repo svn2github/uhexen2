@@ -283,19 +283,19 @@ void R_Init (void)
 	r_refdef.xOrigin = XCENTERING;
 	r_refdef.yOrigin = YCENTERING;
 
-	transTable = (byte *)FS_LoadHunkFile ("gfx/tinttab.lmp", NULL);
+	transTable = (byte *)FS_LoadHunkFile ("gfx/tinttab.lmp", NULL, NULL);
 	if (!transTable)
 		Sys_Error ("Couldn't load gfx/tinttab.lmp");
 	if (fs_filesize != 65536)
 		Sys_Error ("Unexpected file size (%lu) for %s\n", (unsigned long)fs_filesize, "gfx/tinttab.lmp");
 
-	mainTransTable = (byte *)FS_LoadHunkFile ("gfx/tinttab2.lmp", NULL);
+	mainTransTable = (byte *)FS_LoadHunkFile ("gfx/tinttab2.lmp", NULL, NULL);
 	if (!mainTransTable)
 		Sys_Error ("Couldn't load gfx/tinttab2.lmp");
 	if (fs_filesize != 65536)
 		Sys_Error ("Unexpected file size (%lu) for %s\n", (unsigned long)fs_filesize, "gfx/tinttab2.lmp");
 
-	playerTranslation = (byte *)FS_LoadHunkFile ("gfx/player.lmp", NULL);
+	playerTranslation = (byte *)FS_LoadHunkFile ("gfx/player.lmp", NULL, NULL);
 	if (!playerTranslation)
 		Sys_Error ("Couldn't load gfx/player.lmp");
 

@@ -308,7 +308,7 @@ static void Mod_LoadEntities (lump_t *l)
 	q_strlcat(entfilename, ".ent", sizeof(entfilename));
 	Con_DPrintf("trying to load %s\n", entfilename);
 	mark = Hunk_LowMark();
-	ents = (char *) FS_LoadHunkFile (entfilename, &path_id);
+	ents = (char *) FS_LoadHunkFile (entfilename, &path_id, NULL);
 	if (ents)
 	{
 		// use ent file only from the same gamedir as the map
