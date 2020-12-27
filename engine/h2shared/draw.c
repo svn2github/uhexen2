@@ -104,7 +104,7 @@ qpic_t	*Draw_CachePic (const char *path)
 //
 // load the pic from disk
 //
-	FS_LoadCacheFile (path, &pic->cache, NULL);
+	FS_LoadCacheFile (path, &pic->cache, NULL, NULL);
 
 	dat = (qpic_t *)pic->cache.data;
 	Draw_PicCheckError (dat, path);
@@ -147,7 +147,7 @@ qpic_t	*Draw_CacheLoadingPic (void)
 //
 // load the pic from disk
 //
-	FS_LoadCacheFile (ls_path, &pic->cache, NULL);
+	FS_LoadCacheFile (ls_path, &pic->cache, NULL, NULL);
 
 	dat = (qpic_t *)pic->cache.data;
 	Draw_PicCheckError (dat, ls_path);
