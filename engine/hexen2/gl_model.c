@@ -616,25 +616,35 @@ bsp_tex_internal:
 				Sky_LoadTexture(tx);
 			else if (tx->name[0] == '*') //warping texture
 			{
-				//external textures -- first look in "textures/mapname/" then look in "textures/"
 				mark = Hunk_LowMark();
-				COM_StripExtension(loadmodel->name + 5, mapname, sizeof(mapname));
-				q_snprintf(filename, sizeof(filename), "textures/%s/#%s", mapname, tx->name + 1); //this also replaces the '*' with a '#'
-				data = Image_LoadImage(filename, &fwidth, &fheight);
-				if (!data)
+				if (r_texture_external.integer)
 				{
-					q_snprintf(filename, sizeof(filename), "textures/#%s", tx->name + 1);
+					//external textures -- first look in "textures/mapname/" then look in "textures/"
+					COM_StripExtension(loadmodel->name + 5, mapname, sizeof(mapname));
+					q_snprintf(filename, sizeof(filename), "textures/%s/#%s", mapname, tx->name + 1); //this also replaces the '*' with a '#'
 					data = Image_LoadImage(filename, &fwidth, &fheight);
-				}
+					if (!data)
+					{
+						q_snprintf(filename, sizeof(filename), "textures/#%s", tx->name + 1);
+						data = Image_LoadImage(filename, &fwidth, &fheight);
+					}
 
-				//now load whatever we found
-				if (data) //load external image
-				{
-					q_strlcpy(texturename, filename, sizeof(texturename));
-					tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, fwidth, fheight,
-						SRC_RGBA, data, filename, 0, TEXPREF_NONE);
+					//now load whatever we found
+					if (data) //load external image
+					{
+						q_strlcpy(texturename, filename, sizeof(texturename));
+						tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, fwidth, fheight,
+							SRC_RGBA, data, filename, 0, TEXPREF_NONE);
+					}
+					else //use the texture from the bsp file
+					{
+						q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name, tx->name);
+						offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
+						tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
+							SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_NONE);
+					}
 				}
-				else //use the texture from the bsp file
+				else
 				{
 					q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name, tx->name);
 					offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
