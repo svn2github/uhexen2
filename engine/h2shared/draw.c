@@ -264,7 +264,7 @@ void Draw_Init (void)
 
 	if (draw_backtile)
 		Z_Free (draw_backtile);
-	draw_backtile = (qpic_t	*)FS_LoadZoneFile ("gfx/menu/backtile.lmp", Z_SECZONE, NULL);
+	draw_backtile = (qpic_t	*)FS_LoadZoneFile ("gfx/menu/backtile.lmp", Z_SECZONE, NULL, NULL);
 	Draw_PicCheckError (draw_backtile, "gfx/menu/backtile.lmp");
 	SwapPic (draw_backtile);
 
