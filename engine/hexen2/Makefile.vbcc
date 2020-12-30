@@ -414,6 +414,9 @@ SOFTOBJS = \
 GLOBJS = \
 	gl_refrag.o \
 	gl_rlight.o \
+	gl_texmgr.o \
+	gl_sky.o \
+	gl_fog.o \
 	gl_rmain.o \
 	gl_rmisc.o \
 	r_part.o \

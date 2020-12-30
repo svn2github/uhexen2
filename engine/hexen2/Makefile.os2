@@ -367,6 +367,9 @@ SOFTOBJS = &
 GLOBJS = &
 	gl_refrag.obj &
 	gl_rlight.obj &
+	gl_texmgr.obj &
+	gl_sky.obj &
+	gl_fog.obj &
 	gl_rmain.obj &
 	gl_rmisc.obj &
 	r_part.obj &

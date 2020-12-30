@@ -73,11 +73,6 @@ qboolean		mod_bsp2;		// bsp version used
 #define	MAX_HANDLES		32	/* johnfitz -- was 10 */
 static FILE		*sys_handles[MAX_HANDLES];
 
-static HANDLE findhandle = INVALID_HANDLE_VALUE;
-static WIN32_FIND_DATA finddata;
-static char	findstr[MAX_OSPATH];
-
-
 typedef struct
 {
 	int	numfiles;
