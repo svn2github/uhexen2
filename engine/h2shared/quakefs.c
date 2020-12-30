@@ -23,6 +23,7 @@
 
 #include "quakedef.h"
 #include "pakfile.h"
+#include "gl_model.h"
 #include <errno.h>
 #ifdef PLATFORM_WINDOWS
 #include <io.h>
