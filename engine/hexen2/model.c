@@ -50,6 +50,8 @@ static vec3_t	aliasmins, aliasmaxs;
 
 int		entity_file_size;
 
+void Sky_LoadTexture(texture_t *mt);
+
 /*
 ===============
 Mod_Init

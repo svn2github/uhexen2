@@ -26,6 +26,8 @@
 #include "quakedef.h"
 #include "r_shared.h"
 
+void TexMgr_Init(void);
+
 typedef struct {
 	vrect_t	rect;
 	int		width;

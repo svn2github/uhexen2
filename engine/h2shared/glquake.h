@@ -345,6 +345,26 @@ void R_LoadSkys (void);
 void R_DrawSkyBox (void);
 void R_ClearSkyBox (void);
 #endif	/* QUAKE2 */
+
+void Sky_Init(void);
+void Sky_DrawSky(void);
+void Sky_NewMap(void);
+void Sky_LoadTexture(texture_t *mt);
+void Sky_LoadSkyBox(const char *name);
+
+//johnfitz -- fog functions called from outside gl_fog.c
+void Fog_ParseServerMessage(void);
+float *Fog_GetColor(void);
+float Fog_GetDensity(void);
+void Fog_EnableGFog(void);
+void Fog_DisableGFog(void);
+void Fog_StartAdditive(void);
+void Fog_StopAdditive(void);
+void Fog_SetupFrame(void);
+void Fog_NewMap(void);
+void Fog_Init(void);
+void Fog_SetupState(void);
+
 void GL_SubdivideSurface (msurface_t *fa);
 void EmitWaterPolys (msurface_t *fa);
 void EmitBothSkyLayers (msurface_t *fa);
