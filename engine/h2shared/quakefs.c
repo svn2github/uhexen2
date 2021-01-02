@@ -74,6 +74,9 @@ qboolean		mod_bsp2;		// bsp version used
 #define	MAX_HANDLES		32	/* johnfitz -- was 10 */
 static FILE		*sys_handles[MAX_HANDLES];
 
+void Mod_ResetAll(void);
+void TexMgr_NewGame(void);
+
 typedef struct
 {
 	int	numfiles;

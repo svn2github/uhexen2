@@ -26,8 +26,6 @@
 #include "quakedef.h"
 #include "r_shared.h"
 
-void TexMgr_Init(void);
-
 typedef struct {
 	vrect_t	rect;
 	int		width;
@@ -295,7 +293,7 @@ void Draw_ReInit (void)
 	draw_reinit = true;
 
 	W_LoadWadFile ("gfx.wad");
-	TexMgr_Init(); //johnfitz
+	//TexMgr_Init(); //johnfitz
 	Draw_Init();
 	SCR_Init();
 	Sbar_Init();

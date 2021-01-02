@@ -107,6 +107,7 @@ static void Cache_FreeLow (int new_low_hunk);
 static void Cache_FreeHigh (int new_high_hunk);
 #endif
 
+void TexMgr_FreeTexturesForOwner(qmodel_t *owner);
 
 /*
 ==============================================================================

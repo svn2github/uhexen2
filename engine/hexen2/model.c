@@ -50,8 +50,6 @@ static vec3_t	aliasmins, aliasmaxs;
 
 int		entity_file_size;
 
-void Sky_LoadTexture(texture_t *mt);
-
 /*
 ===============
 Mod_Init
@@ -474,8 +472,8 @@ bsp_tex_internal:
 		}
 #endif
 
-		if (!strncmp(mt->name,"sky",3))
-			Sky_LoadTexture(tx);
+		//if (!strncmp(mt->name,"sky",3))
+		//	Sky_LoadTexture(tx);
 	}
 
 //
