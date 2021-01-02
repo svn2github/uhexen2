@@ -458,6 +458,7 @@ typedef struct qmodel_s
 //============================================================================
 
 void	Mod_Init (void);
+void	Mod_ResetAll(void); // for gamedir changes (Host_Game_f)
 void	Mod_ClearAll (void);
 qmodel_t *Mod_ForName (const char *name, qboolean crash);
 qmodel_t *Mod_FindName (const char *name);

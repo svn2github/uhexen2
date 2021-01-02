@@ -1268,7 +1268,7 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 	qsort((void *) theents, numents, sizeof(sortedent_t), transCompare);
 	// Add in BETTER sorting here
 
-	glDepthMask_fp(FALSE);
+	glDepthMask_fp(GL_FALSE);
 	for (i = 0; i < numents; i++)
 	{
 		e = theents[i].ent;
@@ -1305,7 +1305,7 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 	}
 
 	if (!depthMaskWrite)
-		glDepthMask_fp(TRUE);
+		glDepthMask_fp(GL_TRUE);
 
 }
 
