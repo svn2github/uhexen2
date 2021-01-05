@@ -42,6 +42,7 @@
  */
 
 static void Host_WriteConfiguration (const char *fname);
+void TexMgr_Init(void);
 
 quakeparms_t	*host_parms;
 

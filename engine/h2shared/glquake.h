@@ -329,7 +329,9 @@ GLuint GL_LoadTexture (const char *identifier, byte *data,
 #define	TEX_SPECIAL_TRANS	(1 << 15)	/* Translucency through the particle table	*/
 
 gltexture_t* GL_LoadPicTexture (qpic_t *pic);
+#ifdef H2W
 void D_ClearOpenGLTextures (int last_tex);
+#endif
 
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 qboolean R_CullModelForEntity(entity_t *e);
