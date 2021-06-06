@@ -1703,14 +1703,10 @@ $(GL_BINARY): $(GLOBJS) $(COMMON_ASM) $(COMMONOBJS) $(TIMIDEPS)
 	$(LINKER) $(GLOBJS) $(COMMON_ASM) $(COMMONOBJS) $(LDFLAGS) $(GL_LIBS) $(SYSLIBS) -o $@
 
 localclean:
-	del /f /q *.o
-	del /f /q *.res
-	del /f /q dos\*.o
-	del /f /q core
+	rm -f *.o *.res dos/*.o core
 clean: localclean timi_clean
 distclean: clean
-	del /f /q $(SW_BINARY)
-	del /f /q $(GL_BINARY)
+	rm -f $(SW_BINARY) $(GL_BINARY)
 
 report:
 	@echo "Host OS  :" $(HOST_OS)
