@@ -71,7 +71,7 @@
 #include "world.h"
 
 #else	/* client */
-//#include "SDL.h"
+#include "SDL.h"
 #include "SDL_opengl.h"
 #include "console.h"
 #include "wad.h"
