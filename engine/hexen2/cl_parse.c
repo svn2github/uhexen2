@@ -102,8 +102,8 @@ qmodel_t	*player_models[MAX_PLAYER_CLASS];
 extern	cvar_t	precache;
 extern	qboolean menu_disabled_mouse;
 
-void Sky_LoadSkyBox(const char *name);
-void Fog_ParseServerMessage(void);
+extern void Sky_LoadSkyBox(const char *name);
+extern void Fog_ParseServerMessage(void);
 
 //=============================================================================
 
