@@ -1332,7 +1332,7 @@ void SCR_UpdateScreen (void)
 #endif	/* H2W */
 	else
 	{
-		if (crosshair.integer && !cls.demoplayback)
+		if (crosshair.integer && !cls.demoplayback && !cl.intermission && !intro_playing && !cl.v.cameramode)
 			Draw_Crosshair();
 
 		SCR_DrawRam();

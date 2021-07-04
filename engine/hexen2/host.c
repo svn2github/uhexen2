@@ -1060,7 +1060,9 @@ void Host_Init (void)
 			Sys_Error ("Couldn't load gfx/colormap.lmp");
 
 		VID_Init (host_basepal);
+#ifdef GLQUAKE
 		TexMgr_Init(); //johnfitz
+#endif
 
 		Draw_Init ();
 		SCR_Init ();

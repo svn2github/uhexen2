@@ -558,9 +558,6 @@ void Draw_Init (void)
 
 
 	// load the crosshair texture
-	// cs_texture = TexMgr_LoadImage(NULL, "crosshair", 32, 32, SRC_RGBA, (byte *)cs_data, "", (src_offset_t)cs_data, TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR);
-	// glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
 	cs_texture = GL_LoadPixmap ("crosshair", cs_data);
 
 	// initialize the player texnums for multiplayer config screens

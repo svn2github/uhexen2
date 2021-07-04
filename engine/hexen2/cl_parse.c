@@ -1810,10 +1810,14 @@ void CL_ParseServerMessage (void)
 
 		case svc_mod_name:
 		case svc_skybox:
+#ifdef GLQUAKE
 			Sky_LoadSkyBox(MSG_ReadString());
+#endif
 			break;
 		case svc_fog:
+#ifdef GLQUAKE
 			Fog_ParseServerMessage();
+#endif
 			break;
 		}
 	}

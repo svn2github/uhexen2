@@ -1512,8 +1512,10 @@ void FS_Init (void)
 					break;
 			}
 			FS_Gamedir(tmp);
+#ifdef GLQUAKE
 			Mod_ResetAll();
 			TexMgr_NewGame();
+#endif
 		}
 	}
 }
