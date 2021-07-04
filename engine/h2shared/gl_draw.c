@@ -100,7 +100,7 @@ static const char	*cs_data = {
 
 int		gl_filter_idx = 4; /* Bilinear */
 
-static GLuint GL_LoadPixmap (const char *name, const char *data);
+static gltexture_t *GL_LoadPixmap (const char *name, const char *data);
 static void GL_Upload32 (unsigned int *data, gltexture_t *glt);
 static void GL_Upload8 (byte *data, gltexture_t *glt);
 
@@ -558,6 +558,9 @@ void Draw_Init (void)
 
 
 	// load the crosshair texture
+	// cs_texture = TexMgr_LoadImage(NULL, "crosshair", 32, 32, SRC_RGBA, (byte *)cs_data, "", (src_offset_t)cs_data, TEXPREF_PERSIST | TEXPREF_ALPHA | TEXPREF_LINEAR);
+	// glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
 	cs_texture = GL_LoadPixmap ("crosshair", cs_data);
 
 	// initialize the player texnums for multiplayer config screens
@@ -1880,7 +1883,7 @@ crosshairs or pointers. The data string is in a format similar to an X11
 pixmap.  '0'-'7' are brightness levels, any other character is considered
 transparent. Remember, NO error checking is performed on the input string.
 */
-static GLuint GL_LoadPixmap (const char *name, const char *data)
+static gltexture_t *GL_LoadPixmap (const char *name, const char *data)
 {
 	int		i;
 	unsigned char	pixels[32*32][4];
@@ -1904,7 +1907,7 @@ static GLuint GL_LoadPixmap (const char *name, const char *data)
 	}
 
 	//return GL_LoadTexture (name, (unsigned char *) pixels, 32, 32, TEX_ALPHA | TEX_RGBA | TEX_LINEAR);
-	return TexMgr_LoadImage(NULL, name, 32, 32, SRC_INDEXED, (unsigned char *)pixels,
+	return TexMgr_LoadImage(NULL, name, 32, 32, SRC_RGBA, (unsigned char *)pixels,
 		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_RGBA | TEXPREF_LINEAR);
 }
 
