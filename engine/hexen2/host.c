@@ -66,8 +66,8 @@ cvar_t		sys_ticrate = {"sys_ticrate", "0.05", CVAR_NONE};
 static	cvar_t	sys_adaptive = {"sys_adaptive", "1", CVAR_ARCHIVE};
 static	cvar_t	host_framerate = {"host_framerate", "0", CVAR_NONE};	// set for slow motion
 static	cvar_t	host_speeds = {"host_speeds", "0", CVAR_NONE};		// set for running times
-static	cvar_t	host_maxfps = { "host_maxfps", "72", CVAR_ARCHIVE }; //johnfitz
-static	cvar_t	host_timescale = { "host_timescale", "0", CVAR_NONE }; //johnfitz
+static	cvar_t	host_maxfps = {"host_maxfps", "72", CVAR_ARCHIVE}; //johnfitz
+static	cvar_t	host_timescale = {"host_timescale", "0", CVAR_NONE}; //johnfitz
 
 static	cvar_t	serverprofile = {"serverprofile", "0", CVAR_NONE};
 
@@ -692,7 +692,7 @@ static qboolean Host_FilterTime (float time)
 
 	//johnfitz -- max fps cvar
 	maxfps = CLAMP(10.0, host_maxfps.value, 1000.0);
-	if (!cls.timedemo && realtime - oldrealtime < 1.0 / maxfps)
+	if (!cls.timedemo && realtime - oldrealtime < 1.0/host_maxfps.value)
 		return false; // framerate is too high
 
 	host_frametime = realtime - oldrealtime;
