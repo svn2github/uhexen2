@@ -79,7 +79,7 @@ cvar_t	samelevel = {"samelevel", "0", CVAR_NONE};
 cvar_t	noexit = {"noexit", "0", CVAR_NOTIFY|CVAR_SERVERINFO};
 
 cvar_t	developer = {"developer", "0", CVAR_ARCHIVE};
-
+cvar_t  host_maxfps = {"host_maxfps", "72", CVAR_ARCHIVE};
 cvar_t	skill = {"skill", "1", CVAR_NONE};		// 0 - 3
 cvar_t	coop = {"coop", "0", CVAR_NONE};		// 0 or 1
 cvar_t	deathmatch = {"deathmatch", "0", CVAR_NONE};	// 0, 1, or 2
@@ -378,6 +378,7 @@ static void Host_InitLocal (void)
 		Cvar_LockVar ("developer");
 	}
 
+    Cvar_RegisterVariable (&host_maxfps);
 	Cvar_RegisterVariable (&sys_nostdout);
 	Cvar_RegisterVariable (&sys_throttle);
 
@@ -693,7 +694,6 @@ static qboolean Host_FilterTime (float time)
 	maxfps = CLAMP(10.0, host_maxfps.value, 1000.0);
 	if (!cls.timedemo && realtime - oldrealtime < 1.0 / maxfps)
 		return false; // framerate is too high
-	//johnfitz
 
 	host_frametime = realtime - oldrealtime;
 	oldrealtime = realtime;
@@ -779,7 +779,7 @@ static void Host_ServerFrame (void)
 	SV_CheckForNewClients ();
 
 	temp_host_frametime = save_host_frametime = host_frametime;
-	while (temp_host_frametime > (1.0/72.0))
+	while (temp_host_frametime > (1.0/host_maxfps.value))
 	{
 		if (temp_host_frametime > 0.05)
 			host_frametime = 0.05;
