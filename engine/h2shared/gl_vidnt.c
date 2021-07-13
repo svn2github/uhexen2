@@ -179,6 +179,8 @@ static cvar_t	_vid_default_mode_win = {"_vid_default_mode_win", "3", CVAR_ARCHIV
 static cvar_t	vid_stretch_by_2 = {"vid_stretch_by_2", "1", CVAR_ARCHIVE};
 static cvar_t	vid_config_x = {"vid_config_x", "800", CVAR_ARCHIVE};
 static cvar_t	vid_config_y = {"vid_config_y", "600", CVAR_ARCHIVE};
+static cvar_t	vid_bpp = { "vid_bpp", "16", CVAR_ARCHIVE };
+
 
 byte		globalcolormap[VID_GRADES*256];
 float		RTint[256], GTint[256], BTint[256];
@@ -201,10 +203,13 @@ static const char	*gl_version;
 static const char	*gl_extensions;
 qboolean	is_3dfx = false;
 
-GLint		gl_max_size = 256;
+//GLint		gl_max_size = 256;
+extern cvar_t gl_max_size;
+
 static qboolean	have_NPOT = false;
 qboolean	gl_tex_NPOT = false;
-static cvar_t	gl_texture_NPOT = {"gl_texture_NPOT", "0", CVAR_ARCHIVE};
+extern cvar_t	gl_texture_NPOT;
+
 GLfloat		gl_max_anisotropy;
 float		gldepthmin, gldepthmax;
 
@@ -242,6 +247,41 @@ static void ClearAllStates (void);
 static int	enable_mouse;
 cvar_t		_enable_mouse = {"_enable_mouse", "0", CVAR_ARCHIVE};
 
+// SDL stuff
+//PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2fARB_fp = NULL; //johnfitz
+//PFNGLACTIVETEXTUREARBPROC glActiveTextureARB_fp = NULL; //johnfitz
+PFNGLCLIENTACTIVETEXTUREARBPROC GL_ClientActiveTextureFunc = NULL; //ericw
+PFNGLBINDBUFFERARBPROC GL_BindBufferFunc = NULL; //ericw
+PFNGLBUFFERDATAARBPROC GL_BufferDataFunc = NULL; //ericw
+PFNGLBUFFERSUBDATAARBPROC GL_BufferSubDataFunc = NULL; //ericw
+PFNGLDELETEBUFFERSARBPROC GL_DeleteBuffersFunc = NULL; //ericw
+PFNGLGENBUFFERSARBPROC GL_GenBuffersFunc = NULL; //ericw
+
+/*
+QS_PFNGLCREATESHADERPROC GL_CreateShaderFunc = NULL; //ericw
+QS_PFNGLDELETESHADERPROC GL_DeleteShaderFunc = NULL; //ericw
+QS_PFNGLDELETEPROGRAMPROC GL_DeleteProgramFunc = NULL; //ericw
+QS_PFNGLSHADERSOURCEPROC GL_ShaderSourceFunc = NULL; //ericw
+QS_PFNGLCOMPILESHADERPROC GL_CompileShaderFunc = NULL; //ericw
+QS_PFNGLGETSHADERIVPROC GL_GetShaderivFunc = NULL; //ericw
+QS_PFNGLGETSHADERINFOLOGPROC GL_GetShaderInfoLogFunc = NULL; //ericw
+QS_PFNGLGETPROGRAMIVPROC GL_GetProgramivFunc = NULL; //ericw
+QS_PFNGLGETPROGRAMINFOLOGPROC GL_GetProgramInfoLogFunc = NULL; //ericw
+QS_PFNGLCREATEPROGRAMPROC GL_CreateProgramFunc = NULL; //ericw
+QS_PFNGLATTACHSHADERPROC GL_AttachShaderFunc = NULL; //ericw
+QS_PFNGLLINKPROGRAMPROC GL_LinkProgramFunc = NULL; //ericw
+QS_PFNGLBINDATTRIBLOCATIONFUNC GL_BindAttribLocationFunc = NULL; //ericw
+QS_PFNGLUSEPROGRAMPROC GL_UseProgramFunc = NULL; //ericw
+QS_PFNGLGETATTRIBLOCATIONPROC GL_GetAttribLocationFunc = NULL; //ericw
+QS_PFNGLVERTEXATTRIBPOINTERPROC GL_VertexAttribPointerFunc = NULL; //ericw
+QS_PFNGLENABLEVERTEXATTRIBARRAYPROC GL_EnableVertexAttribArrayFunc = NULL; //ericw
+QS_PFNGLDISABLEVERTEXATTRIBARRAYPROC GL_DisableVertexAttribArrayFunc = NULL; //ericw
+QS_PFNGLGETUNIFORMLOCATIONPROC GL_GetUniformLocationFunc = NULL; //ericw
+QS_PFNGLUNIFORM1IPROC GL_Uniform1iFunc = NULL; //ericw
+QS_PFNGLUNIFORM1FPROC GL_Uniform1fFunc = NULL; //ericw
+QS_PFNGLUNIFORM3FPROC GL_Uniform3fFunc = NULL; //ericw
+QS_PFNGLUNIFORM4FPROC GL_Uniform4fFunc = NULL; //ericw
+*/
 
 //====================================
 
@@ -792,6 +832,8 @@ static void CheckMultiTextureExtensions (void)
 		}
 
 		glMultiTexCoord2fARB_fp = (glMultiTexCoord2fARB_f) wglGetProcAddress_fp("glMultiTexCoord2fARB");
+		//glMultiTexCoord2fARB_fp = (PFNGLMULTITEXCOORD2FARBPROC)wglGetProcAddress_fp("glMultiTexCoord2fARB");
+		//glActiveTextureARB_fp = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress_fp("glActiveTextureARB");
 		glActiveTextureARB_fp = (glActiveTextureARB_f) wglGetProcAddress_fp("glActiveTextureARB");
 		if (glMultiTexCoord2fARB_fp == NULL || glActiveTextureARB_fp == NULL)
 		{
@@ -1032,10 +1074,11 @@ static void GL_Init (void)
 	gl_extensions = (const char *)glGetString_fp (GL_EXTENSIONS);
 	Con_SafeDPrintf ("GL_EXTENSIONS: %s\n", gl_extensions);
 
-	glGetIntegerv_fp(GL_MAX_TEXTURE_SIZE, &gl_max_size);
-	if (gl_max_size < 256)	// Refuse to work when less than 256
-		Sys_Error ("hardware capable of min. 256k opengl texture size needed");
-	Con_SafePrintf("OpenGL max.texture size: %i\n", gl_max_size);
+	//gl_max_size.integer = 256;//shan?
+	glGetIntegerv_fp(GL_MAX_TEXTURE_SIZE, &gl_max_size.integer);
+	//if (gl_max_size.integer < 256)	// Refuse to work when less than 256
+	//	Sys_Error ("hardware capable of min. 256k opengl texture size needed");
+	Con_SafePrintf("OpenGL max.texture size: %i\n", gl_max_size.integer);
 
 	is_3dfx = false;
 	if (!q_strncasecmp(gl_renderer, "3dfx", 4)	  ||
@@ -1284,7 +1327,7 @@ static void VID_InitPalette (const unsigned char *palette)
 
 	// Initialize the palettized textures data
 	mark = Hunk_LowMark ();
-	inverse_pal = (unsigned char *) FS_LoadHunkFile (INVERSE_PALNAME, NULL);
+	inverse_pal = (unsigned char *) FS_LoadHunkFile (INVERSE_PALNAME, NULL, NULL);
 	if (inverse_pal != NULL && fs_filesize != INVERSE_PAL_SIZE)
 	{
 		Hunk_FreeToLowMark (mark);
@@ -2102,8 +2145,10 @@ static void VID_ChangeVideoMode (int newmode)
 	S_ClearBuffer ();
 
 	// Unload all textures and reset texture counts
-	D_ClearOpenGLTextures(0);
-	memset (lightmap_textures, 0, sizeof(lightmap_textures));
+	//D_ClearOpenGLTextures(NULL);
+	TexMgr_DeleteTextureObjects();
+	//TexMgr_FreeTextures(0, true);
+	//memset (lightmap_textures, 0, sizeof(lightmap_textures));
 
 	// reset all opengl function pointers
 	GL_ResetFunctions();
@@ -2169,13 +2214,22 @@ static void VID_ChangeVideoMode (int newmode)
 	// Initialize extensions and default OpenGL parameters
 	GL_Init();
 	VID_Init8bitPalette();
+	TexMgr_ReloadImages();
+	if (cls.state == ca_active)
+	{
+		for (int j = 0; j < cl.maxclients && j < cl.num_entities + 1; j++)
+		{
+			R_TranslateNewPlayerSkin(j);
+		}
+	}
 
 	// Reload pre-map pics, fonts, console, etc
+	//TexMgr_Init(); //johnfitz
 	Draw_Init();
 	SCR_Init();
 	// R_Init() stuff:
-	R_InitParticleTexture();
-	R_InitExtraTextures ();
+	//R_InitParticleTexture();
+	//R_InitExtraTextures ();
 #if defined(H2W)
 	R_InitNetgraphTexture();
 #endif	/* H2W */
@@ -2187,9 +2241,10 @@ static void VID_ChangeVideoMode (int newmode)
 	BGM_Resume ();
 
 	// Reload model textures and player skins
-	Mod_ReloadTextures();
+	//Mod_ReloadTextures();
+	Fog_SetupState();
 	// rebuild the lightmaps
-	GL_BuildLightmaps();
+	//GL_BuildLightmaps();
 	// finished reloading all images
 	draw_reinit = false;
 	scr_disabled_for_loading = temp;
@@ -2315,6 +2370,8 @@ void	VID_Init (const unsigned char *palette)
 	Cvar_RegisterVariable (&vid_stretch_by_2);
 	Cvar_RegisterVariable (&vid_maxpages);
 	Cvar_RegisterVariable (&vid_nopageflip);
+	Cvar_RegisterVariable(&vid_bpp); //johnfitz
+
 
 	Cmd_AddCommand ("vid_nummodes", VID_NumModes_f);
 	Cmd_AddCommand ("vid_describecurrentmode", VID_DescribeCurrentMode_f);

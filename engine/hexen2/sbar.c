@@ -214,7 +214,7 @@ void Sbar_Draw(void)
 	char	tempStr[80];
 	int	mana, maxMana;
 
-	if (intro_playing)		// the mission pack intro is active
+	if (intro_playing || cl.v.cameramode)		// the mission pack intro is active or cameramode is active
 	{
 		scr_fullupdate = 0;
 		scr_copyeverything = 1;
@@ -1535,12 +1535,14 @@ void SB_ViewSizeChanged(void)
 
 static void Sbar_DrawPic(int x, int y, qpic_t *pic)
 {
-	Draw_PicCropped (x+((vid.width-320)>>1), y+(vid.height-(int)BarHeight), pic);
+	//Draw_Pic
+	Draw_PicCropped(x+((vid.width-320)>>1), y+(vid.height-(int)BarHeight), pic);
 }
 
 static void Sbar_DrawTransPic(int x, int y, qpic_t *pic)
 {
-	Draw_TransPicCropped (x+((vid.width-320)>>1), y+(vid.height-(int)BarHeight), pic);
+	//Draw_TransPic
+	Draw_TransPicCropped(x+((vid.width-320)>>1), y+(vid.height-(int)BarHeight), pic);
 }
 
 #if 0	/* no callers */

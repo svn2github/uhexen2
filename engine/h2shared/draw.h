@@ -35,7 +35,7 @@ void Draw_Init (void);
 void Draw_ReInit (void);
 
 qpic_t *Draw_PicFromWad (const char *name);
-qpic_t *Draw_PicFromFile (const char *name);
+//qpic_t *Draw_PicFromFile (const char *name);
 
 qpic_t *Draw_CachePic (const char *path);
 #if !defined(DRAW_PROGRESSBARS)

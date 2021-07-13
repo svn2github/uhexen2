@@ -71,6 +71,8 @@
 #include "world.h"
 
 #else	/* client */
+//#include "SDL.h"
+#include "SDL_opengl.h"
 #include "console.h"
 #include "wad.h"
 #include "vid.h"
@@ -85,6 +87,8 @@
 #if defined(GLQUAKE)
 #include "glheader.h"
 #include "gl_model.h"
+#include "image.h"	//johnfitz
+#include "gl_texmgr.h"	//johnfitz
 #include "glquake.h"
 #else	/* sw client */
 #include "model.h"

@@ -440,6 +440,50 @@ static void PF_centerprint (void)
 	MSG_WriteString (&client->message, s);
 }
 
+/*
+=================
+PF_centerprintf
+
+single print to a specific client with token
+
+centerprintf(clientent, string, value)
+=================
+*/
+static void PF_centerprintf(void)
+{
+	client_t	*client;
+
+	int			entnum;
+	const char	*s;
+	char *temp;
+	char str[256];
+	float		v;
+
+	entnum = G_EDICTNUM(OFS_PARM0);
+	s = G_STRING(OFS_PARM1);
+
+	if (entnum < 1 || entnum > svs.maxclients)
+	{
+		Con_Printf("tried to sprint to a non-client\n");
+		return;
+	}
+
+	v = G_FLOAT(OFS_PARM2);
+
+
+	temp = PR_GetTempString();
+	if (v == (int)v)
+		sprintf(temp, "%d", (int)v);
+	else
+		sprintf(temp, "%5.1f", v);
+
+	q_snprintf(str, sizeof(str), s, temp);
+
+	client = &svs.clients[entnum - 1];
+
+	MSG_WriteChar(&client->message, svc_centerprint);
+	MSG_WriteString(&client->message, str);
+}
 
 /*
 =================
@@ -527,19 +571,24 @@ float vectoyaw(vector)
 static void PF_vectoyaw (void)
 {
 	float	*value1;
+	float value2;
 	float	yaw;
 
 	value1 = G_VECTOR(OFS_PARM0);
+	value2 = params_used[OFS_PARM1] ? G_FLOAT(OFS_PARM1) : 0;
 
 	if (value1[1] == 0 && value1[0] == 0)
 		yaw = 0;
 	else
 	{
-		yaw = (int) (atan2(value1[1], value1[0]) * 180 / M_PI);
+		if (value2 != 0)
+			yaw = (atan2(value1[1], value1[0]) * 180 / M_PI);
+		else
+			yaw = (int)(atan2(value1[1], value1[0]) * 180 / M_PI);
+
 		if (yaw < 0)
 			yaw += 360;
 	}
-
 	G_FLOAT(OFS_RETURN) = yaw;
 }
 
@@ -554,10 +603,12 @@ vector vectoangles(vector)
 static void PF_vectoangles (void)
 {
 	float	*value1;
+	float value2;
 	float	forward;
 	float	yaw, pitch;
 
 	value1 = G_VECTOR(OFS_PARM0);
+	value2 = params_used[OFS_PARM1] ? G_FLOAT(OFS_PARM1) : 0;
 
 	if (value1[1] == 0 && value1[0] == 0)
 	{
@@ -569,12 +620,21 @@ static void PF_vectoangles (void)
 	}
 	else
 	{
-		yaw = (int) (atan2(value1[1], value1[0]) * 180 / M_PI);
+		if (value2 != 0)
+			yaw = (atan2(value1[1], value1[0]) * 180 / M_PI);
+		else
+			yaw = (int)(atan2(value1[1], value1[0]) * 180 / M_PI);
+
 		if (yaw < 0)
 			yaw += 360;
 
 		forward = sqrt (value1[0]*value1[0] + value1[1]*value1[1]);
-		pitch = (int) (atan2(value1[2], forward) * 180 / M_PI);
+
+		if (value2 != 0)
+			pitch = (atan2(value1[2], forward) * 180 / M_PI);
+		else
+			pitch = (int)(atan2(value1[2], forward) * 180 / M_PI);
+
 		if (pitch < 0)
 			pitch += 360;
 	}
@@ -3441,7 +3501,7 @@ static builtin_t pr_builtin[] =
 	PF_set_extra_flags,	// void(string model, int flags) set_extra_flags	= #107
 	PF_set_fx_color,	// void(string model, float r, float g, float b, float a) set_fx_color	= #108
 	PF_strhash,		// float(string s1) strhash = #109
-	PF_Fixme,
+	PF_centerprintf,
 	PF_Fixme,
 	PF_Fixme,
 	PF_Fixme,

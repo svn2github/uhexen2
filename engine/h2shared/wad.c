@@ -74,7 +74,7 @@ void W_LoadWadFile (const char *filename)
 
 	if (wad_base)
 		Z_Free (wad_base);
-	wad_base = FS_LoadZoneFile (filename, Z_SECZONE, NULL);
+	wad_base = FS_LoadZoneFile (filename, Z_SECZONE, NULL, NULL);
 	if (!wad_base)
 		Sys_Error ("%s: couldn't load %s", __thisfunc__, filename);
 

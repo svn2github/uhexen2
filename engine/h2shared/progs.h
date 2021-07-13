@@ -92,6 +92,7 @@ void PR_Init (void);
 void PR_ExecuteProgram (func_t fnum);
 void PR_LoadProgs (void);
 
+const float* PR_GetFloat(int num);
 const char *PR_GetString (int num);
 int PR_SetEngineString (const char *s);
 int PR_AllocString (int bufferlength, char **ptr);
@@ -124,7 +125,8 @@ int NUM_FOR_EDICT(edict_t *e);
 #define	EDICT_TO_PROG(e)	((byte *)e - (byte *)sv.edicts)
 #define PROG_TO_EDICT(e)	((edict_t *)((byte *)sv.edicts + e))
 
-#define	G_FLOAT(o)		(pr_globals[o])
+#define	G_FLOAT(o)		(*(float *)PR_GetFloat(o))
+//#define	G_FLOAT(o)		(pr_globals[o])
 #define	G_INT(o)		(*(int *)&pr_globals[o])
 #define	G_EDICT(o)		((edict_t *)((byte *)sv.edicts+ *(int *)&pr_globals[o]))
 #define G_EDICTNUM(o)		NUM_FOR_EDICT(G_EDICT(o))

@@ -41,7 +41,7 @@ void CL_LoadPuzzleStrings (void)
 
 	puzzle_string_index = NULL;
 	puzzle_string_count = 0;
-	puzzle_strings = (char *)FS_LoadHunkFile ("puzzles.txt", NULL);
+	puzzle_strings = (char *)FS_LoadHunkFile ("puzzles.txt", NULL, NULL);
 	if (!puzzle_strings)
 		return;
 
@@ -182,7 +182,7 @@ void CL_LoadInfoStrings (void)
 	int		i, count, start;
 	signed char	newline_char;
 
-	info_strings = (char *)FS_LoadHunkFile ("infolist.txt", NULL);
+	info_strings = (char *)FS_LoadHunkFile ("infolist.txt", NULL, NULL);
 	if (!info_strings)
 		Host_Error ("%s: couldn't load infolist.txt", __thisfunc__);
 

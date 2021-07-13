@@ -549,6 +549,11 @@ void PR_ExecuteProgram (func_t fnum)
 			{
 				PR_RunError("Bad builtin call number %d", i);
 			}
+
+			// Shanjaq - Count parameters used
+			for (int j = 0; j < newf->numparms; j++)
+				params_used[OFS_PARM0 + (j * 3)] = true;
+
 			pr_builtins[i]();
 			break;
 		}

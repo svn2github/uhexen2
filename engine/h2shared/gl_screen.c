@@ -273,9 +273,12 @@ static void SCR_CheckDrawCenterString (void)
 	if (Key_GetDest() != key_game)
 		return;
 #if !defined(H2W)
-	if (intro_playing)
+	if (intro_playing || (scr_centerstring[0] == '_')) /* If the intro is running or the first character in the message is an underscore - Inky */
 	{
-		Bottom_Plaque_Draw(scr_centerstring);
+		if (scr_centerstring[0] == '_')
+			Bottom_Plaque_Draw(scr_centerstring+1);
+		else
+			Bottom_Plaque_Draw(scr_centerstring);
 		return;
 	}
 #endif	/* H2W */
@@ -1034,8 +1037,12 @@ static void Bottom_Plaque_Draw (const char *message)
 		return;
 
 	FindTextBreaks(message, PLAQUE_WIDTH);
+	
+	if (intro_playing || cl.v.cameramode)
+		by = (((vid.height) / 8) - lines - 2) * 8;
+	else
+		by = (((vid.height - 37) / 8) - lines - 2) * 8;
 
-	by = (((vid.height) / 8) - lines - 2) * 8;
 	M_DrawTextBox (32, by - 16, PLAQUE_WIDTH + 4, lines + 2);
 
 	for (i = 0; i < lines; i++, by += 8)
@@ -1175,41 +1182,41 @@ SCR_TileClear
 static void SCR_TileClear (void)
 {
     if (vid.conwidth > 320) {
-	if (r_refdef.vrect.x > 0)
-	{
-		// left
-		Draw_TileClear (0, 0, r_refdef.vrect.x, vid.height);
-		// right
-		Draw_TileClear (r_refdef.vrect.x + r_refdef.vrect.width, 0,
-			vid.width - r_refdef.vrect.x + r_refdef.vrect.width, vid.height);
-	}
-//	if (r_refdef.vrect.y > 0) // if (r_refdef.vrect.height < vid.height - 44)
-	{
-		// top
-		Draw_TileClear (r_refdef.vrect.x, 0,
-			r_refdef.vrect.x + r_refdef.vrect.width, r_refdef.vrect.y);
-		// bottom
-		Draw_TileClear (r_refdef.vrect.x, r_refdef.vrect.y + r_refdef.vrect.height,
-			r_refdef.vrect.width, vid.height - (r_refdef.vrect.height + r_refdef.vrect.y));
-	}
-    } else {
-	if (r_refdef.vrect.x > 0)
-	{
-		// left
-		Draw_TileClear (0, 0, r_refdef.vrect.x, vid.height - sb_lines);
-		// right
-		Draw_TileClear (r_refdef.vrect.x + r_refdef.vrect.width, 0,
-			vid.width - r_refdef.vrect.x + r_refdef.vrect.width, vid.height - sb_lines);
-	}
-	if (r_refdef.vrect.y > 0)
-	{
-		// top
-		Draw_TileClear (r_refdef.vrect.x, 0,
-			r_refdef.vrect.x + r_refdef.vrect.width, r_refdef.vrect.y);
-		// bottom
-		Draw_TileClear (r_refdef.vrect.x, r_refdef.vrect.y + r_refdef.vrect.height,
-			r_refdef.vrect.width, vid.height - sb_lines - (r_refdef.vrect.height + r_refdef.vrect.y));
-	}
+		if (r_refdef.vrect.x > 0)
+		{
+			// left
+			Draw_TileClear (0, 0, r_refdef.vrect.x, vid.height);
+			// right
+			Draw_TileClear (r_refdef.vrect.x + r_refdef.vrect.width, 0,
+				vid.width - r_refdef.vrect.x + r_refdef.vrect.width, vid.height);
+		}
+//		if (r_refdef.vrect.y > 0) // if (r_refdef.vrect.height < vid.height - 44)
+		{
+			// top
+			Draw_TileClear (r_refdef.vrect.x, 0,
+				r_refdef.vrect.x + r_refdef.vrect.width, r_refdef.vrect.y);
+			// bottom
+			Draw_TileClear (r_refdef.vrect.x, r_refdef.vrect.y + r_refdef.vrect.height,
+				r_refdef.vrect.width, vid.height - (r_refdef.vrect.height + r_refdef.vrect.y));
+		}
+		} else {
+		if (r_refdef.vrect.x > 0)
+		{
+			// left
+			Draw_TileClear (0, 0, r_refdef.vrect.x, vid.height - sb_lines);
+			// right
+			Draw_TileClear (r_refdef.vrect.x + r_refdef.vrect.width, 0,
+				vid.width - r_refdef.vrect.x + r_refdef.vrect.width, vid.height - sb_lines);
+		}
+		if (r_refdef.vrect.y > 0)
+		{
+			// top
+			Draw_TileClear (r_refdef.vrect.x, 0,
+				r_refdef.vrect.x + r_refdef.vrect.width, r_refdef.vrect.y);
+			// bottom
+			Draw_TileClear (r_refdef.vrect.x, r_refdef.vrect.y + r_refdef.vrect.height,
+				r_refdef.vrect.width, vid.height - sb_lines - (r_refdef.vrect.height + r_refdef.vrect.y));
+		}
     }
 }
 
@@ -1325,7 +1332,7 @@ void SCR_UpdateScreen (void)
 #endif	/* H2W */
 	else
 	{
-		if (crosshair.integer && !cls.demoplayback)
+		if (crosshair.integer && !cls.demoplayback && !cl.intermission && !intro_playing && !cl.v.cameramode)
 			Draw_Crosshair();
 
 		SCR_DrawRam();
@@ -1336,7 +1343,13 @@ void SCR_UpdateScreen (void)
 		Sbar_Draw();
 		SCR_DrawFPS();
 
-		Plaque_Draw(plaquemessage, false);
+		if (plaquemessage[0] == '_')
+		{
+			Bottom_Plaque_Draw(plaquemessage+1);
+		}
+		else
+			Plaque_Draw(plaquemessage, false);
+
 		SCR_DrawConsole();
 		M_Draw();
 

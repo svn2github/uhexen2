@@ -28,12 +28,12 @@ static int	*host_string_index = NULL;
 int		host_string_count = 0;
 
 
-void Host_LoadStrings (void)
+void Host_LoadStrings (unsigned int *dir_path_id)
 {
 	int		i, count, start;
 	signed char	newline_char;
 
-	host_strings = (char *)FS_LoadHunkFile ("strings.txt", NULL);
+	host_strings = (char *)FS_LoadHunkFile ("strings.txt", NULL, dir_path_id);
 	if (!host_strings)
 		Host_Error ("%s: couldn't load strings.txt", __thisfunc__);
 

@@ -42,6 +42,7 @@
  */
 
 static void Host_WriteConfiguration (const char *fname);
+void TexMgr_Init(void);
 
 quakeparms_t	*host_parms;
 
@@ -65,6 +66,8 @@ cvar_t		sys_ticrate = {"sys_ticrate", "0.05", CVAR_NONE};
 static	cvar_t	sys_adaptive = {"sys_adaptive", "1", CVAR_ARCHIVE};
 static	cvar_t	host_framerate = {"host_framerate", "0", CVAR_NONE};	// set for slow motion
 static	cvar_t	host_speeds = {"host_speeds", "0", CVAR_NONE};		// set for running times
+static	cvar_t	host_maxfps = { "host_maxfps", "72", CVAR_ARCHIVE }; //johnfitz
+static	cvar_t	host_timescale = { "host_timescale", "0", CVAR_NONE }; //johnfitz
 
 static	cvar_t	serverprofile = {"serverprofile", "0", CVAR_NONE};
 
@@ -172,6 +175,17 @@ error_out:
 
 
 //============================================================================
+
+/*
+================
+Max_Fps_f -- ericw
+================
+*/
+static void Max_Fps_f(cvar_t *var)
+{
+	if (var->value > 72)
+		Con_Printf("host_maxfps above 72 breaks physics.\n");
+}
 
 /*
 ================
@@ -373,6 +387,9 @@ static void Host_InitLocal (void)
 
 	Cvar_RegisterVariable (&host_framerate);
 	Cvar_RegisterVariable (&host_speeds);
+	Cvar_RegisterVariable(&host_maxfps);
+	Cvar_SetCallback(&host_maxfps, Max_Fps_f);
+	Cvar_RegisterVariable(&host_timescale);
 
 	Cvar_RegisterVariable (&serverprofile);
 
@@ -644,8 +661,10 @@ not reinitialize anything.
 void Host_ClearMemory (void)
 {
 	Con_DPrintf ("Clearing memory\n");
-	D_FlushCaches ();
+	//D_FlushCaches ();
 	Mod_ClearAll ();
+	//TexMgr_FreeTexturesForOwner(NULL);
+	//TexMgr_FreeTexturesForOwner(sv.worldmodel);
 /* host_hunklevel MUST be set at this point */
 	Hunk_FreeToLowMark (host_hunklevel);
 
@@ -667,23 +686,26 @@ Returns false if the time is too short to run a frame
 */
 static qboolean Host_FilterTime (float time)
 {
+	float maxfps; //johnfitz
+
 	realtime += time;
 
-	if (!cls.timedemo && realtime - oldrealtime < 1.0/host_maxfps.value)
-		return false;		// framerate is too high
+	//johnfitz -- max fps cvar
+	maxfps = CLAMP(10.0, host_maxfps.value, 1000.0);
+	if (!cls.timedemo && realtime - oldrealtime < 1.0 / maxfps)
+		return false; // framerate is too high
 
 	host_frametime = realtime - oldrealtime;
 	oldrealtime = realtime;
 
-	if (host_framerate.value > 0)
+	//johnfitz -- host_timescale is more intuitive than host_framerate
+	if (host_timescale.value > 0)
+		host_frametime *= host_timescale.value;
+	//johnfitz
+	else if (host_framerate.value > 0)
 		host_frametime = host_framerate.value;
-	else
-	{	// don't allow really long or short frames
-		if (host_frametime > 0.05 && !sys_adaptive.integer)
-			host_frametime = 0.05;
-		if (host_frametime < 0.001)
-			host_frametime = 0.001;
-	}
+	else // don't allow really long or short frames
+		host_frametime = CLAMP(0.001, host_frametime, 0.1); //johnfitz -- use CLAMP
 
 	return true;
 }
@@ -1029,15 +1051,19 @@ void Host_Init (void)
 		Con_Init ();
 		M_Init ();
 
-		host_basepal = (byte *)FS_LoadHunkFile ("gfx/palette.lmp", NULL);
+		host_basepal = (byte *)FS_LoadHunkFile ("gfx/palette.lmp", NULL, NULL);
 		if (!host_basepal)
 			Sys_Error ("Couldn't load gfx/palette.lmp");
 
-		host_colormap = (byte *)FS_LoadHunkFile ("gfx/colormap.lmp", NULL);
+		host_colormap = (byte *)FS_LoadHunkFile ("gfx/colormap.lmp", NULL, NULL);
 		if (!host_colormap)
 			Sys_Error ("Couldn't load gfx/colormap.lmp");
 
 		VID_Init (host_basepal);
+#ifdef GLQUAKE
+		TexMgr_Init(); //johnfitz
+#endif
+
 		Draw_Init ();
 		SCR_Init ();
 		R_Init ();
@@ -1057,7 +1083,7 @@ void Host_Init (void)
 #ifdef GLQUAKE
 /* analogous to host_hunklevel, this will mark OpenGL texture
  * beyond which everything will need to be purged on new map */
-	gl_texlevel = numgltextures;
+	TexMgr_SetTexLevel();
 #endif
 
 	Hunk_AllocName (0, "-HOST_HUNKLEVEL-");

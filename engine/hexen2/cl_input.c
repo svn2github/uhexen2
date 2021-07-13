@@ -27,6 +27,9 @@
 
 #include "quakedef.h"
 
+extern cvar_t cl_maxpitch; //johnfitz -- variable pitch clamping
+extern cvar_t cl_minpitch; //johnfitz -- variable pitch clamping
+
 /*
 ===============================================================================
 
@@ -450,10 +453,12 @@ static void CL_AdjustAngles (void)
 	if (up || down)
 		V_StopPitchDrift ();
 
-	if (cl.viewangles[PITCH] > 80)
-		cl.viewangles[PITCH] = 80;
-	if (cl.viewangles[PITCH] < -70)
-		cl.viewangles[PITCH] = -70;
+	//johnfitz -- variable pitch clamping
+	if (cl.viewangles[PITCH] > cl_maxpitch.value)
+		cl.viewangles[PITCH] = cl_maxpitch.value;
+	if (cl.viewangles[PITCH] < cl_minpitch.value)
+		cl.viewangles[PITCH] = cl_minpitch.value;
+	//johnfitz
 
 	if (cl.viewangles[ROLL] > 50)
 		cl.viewangles[ROLL] = 50;

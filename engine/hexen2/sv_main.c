@@ -658,13 +658,13 @@ crosses a waterline.
 =============================================================================
 */
 
-static int	fatbytes;
+static long	fatbytes;
 static byte	*fatpvs;
-static int	fatpvs_capacity;
+static long	fatpvs_capacity;
 
 static void SV_AddToFatPVS (vec3_t org, mnode_t *node)
 {
-	int		i;
+	long		i;
 	byte	*pvs;
 	mplane_t	*plane;
 	float	d;
@@ -923,7 +923,7 @@ static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t
 			ref_ent = &build_ent;
 
 			build_ent.index = e;
-			build_ent.origin[0] = ent->baseline.origin[0];
+			build_ent.origin[0] = ent->baseline.origin[0]; //shan nack networking?
 			build_ent.origin[1] = ent->baseline.origin[1];
 			build_ent.origin[2] = ent->baseline.origin[2];
 			build_ent.angles[0] = ent->baseline.angles[0];
@@ -951,6 +951,8 @@ static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t
 		}
 		*set_ent = *ref_ent;
 
+		//IgnoreEnt = ((!VectorCompare(ent->v.origin, vec3_origin)) && VectorCompare(ent->v.origin, ent->baseline.origin) && (FoundInList == true) ? true : false);
+		//IgnoreEnt = false;
 		if (IgnoreEnt)
 			continue;
 
@@ -1093,7 +1095,7 @@ static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t
 		if (bits & U_EFFECTS)
 			MSG_WriteByte(msg, ent->v.effects);
 		if (bits & U_ORIGIN1)
-			MSG_WriteCoord(msg, ent->v.origin[0]);
+			MSG_WriteCoord(msg, ent->v.origin[0]); //shan nack networking?
 		if (bits & U_ANGLE1)
 			MSG_WriteAngle(msg, ent->v.angles[0]);
 		if (bits & U_ORIGIN2)
@@ -1118,6 +1120,8 @@ static void SV_PrepareClientEntities(client_t *client, edict_t	*clent, sizebuf_t
 	MSG_WriteByte(msg, NumToRemove);
 	for (i = 0; i < NumToRemove; i++)
 		MSG_WriteShort(msg, RemoveList[i]);
+
+	client->refreshed = true;
 }
 
 /*
@@ -2028,6 +2032,13 @@ void SV_SpawnServer (const char *server, const char *startspot)
 //
 // set up the new server
 //
+	if (sv.worldmodel)
+	{
+		//Mod_ClearAll();
+		//Mod_ResetAll();
+		//TexMgr_FreeTexturesForOwner(sv.worldmodel);
+	}
+
 	//memset (&sv, 0, sizeof(sv));
 	Host_ClearMemory ();
 
@@ -2047,7 +2058,14 @@ void SV_SpawnServer (const char *server, const char *startspot)
 	current_loading_size += 10;
 	D_ShowLoadingSize();
 #endif
-	Host_LoadStrings();
+
+	char		modelname[MAX_QPATH];	// maps/<name>.bsp, for model_precache[0]
+
+	q_snprintf(modelname, sizeof(modelname), "maps/%s.bsp", server);
+	unsigned int dir_path_id;
+	FS_GetPathId(modelname, &dir_path_id);
+
+	Host_LoadStrings(&dir_path_id);
 #if !defined(SERVERONLY)
 	current_loading_size += 5;
 	D_ShowLoadingSize();

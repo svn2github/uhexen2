@@ -304,6 +304,7 @@ void SV_UnlinkEdict (edict_t *ent)
 /*
 ====================
 SV_AreaTriggerEdicts
+
 Spike -- just builds a list of entities within the area, rather than walking
 them and risking the list getting corrupt.
 ====================
@@ -351,6 +352,7 @@ SV_AreaTriggerEdicts(edict_t *ent, areanode_t *node, edict_t **list, int *listco
 /*
 ====================
 SV_TouchLinks
+
 ericw -- copy the touching edicts to an array (on the hunk) so we can avoid
 iteating the trigger_edicts linked list while calling PR_ExecuteProgram
 which could potentially corrupt the list while it's being iterated.

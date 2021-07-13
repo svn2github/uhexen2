@@ -26,7 +26,7 @@
 
 extern	int		host_string_count;
 
-void Host_LoadStrings (void);
+void Host_LoadStrings (unsigned int *path_id);
 const char *Host_GetString (int idx);
 
 #endif	/* HOST_STRING_H */

@@ -112,7 +112,7 @@ static sv_def_t globals_v103[] = {
 	{ev_float,	OFS_V103(num_players),		&sv_globals.num_players},
 	{ev_float,	OFS_V103(exp_mult),		&sv_globals.exp_mult},
 
-	{ev_function,	OFS_V103(main),			&sv_globals.main},
+	{ev_function,	OFS_V103(prMain),			&sv_globals.prMain},
 	{ev_function,	OFS_V103(StartFrame),		&sv_globals.StartFrame},
 	{ev_function,	OFS_V103(PlayerPreThink),	&sv_globals.PlayerPreThink},
 	{ev_function,	OFS_V103(PlayerPostThink),	&sv_globals.PlayerPostThink},
@@ -170,7 +170,7 @@ static sv_def_t globals_v111[] = {
 	{ev_float,	OFS_V111(num_players),		&sv_globals.num_players},
 	{ev_float,	OFS_V111(exp_mult),		&sv_globals.exp_mult},
 
-	{ev_function,	OFS_V111(main),			&sv_globals.main},
+	{ev_function,	OFS_V111(prMain),			&sv_globals.prMain},
 	{ev_function,	OFS_V111(StartFrame),		&sv_globals.StartFrame},
 	{ev_function,	OFS_V111(PlayerPreThink),	&sv_globals.PlayerPreThink},
 	{ev_function,	OFS_V111(PlayerPostThink),	&sv_globals.PlayerPostThink},
@@ -225,7 +225,7 @@ static sv_def_t globals_v112[] = {
 	{ev_float,	OFS_V112(num_players),		&sv_globals.num_players},
 	{ev_float,	OFS_V112(exp_mult),		&sv_globals.exp_mult},
 
-	{ev_function,	OFS_V112(main),			&sv_globals.main},
+	{ev_function,	OFS_V112(prMain),			&sv_globals.prMain},
 	{ev_function,	OFS_V112(StartFrame),		&sv_globals.StartFrame},
 	{ev_function,	OFS_V112(PlayerPreThink),	&sv_globals.PlayerPreThink},
 	{ev_function,	OFS_V112(PlayerPostThink),	&sv_globals.PlayerPostThink},
@@ -1180,7 +1180,9 @@ const char *ED_ParseEdict (const char *data, edict_t *ent)
 		key = ED_FindField (keyname);
 		if (!key)
 		{
-			Con_Printf ("'%s' is not a field\n", keyname);
+			//johnfitz -- HACK -- suppress error becuase fog/sky/alpha fields might not be mentioned in defs.qc
+			if (strncmp(keyname, "sky", 3) && strcmp(keyname, "fog") && strcmp(keyname, "alpha"))
+				Con_Printf ("'%s' is not a field\n", keyname);
 			continue;
 		}
 
@@ -1401,7 +1403,7 @@ static const char maplist_name[] = "maplist.txt";
 	unsigned int	id0, id1;
 	fshandle_t	FH;
 
-	FH.length = (long) FS_OpenFile (maplist_name, & FH.file, &id1);
+	FH.length = (long) FS_OpenFile (maplist_name, & FH.file, &id1, NULL);
 	FH.pak = file_from_pak;
 	if (FH.file == NULL)
 		return def_progname;
@@ -1545,7 +1547,7 @@ void PR_LoadProgs (void)
 		gefvCache[i].field[0] = 0;
 
 	progname = PR_GetProgFilename();
-	progs = (dprograms_t *)FS_LoadHunkFile (progname, NULL);
+	progs = (dprograms_t *)FS_LoadHunkFile (progname, NULL, NULL);
 	if (!progs)
 		Host_Error ("%s: couldn't load %s", __thisfunc__, progname);
 	Con_DPrintf ("Programs occupy %luK.\n", (unsigned long)(fs_filesize/1024));
@@ -1755,6 +1757,14 @@ static void PR_AllocStringSlots (void)
 	pr_maxknownstrings += PR_STRING_ALLOCSLOTS;
 	Sys_DPrintf("%s: realloc'ing for %d slots\n", __thisfunc__, pr_maxknownstrings);
 	pr_knownstrings = (const char **) Z_Realloc ((void *)pr_knownstrings, pr_maxknownstrings * sizeof(char *), Z_MAINZONE);
+}
+
+const float* PR_GetFloat(int num)
+{
+	if ((num >= OFS_PARM0) && (num <= OFS_PARM7))
+		params_used[num] = false; //reset usage flag when param is used
+
+	return &pr_globals[num];
 }
 
 const char *PR_GetString (int num)

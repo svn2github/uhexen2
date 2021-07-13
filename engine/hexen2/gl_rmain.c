@@ -25,21 +25,31 @@
 
 entity_t	r_worldentity;
 vec3_t		modelorg, r_entorigin;
+entity_t	*currententity;
+
 
 int			r_visframecount;	// bumped when going to a new PVS
 int			r_framecount;		// used for dlight push checking
 
 mplane_t	frustum[4];
 
+//johnfitz -- rendering statistics
+int rs_brushpolys, rs_aliaspolys, rs_skypolys, rs_particles, rs_fogpolys;
+int rs_dynamiclightmaps, rs_brushpasses, rs_aliaspasses, rs_skypasses;
+float rs_megatexels;
+
 int			c_brush_polys, c_alias_polys;
 
 qboolean	r_cache_thrash;			// compatability
 
-GLuint			currenttexture = GL_UNUSED_TEXTURE;	// to avoid unnecessary texture sets
+GLuint			currenttexture[3] = { GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE, GL_UNUSED_TEXTURE }; // to avoid unnecessary texture sets
 
-GLuint			particletexture;	// little dot for particles
-GLuint			playertextures[MAX_CLIENTS];	// up to MAX_CLIENTS color translated skins
-GLuint			gl_extra_textures[MAX_EXTRA_TEXTURES];   // generic textures for models
+//GLuint			particletexture;	// little dot for particles
+//GLuint			playertextures[MAX_CLIENTS];	// up to MAX_CLIENTS color translated skins
+//GLuint			gl_extra_textures[MAX_EXTRA_TEXTURES];   // generic textures for models
+gltexture_t *particletexture, *particletexture1, *particletexture2, *particletexture3, *particletexture4; //johnfitz
+gltexture_t *playertextures[MAX_CLIENTS]; //johnfitz -- changed to an array of pointers
+gltexture_t *gl_extra_textures[MAX_EXTRA_TEXTURES];   // generic textures for models
 
 int			mirrortexturenum;	// quake texturenum, not gltexturenum
 qboolean	mirror;
@@ -77,6 +87,7 @@ static	qboolean AlwaysDrawModel;
 cvar_t	r_norefresh = {"r_norefresh", "0", CVAR_NONE};
 cvar_t	r_drawentities = {"r_drawentities", "1", CVAR_NONE};
 cvar_t	r_drawviewmodel = {"r_drawviewmodel", "1", CVAR_NONE};
+cvar_t	r_drawworld = { "r_drawworld", "1", CVAR_NONE };
 cvar_t	r_speeds = {"r_speeds", "0", CVAR_NONE};
 cvar_t	r_waterwarp = {"r_waterwarp", "0", CVAR_ARCHIVE};
 cvar_t	r_fullbright = {"r_fullbright", "0", CVAR_NONE};
@@ -84,7 +95,7 @@ cvar_t	r_lightmap = {"r_lightmap", "0", CVAR_NONE};
 cvar_t	r_shadows = {"r_shadows", "0", CVAR_ARCHIVE};
 cvar_t	r_mirroralpha = {"r_mirroralpha", "1", CVAR_NONE};
 cvar_t	r_wateralpha = {"r_wateralpha", "0.33", CVAR_ARCHIVE};
-cvar_t	r_skyalpha = {"r_skyalpha", "0.67", CVAR_ARCHIVE};
+//cvar_t	r_skyalpha = {"r_skyalpha", "0.67", CVAR_ARCHIVE};
 cvar_t	r_dynamic = {"r_dynamic", "1", CVAR_NONE};
 cvar_t	r_novis = {"r_novis", "0", CVAR_NONE};
 cvar_t	r_wholeframe = {"r_wholeframe", "1", CVAR_ARCHIVE};
@@ -111,6 +122,14 @@ cvar_t	gl_coloredlight = {"gl_coloredlight", "0", CVAR_ARCHIVE};
 cvar_t	gl_colored_dynamic_lights = {"gl_colored_dynamic_lights", "0", CVAR_ARCHIVE};
 cvar_t	gl_extra_dynamic_lights = {"gl_extra_dynamic_lights", "0", CVAR_ARCHIVE};
 
+//johnfitz -- new cvars
+cvar_t	gl_farclip = { "gl_farclip", "16384", CVAR_ARCHIVE };
+cvar_t	gl_overbright = { "gl_overbright", "1", CVAR_ARCHIVE };
+cvar_t	gl_fullbrights = { "gl_fullbrights", "1", CVAR_ARCHIVE };
+extern cvar_t	r_vfog;
+extern cvar_t	gl_max_size;
+//johnfitz
+
 //=============================================================================
 
 
@@ -133,6 +152,34 @@ qboolean R_CullBox (vec3_t mins, vec3_t maxs)
 	return false;
 }
 
+
+/*
+===============
+R_CullModelForEntity -- johnfitz -- uses correct bounds based on rotation
+===============
+*/
+qboolean R_CullModelForEntity(entity_t *e)
+{
+	vec3_t mins, maxs;
+
+	if (e->angles[0] || e->angles[2]) //pitch or roll
+	{
+		VectorAdd(e->origin, e->model->rmins, mins);
+		VectorAdd(e->origin, e->model->rmaxs, maxs);
+	}
+	else if (e->angles[1]) //yaw
+	{
+		VectorAdd(e->origin, e->model->ymins, mins);
+		VectorAdd(e->origin, e->model->ymaxs, maxs);
+	}
+	else //no rotation
+	{
+		VectorAdd(e->origin, e->model->mins, mins);
+		VectorAdd(e->origin, e->model->maxs, maxs);
+	}
+
+	return R_CullBox(mins, maxs);
+}
 
 /*
 =================
@@ -420,7 +467,7 @@ static void R_DrawSpriteModel (entity_t *e)
 	   as good, should work with non 3Dfx MiniGL drivers */
 	if ((e->drawflags & DRF_TRANSLUCENT) || (e->model->flags & EF_TRANSPARENT))
 	{
-		glDisable_fp (GL_ALPHA_TEST);
+		//glEnable_fp (GL_ALPHA_TEST);
 		glEnable_fp (GL_BLEND);
 		glTexEnvf_fp (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glColor4f_fp (1.0f, 1.0f, 1.0f, r_wateralpha.value);
@@ -438,14 +485,14 @@ static void R_DrawSpriteModel (entity_t *e)
 		glColor3f_fp (1,1,1);
 	}
 
-	GL_Bind(frame->gl_texturenum);
+	GL_Bind(frame->gltexture);
 
 	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf_fp(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 	glBegin_fp (GL_QUADS);
 
-	glTexCoord2f_fp (0, 1);
+	glTexCoord2f_fp(0, frame->tmax);
 	VectorMA (e->origin, frame->down, r_spritedesc.vup, point);
 	VectorMA (point, frame->left, r_spritedesc.vright, point);
 	glVertex3fv_fp (point);
@@ -455,12 +502,12 @@ static void R_DrawSpriteModel (entity_t *e)
 	VectorMA (point, frame->left, r_spritedesc.vright, point);
 	glVertex3fv_fp (point);
 
-	glTexCoord2f_fp (1, 0);
+	glTexCoord2f_fp(frame->smax, 0);
 	VectorMA (e->origin, frame->up, r_spritedesc.vup, point);
 	VectorMA (point, frame->right, r_spritedesc.vright, point);
 	glVertex3fv_fp (point);
 
-	glTexCoord2f_fp (1, 1);
+	glTexCoord2f_fp(frame->smax, frame->tmax);
 	VectorMA (e->origin, frame->down, r_spritedesc.vup, point);
 	VectorMA (point, frame->right, r_spritedesc.vright, point);
 	glVertex3fv_fp (point);
@@ -516,12 +563,13 @@ static int	lastposenum;
 GL_DrawAliasFrame
 =============
 */
-static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum)
+static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum, qboolean unlit)
 {
 	float		l;
 	trivertx_t	*verts;
 	int		*order;
 	int		count;
+	float	u, v;
 	float		r, g, b;
 	byte		ColorShade;
 
@@ -559,22 +607,45 @@ static void GL_DrawAliasFrame (entity_t *e, aliashdr_t *paliashdr, int posenum)
 		do
 		{
 			// texture coordinates come from the draw list
-			glTexCoord2f_fp (((float *)order)[0], ((float *)order)[1]);
+			//glTexCoord2f_fp (((float *)order)[0], ((float *)order)[1]);
+			u = ((float *)order)[0];
+			v = ((float *)order)[1];
+			if (gl_mtexable)
+			{
+				glMultiTexCoord2fARB_fp(GL_TEXTURE0_ARB, u, v);
+				glMultiTexCoord2fARB_fp(GL_TEXTURE1_ARB, u, v);
+			}
+			else
+				glTexCoord2f_fp(u, v);
+
 			order += 2;
 
 			// normals and vertexes come from the frame list
-
 			if (gl_lightmap_format == GL_RGBA)
 			{
 				l = shadedots[verts->lightnormalindex];
-				glColor4f_fp (l * lightcolor[0], l * lightcolor[1], l * lightcolor[2], model_constant_alpha);
+				if (unlit)
+				{
+					glColor4f_fp(0, 0, 0, model_constant_alpha);
+				}
+				else
+				{
+					if (ColorShade) //shan colormap
+						glColor4f_fp(((l+r)/2.0) * lightcolor[0], ((l+g)/2.0) * lightcolor[1], ((l+g)/2.0) * lightcolor[2], model_constant_alpha);
+					else
+						glColor4f_fp(l * lightcolor[0], l * lightcolor[1], l * lightcolor[2], model_constant_alpha);
+				}
 			}
 			else
 			{
 				l = shadedots[verts->lightnormalindex] * shadelight;
-				glColor4f_fp (r*l, g*l, b*l, model_constant_alpha);
+				if (unlit)
+					glColor4f_fp(0, 0, 0, model_constant_alpha);
+				else
+					glColor4f_fp (r*l, g*l, b*l, model_constant_alpha);
 			}
 
+			//glColor4f_fp(rand() * (1.0 / RAND_MAX), rand() * (1.0 / RAND_MAX), rand() * (1.0 / RAND_MAX), rand() * (1.0 / RAND_MAX)); //shan colormap fix?
 			glVertex3f_fp (verts->v[0], verts->v[1], verts->v[2]);
 			verts++;
 		} while (--count);
@@ -661,7 +732,7 @@ R_SetupAliasFrame
 
 =================
 */
-static void R_SetupAliasFrame (entity_t *e, aliashdr_t *paliashdr)
+static void R_SetupAliasFrame (entity_t *e, aliashdr_t *paliashdr, qboolean unlit)
 {
 	int	pose, numposes, frame;
 	float		interval;
@@ -682,7 +753,7 @@ static void R_SetupAliasFrame (entity_t *e, aliashdr_t *paliashdr)
 		pose += (int)(cl.time / interval) % numposes;
 	}
 
-	GL_DrawAliasFrame (e, paliashdr, pose);
+	GL_DrawAliasFrame (e, paliashdr, pose, unlit);
 }
 
 
@@ -719,6 +790,7 @@ static void R_DrawAliasModel (entity_t *e)
 	float		xyfact = 1.0, zfact = 1.0; // avoid compiler warning
 	int		skinnum;
 	int		mls;
+	qboolean	alphatest = !!(e->model->flags & EF_HOLEY);
 
 	clmodel = e->model;
 
@@ -896,19 +968,44 @@ static void R_DrawAliasModel (entity_t *e)
 	else if (e->drawflags & DRF_TRANSLUCENT)
 	{
 		glEnable_fp (GL_BLEND);
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
 	//	glColor4f_fp (1,1,1,r_wateralpha.value);
 		model_constant_alpha = r_wateralpha.value;
 	}
 	else if ((e->model->flags & EF_TRANSPARENT))
 	{
-		glEnable_fp (GL_BLEND);
-	//	glColor3f_fp (1,1,1);
+		glEnable_fp(GL_BLEND);
+		//glEnable_fp(GL_ALPHA_TEST);
+		//glBlendFunc_fp(GL_ONE, GL_SRC_COLOR); //shan?
+		//glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+		//glBlendFunc_fp(GL_SRC_COLOR, GL_SRC_ALPHA);
+		//glBlendFunc_fp(GL_ONE, GL_SRC_COLOR);
+		//	glColor3f_fp (1,1,1);
+		//glColor4f_fp(1.0f, 1.0f, 1.0f, 0.65f);
 		model_constant_alpha = 1.0f;
+		//glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		/*
+		glEnable_fp(GL_BLEND);
+		//	glColor3f_fp (1,1,1);
+		model_constant_alpha = 1.0f;
+		*/
+		/*
+		glEnable_fp(GL_ALPHA_TEST);
+		glEnable_fp(GL_BLEND);
+		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glColor4f_fp(1.0f, 1.0f, 1.0f, r_wateralpha.value);
+		*/
 	}
 	else if ((e->model->flags & EF_HOLEY))
 	{
 		glEnable_fp (GL_BLEND);
-	//	glColor3f_fp (1,1,1);
+		glEnable_fp(GL_ALPHA_TEST);
+		glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		//glColor3f_fp (1,1,1);
+		glColor4f_fp(1.0f, 1.0f, 1.0f, r_wateralpha.value);
+		//glBlendFunc_fp(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		model_constant_alpha = 1.0f;
 	}
 	else
@@ -932,7 +1029,7 @@ static void R_DrawAliasModel (entity_t *e)
 			q_snprintf (temp, sizeof(temp), "gfx/skin%d.lmp", skinnum);
 			stonepic = Draw_CachePic(temp);
 			gl = (glpic_t *)stonepic->data;
-			gl_extra_textures[skinnum - 100] = gl->texnum;
+			gl_extra_textures[skinnum - 100] = gl->gltexture;
 		}
 
 		GL_Bind(gl_extra_textures[skinnum - 100]);
@@ -946,7 +1043,8 @@ static void R_DrawAliasModel (entity_t *e)
 			Con_DPrintf ("%s: no such skin # %d\n", __thisfunc__, skinnum);
 			skinnum = 0;
 		}
-		GL_Bind(paliashdr->gl_texturenum[skinnum][anim]);
+
+		GL_Bind(paliashdr->gltextures[skinnum][anim]);
 
 		// we can't dynamically colormap textures, so they are cached
 		// seperately for the players.  Heads are just uncolored.
@@ -978,8 +1076,34 @@ static void R_DrawAliasModel (entity_t *e)
 	if (gl_affinemodels.integer)
 		glHint_fp (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
 #endif
+	//R_SetupAliasFrame(e, paliashdr, false);
+	
+	//one pass with no fog
+	//Fog_DisableGFog();
+	R_SetupAliasFrame(e, paliashdr, false);
+	//Fog_EnableGFog();
+	
+	//one modulate pass with black fog
+	//GL_EnableMultitexture();
+	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	Fog_StartAdditive();
+	//R_SetupAliasFrame(e, paliashdr, false);
+	Fog_StopAdditive();
+	glTexEnvf_fp(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	//GL_DisableMultitexture();
 
-	R_SetupAliasFrame (e, paliashdr);
+	//one additive pass with black geometry and normal fog
+	//GL_EnableMultitexture();
+	glEnable_fp(GL_BLEND);
+	glBlendFunc_fp(GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR);
+	glDepthMask_fp(GL_FALSE);
+	glDisable_fp(GL_TEXTURE_2D);
+	//R_SetupAliasFrame(e, paliashdr, true);
+	glEnable_fp(GL_TEXTURE_2D);
+	glDepthMask_fp(GL_TRUE);
+	glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable_fp(GL_BLEND);
+	//GL_DisableMultitexture();
 
 // restore params
 	if ((e->drawflags & DRF_TRANSLUCENT) ||
@@ -987,6 +1111,8 @@ static void R_DrawAliasModel (entity_t *e)
 	    (e->model->flags & EF_TRANSPARENT) ||
 	    (e->model->flags & EF_HOLEY) )
 	{
+		glBlendFunc_fp(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable_fp(GL_ALPHA_TEST);
 		glDisable_fp (GL_BLEND);
 	}
 
@@ -1006,6 +1132,8 @@ static void R_DrawAliasModel (entity_t *e)
 	if (gl_affinemodels.integer)
 		glHint_fp (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 #endif
+	if (e->model->flags & EF_TRANSPARENT)
+		glDisable_fp(GL_ALPHA_TEST);
 
 	glPopMatrix_fp ();
 
@@ -1078,7 +1206,7 @@ static void R_DrawEntitiesOnList (void)
 		case mod_brush:
 			item_trans = ((e->drawflags & DRF_TRANSLUCENT)) != 0;
 			if (!item_trans)
-				R_DrawBrushModel (e,false);
+				R_DrawBrushModel(e, false, false);
 			break;
 
 		case mod_sprite:
@@ -1140,7 +1268,7 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 	qsort((void *) theents, numents, sizeof(sortedent_t), transCompare);
 	// Add in BETTER sorting here
 
-	glDepthMask_fp(0);
+	glDepthMask_fp(GL_FALSE);
 	for (i = 0; i < numents; i++)
 	{
 		e = theents[i].ent;
@@ -1161,7 +1289,9 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 				depthMaskWrite = 1;
 				glDepthMask_fp(1);
 			}
-			R_DrawBrushModel (e, true);
+			Fog_EnableGFog(); //johnfitz
+			R_DrawBrushModel (e, true, false);
+			Fog_DisableGFog(); //johnfitz
 			break;
 		case mod_sprite:
 			if (depthMaskWrite)
@@ -1175,7 +1305,8 @@ static void R_DrawTransEntitiesOnList (qboolean inwater)
 	}
 
 	if (!depthMaskWrite)
-		glDepthMask_fp(1);
+		glDepthMask_fp(GL_TRUE);
+
 }
 
 //=============================================================================
@@ -1341,6 +1472,7 @@ static void R_DrawAllGlows (void)
 	glEnable_fp (GL_BLEND);
 	glBlendFunc_fp (GL_ONE, GL_ONE);
 
+	Fog_StartAdditive();
 	for (i = 0; i < cl_numvisedicts; i++)
 	{
 		e = cl_visedicts[i];
@@ -1354,6 +1486,7 @@ static void R_DrawAllGlows (void)
 			break;
 		}
 	}
+	Fog_StopAdditive();
 
 	glDisable_fp (GL_BLEND);
 	glEnable_fp (GL_TEXTURE_2D);
@@ -1683,13 +1816,12 @@ static void R_SetupFrame (void)
 
 
 #define NEARCLIP	4
-#define FARCLIP		4096
 static void GL_SetFrustum (GLdouble fovx, GLdouble fovy)
 {
 	GLdouble	xmax, ymax;
 	xmax = NEARCLIP * tan(fovx * M_PI / 360.0);
 	ymax = NEARCLIP * tan(fovy * M_PI / 360.0);
-	glFrustum_fp (-xmax, xmax, -ymax, ymax, NEARCLIP, FARCLIP);
+	glFrustum_fp(-xmax, xmax, -ymax, ymax, NEARCLIP, gl_farclip.value);
 }
 
 /*
@@ -1781,15 +1913,21 @@ static void R_RenderScene (void)
 
 	R_MarkLeaves ();	// done here so we know if we're in water
 
+	Fog_EnableGFog(); //johnfitz
+
+	Sky_DrawSky(); //johnfitz
+
 	R_DrawWorld ();		// adds static entities to the list
 
 	S_ExtraUpdate ();	// don't let sound get messed up if going slow
 
-	R_DrawEntitiesOnList ();
+	R_DrawEntitiesOnList();
+
+	R_RenderDlights ();
 
 	R_DrawAllGlows();
 
-	R_RenderDlights ();
+	Fog_DisableGFog(); //johnfitz
 }
 
 
@@ -1923,10 +2061,10 @@ static void R_Mirror (void)
 	glLoadMatrixf_fp (r_base_world_matrix);
 
 	glColor4f_fp (1,1,1,r_mirroralpha.value);
-	s = cl.worldmodel->textures[mirrortexturenum]->texturechain;
+	s = cl.worldmodel->textures[mirrortexturenum]->texturechains[chain_world];
 	for ( ; s ; s = s->texturechain)
-		R_RenderBrushPoly (&r_worldentity, s, true);
-	cl.worldmodel->textures[mirrortexturenum]->texturechain = NULL;
+		R_RenderBrushPoly (&r_worldentity, s, true, false);
+	cl.worldmodel->textures[mirrortexturenum]->texturechains[chain_world] = NULL;
 	glDisable_fp (GL_BLEND);
 	glColor4f_fp (1,1,1,1);
 }
@@ -1979,6 +2117,7 @@ void R_RenderView (void)
 	}
 
 	mirror = false;
+	Fog_SetupFrame(); //johnfitz
 
 //	glFinish_fp ();
 
@@ -1989,6 +2128,7 @@ void R_RenderView (void)
 
 	glDepthMask_fp(0);
 
+	Fog_EnableGFog(); //johnfitz
 	R_DrawParticles ();
 
 	R_DrawTransEntitiesOnList (r_viewleaf->contents == CONTENTS_EMPTY); // This restores the depth mask
@@ -1996,6 +2136,7 @@ void R_RenderView (void)
 	R_DrawWaterSurfaces ();
 
 	R_DrawTransEntitiesOnList (r_viewleaf->contents != CONTENTS_EMPTY);
+	Fog_DisableGFog(); //johnfitz
 
 	R_DrawViewModel();
 

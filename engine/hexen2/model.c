@@ -225,7 +225,7 @@ qmodel_t *Mod_FindName (const char *name)
 				if (mod->type == mod_alias)
 				{
 					if (Cache_Check (&mod->cache))
-						Cache_Free (&mod->cache);
+						Cache_Free (&mod->cache, true);
 				}
 				else if (mod->type == mod_sprite)
 					mod->cache.data = NULL;
@@ -290,7 +290,7 @@ static qmodel_t *Mod_LoadModel (qmodel_t *mod, qboolean crash)
 //
 // load the file
 //
-	buf = FS_LoadStackFile (mod->name, stackbuf, sizeof(stackbuf), & mod->path_id);
+	buf = FS_LoadStackFile (mod->name, stackbuf, sizeof(stackbuf), & mod->path_id, NULL);
 	if (!buf)
 	{
 		if (crash)
@@ -472,8 +472,8 @@ bsp_tex_internal:
 		}
 #endif
 
-		if (!strncmp(mt->name,"sky",3))
-			R_InitSky (tx);
+		//if (!strncmp(mt->name,"sky",3))
+		//	Sky_LoadTexture(tx);
 	}
 
 //
@@ -624,7 +624,7 @@ static void Mod_LoadEntities (lump_t *l)
 	q_strlcat(entfilename, ".ent", sizeof(entfilename));
 	Con_DPrintf("trying to load %s\n", entfilename);
 	mark = Hunk_LowMark();
-	ents = (char *) FS_LoadHunkFile (entfilename, &path_id);
+	ents = (char *) FS_LoadHunkFile (entfilename, &path_id, NULL);
 	if (ents)
 	{
 		// use ent file only from the same gamedir as the map
@@ -1913,9 +1913,10 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	pmodel->skinwidth = LittleLong (pinmodel->skinwidth);
 	pmodel->skinheight = LittleLong (pinmodel->skinheight);
 
+	/*
 	if (pmodel->skinheight > MAX_SKIN_HEIGHT)
 		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);
-
+		*/
 	pmodel->numverts = LittleLong (pinmodel->numverts);
 	//use the new num
 	pmodel->num_st_verts = LittleLong (pinmodel->num_st_verts);
@@ -2149,10 +2150,10 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	pmodel->numskins = LittleLong (pinmodel->numskins);
 	pmodel->skinwidth = LittleLong (pinmodel->skinwidth);
 	pmodel->skinheight = LittleLong (pinmodel->skinheight);
-
+	/*
 	if (pmodel->skinheight > MAX_SKIN_HEIGHT)
 		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);
-
+		*/
 	pmodel->numverts = LittleLong (pinmodel->numverts);
 	pmodel->num_st_verts = LittleLong (pinmodel->numverts);
 

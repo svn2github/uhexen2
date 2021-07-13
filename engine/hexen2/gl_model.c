@@ -38,8 +38,14 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer);
 static void Mod_Print (void);
 
 static cvar_t	external_ents = {"external_ents", "1", CVAR_ARCHIVE};
+static cvar_t	gl_load24bit = { "gl_load24bit", "1", CVAR_ARCHIVE };
 
-static byte	mod_novis[MAX_MAP_LEAFS/8];
+//static byte	mod_novis[MAX_MAP_LEAFS/8];
+static byte	*mod_novis;
+static int	mod_novis_capacity;
+
+static byte	*mod_decompressed;
+static int	mod_decompressed_capacity;
 
 // 650 should be enough with model handle recycling, but.. (Pa3PyX)
 #define	MAX_MOD_KNOWN	4096	//spike: boosted for crazy bsp2 maps
@@ -52,6 +58,9 @@ int		entity_file_size;
 
 static qboolean	spr_reload_only = false;
 
+texture_t	*r_notexture_mip; //johnfitz -- moved here from r_main.c
+texture_t	*r_notexture_mip2; //johnfitz -- used for non-lightmapped surfs with a missing texture
+
 
 /*
 ===============
@@ -61,9 +70,20 @@ Mod_Init
 void Mod_Init (void)
 {
 	Cvar_RegisterVariable (&external_ents);
+	Cvar_RegisterVariable (&gl_load24bit);
 	Cmd_AddCommand ("mcache", Mod_Print);
 
-	memset (mod_novis, 0xff, sizeof(mod_novis));
+	//memset (mod_novis, 0xff, sizeof(mod_novis));
+
+	//johnfitz -- create notexture miptex
+	r_notexture_mip = (texture_t *)Hunk_AllocName(sizeof(texture_t), "r_notexture_mip");
+	strcpy(r_notexture_mip->name, "notexture");
+	r_notexture_mip->height = r_notexture_mip->width = 32;
+
+	r_notexture_mip2 = (texture_t *)Hunk_AllocName(sizeof(texture_t), "r_notexture_mip2");
+	strcpy(r_notexture_mip2->name, "notexture2");
+	r_notexture_mip2->height = r_notexture_mip2->width = 32;
+	//johnfitz
 }
 
 /*
@@ -128,15 +148,21 @@ Mod_DecompressVis
 */
 static byte *Mod_DecompressVis (byte *in, qmodel_t *model)
 {
-	static byte	decompressed[MAX_MAP_LEAFS/8];
 	int		c;
 	byte	*out;
 	byte	*outend;
 	int		row;
 
-	row = (model->numleafs+7)>>3;
-	out = decompressed;
-	outend = decompressed + row;
+	row = (model->numleafs + 7) >> 3;
+	if (mod_decompressed == NULL || row > mod_decompressed_capacity)
+	{
+		mod_decompressed_capacity = row;
+		mod_decompressed = (byte *)realloc(mod_decompressed, mod_decompressed_capacity);
+		if (!mod_decompressed)
+			Sys_Error("Mod_DecompressVis: realloc() failed on %d bytes", mod_decompressed_capacity);
+	}
+	out = mod_decompressed;
+	outend = mod_decompressed + row;
 
 	if (!in)
 	{	// no vis info, so make all visible
@@ -145,7 +171,7 @@ static byte *Mod_DecompressVis (byte *in, qmodel_t *model)
 			*out++ = 0xff;
 			row--;
 		}
-		return decompressed;
+		return mod_decompressed;
 	}
 
 	do
@@ -162,21 +188,45 @@ static byte *Mod_DecompressVis (byte *in, qmodel_t *model)
 		{
 			if (out == outend)
 			{
-				return decompressed;
+				//if (!model->viswarn) {
+				//	model->viswarn = true;
+				//	Con_Warning("Mod_DecompressVis: output overrun on model \"%s\"\n", model->name);
+				//}
+				return mod_decompressed;
 			}
 			*out++ = 0;
 			c--;
 		}
-	} while (out - decompressed < row);
+	} while (out - mod_decompressed < row);
 
-	return decompressed;
+	return mod_decompressed;
 }
+
+byte *Mod_NoVisPVS(qmodel_t *model);
 
 byte *Mod_LeafPVS (mleaf_t *leaf, qmodel_t *model)
 {
 	if (leaf == model->leafs)
-		return mod_novis;
+		return Mod_NoVisPVS(model);
+		//return mod_novis;
 	return Mod_DecompressVis (leaf->compressed_vis, model);
+}
+
+byte *Mod_NoVisPVS(qmodel_t *model)
+{
+	int pvsbytes;
+
+	pvsbytes = (model->numleafs + 7) >> 3;
+	if (mod_novis == NULL || pvsbytes > mod_novis_capacity)
+	{
+		mod_novis_capacity = pvsbytes;
+		mod_novis = (byte *)realloc(mod_novis, mod_novis_capacity);
+		if (!mod_novis)
+			Sys_Error("Mod_NoVisPVS: realloc() failed on %d bytes", mod_novis_capacity);
+
+		memset(mod_novis, 0xff, mod_novis_capacity);
+	}
+	return mod_novis;
 }
 
 /*
@@ -196,16 +246,35 @@ void Mod_ClearAll (void)
 			if (flush_textures && gl_purge_maptex.integer)
 			{
 				if (Cache_Check(&(mod->cache)))
-					Cache_Free(&(mod->cache));
+					Cache_Free(&(mod->cache), true); //johnfitz -- added second argument
 				mod->needload = NL_NEEDS_LOADED;
 			}
 		}
 		else
 		{	// Clear all other models completely
+			TexMgr_FreeTexturesForOwner(mod); //johnfitz
 			memset(mod, 0, sizeof(qmodel_t));
 			mod->needload = NL_UNREFERENCED;
 		}
 	}
+}
+
+
+void Mod_ResetAll(void)
+{
+	int		i;
+	qmodel_t	*mod;
+
+	//ericw -- free alias model VBOs
+	//GLMesh_DeleteVertexBuffers();
+
+	for (i = 0, mod = mod_known; i < mod_numknown; i++, mod++)
+	{
+		if (!mod->needload) //otherwise Mod_ClearAll() did it already
+			TexMgr_FreeTexturesForOwner(mod);
+		memset(mod, 0, sizeof(qmodel_t));
+	}
+	mod_numknown = 0;
 }
 
 /*
@@ -281,7 +350,7 @@ Mod_LoadModel
 Loads a model into the cache
 ==================
 */
-static qmodel_t *Mod_LoadModel (qmodel_t *mod, qboolean crash)
+qmodel_t *Mod_LoadModel (qmodel_t *mod, qboolean crash)
 {
 	byte	*buf;
 	byte	stackbuf[1024];		// avoid dirtying the cache heap
@@ -304,7 +373,7 @@ static qmodel_t *Mod_LoadModel (qmodel_t *mod, qboolean crash)
 //
 // load the file
 //
-	buf = FS_LoadStackFile (mod->name, stackbuf, sizeof(stackbuf), & mod->path_id);
+	buf = FS_LoadStackFile (mod->name, stackbuf, sizeof(stackbuf), & mod->path_id, NULL);
 	if (!buf)
 	{
 		if (crash)
@@ -376,6 +445,20 @@ static byte	*mod_base;
 
 /*
 =================
+Mod_CheckFullbrights -- johnfitz
+=================
+*/
+qboolean Mod_CheckFullbrights(byte *pixels, int count)
+{
+	int i;
+	for (i = 0; i < count; i++)
+		if (*pixels++ > 223)
+			return true;
+	return false;
+}
+
+/*
+=================
 Mod_LoadTextures
 =================
 */
@@ -387,6 +470,16 @@ static void Mod_LoadTextures (lump_t *l)
 	texture_t	*anims[10];
 	texture_t	*altanims[10];
 	dmiptexlump_t *m;
+	//johnfitz -- more variables
+	char		texturename[64];
+	int			nummiptex;
+	src_offset_t		offset;
+	int			mark, fwidth, fheight;
+	char		filename[MAX_OSPATH], filename2[MAX_OSPATH], mapname[MAX_OSPATH];
+	byte		*data;
+	extern byte *hunk_base;
+	//johnfitz
+
 #ifdef WAL_TEXTURES
 	// external WAL texture loading
 	char		texname[MAX_QPATH];
@@ -394,17 +487,24 @@ static void Mod_LoadTextures (lump_t *l)
 	miptex_wal_t	*mt_wal;
 #endif
 
+	//johnfitz -- don't return early if no textures; still need to create dummy texture
 	if (!l->filelen)
 	{
-		loadmodel->textures = NULL;
-		return;
+		Con_Printf("Mod_LoadTextures: no textures in bsp file\n");
+		nummiptex = 0;
+		m = NULL; // avoid bogus compiler warning
 	}
-	m = (dmiptexlump_t *)(mod_base + l->fileofs);
+	else
+	{
+		m = (dmiptexlump_t *)(mod_base + l->fileofs);
+		m->nummiptex = LittleLong(m->nummiptex);
+		nummiptex = m->nummiptex;
+	}
+	//johnfitz
 
-	m->nummiptex = LittleLong (m->nummiptex);
 
-	loadmodel->numtextures = m->nummiptex;
-	loadmodel->textures = (texture_t **) Hunk_AllocName (m->nummiptex * sizeof(*loadmodel->textures), "texture");
+	loadmodel->numtextures = nummiptex + 2; //johnfitz -- need 2 dummy texture chains for missing textures
+	loadmodel->textures = (texture_t **)Hunk_AllocName(loadmodel->numtextures * sizeof(*loadmodel->textures), loadname);
 
 	for (i = 0; i < m->nummiptex; i++)
 	{
@@ -484,7 +584,22 @@ bsp_tex_internal:
 			for (j = 0; j < MIPLEVELS; j++)
 				tx->offsets[j] = mt->offsets[j] + sizeof(texture_t) - sizeof(miptex_t);
 			// the pixels immediately follow the structures
-			memcpy ( tx+1, mt+1, pixels);
+
+		// ericw -- check for pixels extending past the end of the lump.
+		// appears in the wild; e.g. jam2_tronyn.bsp (func_mapjam2),
+		// kellbase1.bsp (quoth), and can lead to a segfault if we read past
+		// the end of the .bsp file buffer
+			if (((byte*)(mt + 1) + pixels) > (mod_base + l->fileofs + l->filelen))
+			{
+				Con_DPrintf("Texture %s extends past end of lump\n", mt->name);
+				pixels = q_max(0, (mod_base + l->fileofs + l->filelen) - (byte*)(mt + 1));
+			}
+			memcpy(tx + 1, mt + 1, pixels);
+
+			tx->update_warp = false; //johnfitz
+			tx->warpimage = NULL; //johnfitz
+			tx->fullbright = NULL; //johnfitz
+
 #ifdef WAL_TEXTURES
 		}
 #endif
@@ -494,6 +609,126 @@ bsp_tex_internal:
 			continue;
 #endif	/* H2W */
 
+		//johnfitz -- lots of changes
+		if (!isDedicated) //no texture uploading for dedicated server
+		{
+			if (!q_strncasecmp(tx->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
+				Sky_LoadTexture(tx);
+			else if (tx->name[0] == '*') //warping texture
+			{
+				mark = Hunk_LowMark();
+				if (r_texture_external.integer)
+				{
+					//external textures -- first look in "textures/mapname/" then look in "textures/"
+					COM_StripExtension(loadmodel->name + 5, mapname, sizeof(mapname));
+					q_snprintf(filename, sizeof(filename), "textures/%s/#%s", mapname, tx->name + 1); //this also replaces the '*' with a '#'
+					data = Image_LoadImage(filename, &fwidth, &fheight);
+					if (!data)
+					{
+						q_snprintf(filename, sizeof(filename), "textures/#%s", tx->name + 1);
+						data = Image_LoadImage(filename, &fwidth, &fheight);
+					}
+
+					//now load whatever we found
+					if (data) //load external image
+					{
+						q_strlcpy(texturename, filename, sizeof(texturename));
+						tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, fwidth, fheight,
+							SRC_RGBA, data, filename, 0, TEXPREF_NONE);
+					}
+					else //use the texture from the bsp file
+					{
+						q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name, tx->name);
+						offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
+						tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
+							SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_NONE);
+					}
+				}
+				else
+				{
+					q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name, tx->name);
+					offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
+					tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
+						SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_NONE);
+				}
+
+				//now create the warpimage, using dummy data from the hunk to create the initial image
+				Hunk_Alloc(gl_warpimagesize*gl_warpimagesize * 4); //make sure hunk is big enough so we don't reach an illegal address
+				Hunk_FreeToLowMark(mark);
+				q_snprintf(texturename, sizeof(texturename), "%s_warp", texturename);
+				tx->warpimage = TexMgr_LoadImage(loadmodel, texturename, gl_warpimagesize,
+					gl_warpimagesize, SRC_RGBA, hunk_base, "", (src_offset_t)hunk_base, TEXPREF_NOPICMIP | TEXPREF_WARPIMAGE);
+				tx->update_warp = true;
+			}
+			else //regular texture
+			{
+				// ericw -- fence textures
+				int	extraflags;
+
+				extraflags = 0;
+				if (tx->name[0] == '{')
+					extraflags |= TEXPREF_ALPHA;
+				// ericw
+
+				//external textures -- first look in "textures/mapname/" then look in "textures/"
+				if (r_texture_external.integer)
+				{
+					mark = Hunk_LowMark();
+					COM_StripExtension(loadmodel->name + 5, mapname, sizeof(mapname));
+					q_snprintf(filename, sizeof(filename), "textures/%s/%s", mapname, tx->name);
+					data = Image_LoadImage(filename, &fwidth, &fheight);
+					if (!data)
+					{
+						q_snprintf(filename, sizeof(filename), "textures/%s", tx->name);
+						data = Image_LoadImage(filename, &fwidth, &fheight);
+					}
+				}
+
+				//now load whatever we found
+				if ((r_texture_external.integer) && (data)) //load external image
+				{
+					tx->gltexture = TexMgr_LoadImage(loadmodel, filename, fwidth, fheight,
+						SRC_RGBA, data, filename, 0, TEXPREF_MIPMAP | extraflags);
+
+					//now try to load glow/luma image from the same place
+					Hunk_FreeToLowMark(mark);
+					q_snprintf(filename2, sizeof(filename2), "%s_glow", filename);
+					data = Image_LoadImage(filename2, &fwidth, &fheight);
+					if (!data)
+					{
+						q_snprintf(filename2, sizeof(filename2), "%s_luma", filename);
+						data = Image_LoadImage(filename2, &fwidth, &fheight);
+					}
+
+					if (data)
+						tx->fullbright = TexMgr_LoadImage(loadmodel, filename2, fwidth, fheight,
+							SRC_RGBA, data, filename, 0, TEXPREF_MIPMAP | extraflags);
+
+					Hunk_FreeToLowMark(mark);
+				}
+				else //use the texture from the bsp file
+				{
+					q_snprintf(texturename, sizeof(texturename), "%s:%s", loadmodel->name, tx->name);
+					offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
+					if (Mod_CheckFullbrights((byte *)(tx + 1), pixels))
+					{
+						tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
+							SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_NOBRIGHT | extraflags);
+						q_snprintf(texturename, sizeof(texturename), "%s:%s_glow", loadmodel->name, tx->name);
+						tx->fullbright = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
+							SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | TEXPREF_FULLBRIGHT | extraflags);
+					}
+					else
+					{
+						tx->gltexture = TexMgr_LoadImage(loadmodel, texturename, tx->width, tx->height,
+							SRC_INDEXED, (byte *)(tx + 1), loadmodel->name, offset, TEXPREF_MIPMAP | extraflags);
+					}
+				}
+			}
+		}
+		//johnfitz
+
+		/*
 		// ericw -- fence textures
 		int	extraflags;
 
@@ -502,16 +737,23 @@ bsp_tex_internal:
 			extraflags |= TEX_HOLEY;
 		// ericw
 
-		if (!strncmp(mt->name,"sky",3))
-			R_InitSky (tx);
+		if (!q_strncasecmp(mt->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
+			Sky_LoadTexture(tx);
 		else
-			tx->gl_texturenum = GL_LoadTexture (mt->name, (byte *)(tx+1), tx->width, tx->height, (TEX_MIPMAP | extraflags));
+			tx->gltexture = TexMgr_LoadImage(loadmodel, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
+				WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
+			//tx->gl_texturenum = GL_LoadTexture (mt->name, (byte *)(tx+1), tx->width, tx->height, (TEX_MIPMAP | extraflags));
+		*/
 	}
+
+	//johnfitz -- last 2 slots in array should be filled with dummy textures
+	loadmodel->textures[loadmodel->numtextures - 2] = r_notexture_mip; //for lightmapped surfs
+	loadmodel->textures[loadmodel->numtextures - 1] = r_notexture_mip2; //for SURF_DRAWTILED surfs
 
 //
 // sequence the animations
 //
-	for (i = 0; i < m->nummiptex; i++)
+	for (i = 0; i < nummiptex; i++)
 	{
 		tx = loadmodel->textures[i];
 		if (!tx || tx->name[0] != '+')
@@ -544,7 +786,7 @@ bsp_tex_internal:
 		else
 			Sys_Error ("Bad animating texture %s", tx->name);
 
-		for (j = i+1; j < m->nummiptex; j++)
+		for (j = i+1; j < nummiptex; j++)
 		{
 			tx2 = loadmodel->textures[j];
 			if (!tx2 || tx2->name[0] != '+')
@@ -617,7 +859,9 @@ void Mod_ReloadTextures (void)
 	int			j;
 	qmodel_t	*mod;
 	texture_t	*tx;
+	src_offset_t		offset;
 
+	
 	// Reload world (brush models are submodels of world),
 	// don't touch if not yet loaded
 	mod = cl.worldmodel;
@@ -628,21 +872,25 @@ void Mod_ReloadTextures (void)
 			tx = mod->textures[j];
 			if (tx)
 			{
-				if (!strncmp(tx->name, "sky", 3))
-					R_InitSky(tx);
+				if (!q_strncasecmp(tx->name, "sky", 3)) //sky texture //also note -- was Q_strncmp, changed to match qbsp
+					Sky_LoadTexture(tx);
 				else
-					tx->gl_texturenum = GL_LoadTexture (tx->name, (byte *)(tx+1), tx->width, tx->height, TEX_MIPMAP);
+				{
+					//offset = (src_offset_t)(mt + 1) - (src_offset_t)mod_base;
+					tx->gltexture = TexMgr_LoadImage(loadmodel, tx->name, tx->width, tx->height, SRC_INDEXED, (byte *)(tx + 1),
+						WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_NEAREST | TEXPREF_NOPICMIP);
+				}
 			}
 		}
 	}
-
+	
 	// Reload alias models and sprites
 	for (j = 0; j < mod_numknown; j++)
 	{
 		if ((mod_known[j].type == mod_alias) && (mod_known[j].needload != NL_UNREFERENCED))
 		{
 			if (Cache_Check(&(mod_known[j].cache)))
-				Cache_Free(&(mod_known[j].cache));
+				Cache_Free(&(mod_known[j].cache), true); //johnfitz -- added second argument
 			mod_known[j].needload = NL_NEEDS_LOADED;
 			Mod_LoadModel(mod_known + j, false);
 		}
@@ -660,7 +908,7 @@ void Mod_ReloadTextures (void)
 	{
 		for (j = 0; j < cl.maxclients && j < cl.num_entities + 1; j++)
 		{
-			R_TranslatePlayerSkin(j);
+			R_TranslateNewPlayerSkin(j);
 		}
 	}
 }
@@ -699,7 +947,7 @@ static void Mod_LoadLighting (lump_t *l)
 			q_strlcat(litfilename, ".lit", sizeof(litfilename));
 			Con_DPrintf("trying to load %s\n", litfilename);
 			mark = Hunk_LowMark();
-			data = (byte*) FS_LoadHunkFile (litfilename, &path_id);
+			data = (byte*) FS_LoadHunkFile (litfilename, &path_id, NULL);
 			if (data == NULL)
 				goto _load_internal;
 			// use lit file only from the same gamedir as the map
@@ -851,7 +1099,7 @@ static void Mod_LoadEntities (lump_t *l)
 	q_strlcat(entfilename, ".ent", sizeof(entfilename));
 	Con_DPrintf("trying to load %s\n", entfilename);
 	mark = Hunk_LowMark();
-	ents = (char *) FS_LoadHunkFile (entfilename, &path_id);
+	ents = (char *) FS_LoadHunkFile (entfilename, &path_id, NULL);
 	if (ents)
 	{
 		// use ent file only from the same gamedir as the map
@@ -1094,12 +1342,66 @@ static void Mod_LoadTexinfo (lump_t *l)
 
 /*
 ================
+Mod_PolyForUnlitSurface -- johnfitz -- creates polys for unlightmapped surfaces (sky and water)
+
+TODO: merge this into BuildSurfaceDisplayList?
+================
+*/
+void Mod_PolyForUnlitSurface(msurface_t *fa)
+{
+	vec3_t		verts[64];
+	int			numverts, i, lindex;
+	float		*vec;
+	glpoly_t	*poly;
+	float		texscale;
+
+	if (fa->flags & (SURF_DRAWTURB | SURF_DRAWSKY))
+		texscale = (1.0 / 128.0); //warp animation repeats every 128
+	else
+		texscale = (1.0 / 32.0); //to match r_notexture_mip
+
+	// convert edges back to a normal polygon
+	numverts = 0;
+	for (i = 0; i < fa->numedges; i++)
+	{
+		lindex = loadmodel->surfedges[fa->firstedge + i];
+
+		if (lindex > 0)
+			vec = loadmodel->vertexes[loadmodel->edges[lindex].v[0]].position;
+		else
+			vec = loadmodel->vertexes[loadmodel->edges[-lindex].v[1]].position;
+		VectorCopy(vec, verts[numverts]);
+		numverts++;
+	}
+
+	//create the poly
+	poly = (glpoly_t *)Hunk_Alloc(sizeof(glpoly_t) + (numverts - 4) * VERTEXSIZE * sizeof(float));
+	poly->next = NULL;
+	fa->polys = poly;
+	poly->numverts = numverts;
+	for (i = 0, vec = (float *)verts; i < numverts; i++, vec += 3)
+	{
+		VectorCopy(vec, poly->verts[i]);
+		poly->verts[i][3] = DotProduct(vec, fa->texinfo->vecs[0]) * texscale;
+		poly->verts[i][4] = DotProduct(vec, fa->texinfo->vecs[1]) * texscale;
+	}
+}
+
+/*
+================
 CalcSurfaceExtents
 
 Fills in s->texturemins[] and s->extents[]
 ================
 */
-static void CalcSurfaceExtents (msurface_t *s)
+/*
+================
+CalcSurfaceExtents
+
+Fills in s->texturemins[] and s->extents[]
+================
+*/
+void CalcSurfaceExtents(msurface_t *s)
 {
 	float	mins[2], maxs[2], val;
 	int		i, j, e;
@@ -1107,14 +1409,14 @@ static void CalcSurfaceExtents (msurface_t *s)
 	mtexinfo_t	*tex;
 	int		bmins[2], bmaxs[2];
 
-	mins[0] = mins[1] = 99999999;
-	maxs[0] = maxs[1] = -99999999;
+	mins[0] = mins[1] = 999999;
+	maxs[0] = maxs[1] = -99999;
 
 	tex = s->texinfo;
 
 	for (i = 0; i < s->numedges; i++)
 	{
-		e = loadmodel->surfedges[s->firstedge+i];
+		e = loadmodel->surfedges[s->firstedge + i];
 		if (e >= 0)
 			v = &loadmodel->vertexes[loadmodel->edges[e].v[0]];
 		else
@@ -1122,10 +1424,22 @@ static void CalcSurfaceExtents (msurface_t *s)
 
 		for (j = 0; j < 2; j++)
 		{
-			/* added double casts so that 64 bit/sse2 builds' precision
-			 * matches that of x87 floating point. took from QuakeSpasm,
-			 * patch by Eric Wasylishen.  */
-			val =	((double)v->position[0] * (double)tex->vecs[j][0]) +
+			/* The following calculation is sensitive to floating-point
+			 * precision.  It needs to produce the same result that the
+			 * light compiler does, because R_BuildLightMap uses surf->
+			 * extents to know the width/height of a surface's lightmap,
+			 * and incorrect rounding here manifests itself as patches
+			 * of "corrupted" looking lightmaps.
+			 * Most light compilers are win32 executables, so they use
+			 * x87 floating point.  This means the multiplies and adds
+			 * are done at 80-bit precision, and the result is rounded
+			 * down to 32-bits and stored in val.
+			 * Adding the casts to double seems to be good enough to fix
+			 * lighting glitches when Quakespasm is compiled as x86_64
+			 * and using SSE2 floating-point.  A potential trouble spot
+			 * is the hallway at the beginning of mfxsp17.  -- ericw
+			 */
+			val = ((double)v->position[0] * (double)tex->vecs[j][0]) +
 				((double)v->position[1] * (double)tex->vecs[j][1]) +
 				((double)v->position[2] * (double)tex->vecs[j][2]) +
 				(double)tex->vecs[j][3];
@@ -1139,19 +1453,16 @@ static void CalcSurfaceExtents (msurface_t *s)
 
 	for (i = 0; i < 2; i++)
 	{
-		bmins[i] = (int) floor(mins[i]/16);
-		bmaxs[i] = (int) ceil(maxs[i]/16);
+		bmins[i] = floor(mins[i] / 16);
+		bmaxs[i] = ceil(maxs[i] / 16);
 
 		s->texturemins[i] = bmins[i] * 16;
 		s->extents[i] = (bmaxs[i] - bmins[i]) * 16;
 
-		if ( !(tex->flags & TEX_SPECIAL) && (s->extents[i]>>4)+1 > MAX_SURFACE_LIGHTMAP /* 256 */ )
-		{
-			Sys_Error ("Bad surface extents");
-		}
+		if (!(tex->flags & TEX_SPECIAL) && s->extents[i] > 2000) //johnfitz -- was 512 in glquake, 256 in winquake
+			Sys_Error("Bad surface extents");
 	}
 }
-
 
 /*
 =================
@@ -1236,18 +1547,13 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 				out->samples = loadmodel->lightdata + lightofs ;
 		}
 
-	// set the drawing flags flag
-
-		if (!strncmp(out->texinfo->texture->name,"sky",3))	// sky
+		//johnfitz -- this section rewritten
+		if (!q_strncasecmp(out->texinfo->texture->name, "sky", 3)) // sky surface //also note -- was Q_strncmp, changed to match qbsp
 		{
 			out->flags |= (SURF_DRAWSKY | SURF_DRAWTILED);
-#ifndef QUAKE2
-			GL_SubdivideSurface (out);	// cut up polygon for warps
-#endif
-			continue;
+			Mod_PolyForUnlitSurface(out); //no more subdivision
 		}
-
-		if (out->texinfo->texture->name[0] == '*')		// turbulent
+		else if (out->texinfo->texture->name[0] == '*')		// turbulent
 		{
 			out->flags |= (SURF_DRAWTURB | SURF_DRAWTILED);
 			for (i = 0; i < 2; i++)
@@ -1256,16 +1562,18 @@ static void Mod_LoadFaces (lump_t *l, qboolean lm)
 				out->texturemins[i] = -8192;
 			}
 
+#ifndef QUAKE2
 			GL_SubdivideSurface (out);	// cut up polygon for warps
+#endif
+			//Mod_PolyForUnlitSurface(out);
+			GL_SubdivideSurface(out);
 
 			if ( (!q_strncasecmp(out->texinfo->texture->name,"*rtex078",8)) ||
 					(!q_strncasecmp(out->texinfo->texture->name,"*lowlight",9)) )
 				out->flags |= SURF_TRANSLUCENT;
 
-			continue;
 		}
-
-		if (out->texinfo->texture->name[0] == '{') // ericw -- fence textures
+		else if (out->texinfo->texture->name[0] == '{') // ericw -- fence textures
 		{
 			out->flags |= SURF_DRAWFENCE;
 		}
@@ -2142,16 +2450,17 @@ static void Mod_FloodFillSkin (byte *skin, int skinwidth, int skinheight)
 Mod_LoadAllSkins
 ===============
 */
-static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int mdl_flags)
+void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int mdl_flags)
 {
 	int	i, j, k;
 	char	name[MAX_QPATH];
 	int	s;
 	byte	*skin;
-	int	tex_mode;
+	int	tex_mode = TEXPREF_PAD;
 	int	groupskins;
 	daliasskingroup_t	*pinskingroup;
 	daliasskininterval_t	*pinskinintervals;
+	src_offset_t		offset; //johnfitz
 
 	skin = (byte *)(pskintype + 1);
 
@@ -2160,9 +2469,9 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 
 	s = pheader->skinwidth * pheader->skinheight;
 
-	tex_mode = TEX_DEFAULT | TEX_MIPMAP;
+	//tex_mode = TEXPREF_NONE | TEXPREF_MIPMAP;
 	if (mdl_flags & EF_TRANSPARENT)
-		tex_mode |= TEX_TRANSPARENT;
+		tex_mode |= TEXPREF_TRANSPARENT;
 	else if (mdl_flags & EF_HOLEY)
 		tex_mode |= TEX_HOLEY;
 	else if (mdl_flags & EF_SPECIAL_TRANS)
@@ -2170,69 +2479,136 @@ static void *Mod_LoadAllSkins (int numskins, daliasskintype_t *pskintype, int md
 
 	for (i = 0; i < numskins; i++)
 	{
-	    k = LittleLong (pskintype->type);		/* aliasskintype_t */
-	    if (k == ALIAS_SKIN_SINGLE) {
-		Mod_FloodFillSkin (skin, pheader->skinwidth, pheader->skinheight);
+		k = LittleLong(pskintype->type);		/* aliasskintype_t */
+		if (k == ALIAS_SKIN_SINGLE) {
+			Mod_FloodFillSkin(skin, pheader->skinwidth, pheader->skinheight);
 
-		// save 8 bit texels for the player model to remap
-		if (!strcmp(loadmodel->name,"models/paladin.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[0]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[0], (byte *)(pskintype + 1), s);
-		}
-		else if (!strcmp(loadmodel->name,"models/crusader.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[1]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[1], (byte *)(pskintype + 1), s);
-		}
-		else if (!strcmp(loadmodel->name,"models/necro.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[2]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[2], (byte *)(pskintype + 1), s);
-		}
-		else if (!strcmp(loadmodel->name,"models/assassin.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[3]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[3], (byte *)(pskintype + 1), s);
-		}
-		else if (!strcmp(loadmodel->name,"models/succubus.mdl"))
-		{
-			if (s > (int) sizeof(player_8bit_texels[4]))
-				goto skin_too_large;
-			memcpy (player_8bit_texels[4], (byte *)(pskintype + 1), s);
-		}
+			// save 8 bit texels for the player model to remap
+			if (!strcmp(loadmodel->name, "models/paladin.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[0]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[0], (byte *)(pskintype + 1), s);
+			}
+			else if (!strcmp(loadmodel->name, "models/crusader.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[1]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[1], (byte *)(pskintype + 1), s);
+			}
+			else if (!strcmp(loadmodel->name, "models/necro.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[2]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[2], (byte *)(pskintype + 1), s);
+			}
+			else if (!strcmp(loadmodel->name, "models/assassin.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[3]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[3], (byte *)(pskintype + 1), s);
+			}
+			else if (!strcmp(loadmodel->name, "models/succubus.mdl"))
+			{
+				if (s > (int) sizeof(player_8bit_texels[4]))
+					goto skin_too_large;
+				memcpy(player_8bit_texels[4], (byte *)(pskintype + 1), s);
+			}
 
-		q_snprintf (name, sizeof(name), "%s_%i", loadmodel->name, i);
-		pheader->gl_texturenum[i][0] =
-		pheader->gl_texturenum[i][1] =
-		pheader->gl_texturenum[i][2] =
-		pheader->gl_texturenum[i][3] = GL_LoadTexture (name, (byte *)(pskintype + 1),
-						pheader->skinwidth, pheader->skinheight, tex_mode);
-		pskintype = (daliasskintype_t *)((byte *)(pskintype+1) + s);
+			if (r_texture_external.integer)
+			{
+				//spike - external model textures with dp naming -- eg progs/foo.mdl_0.tga
+				//always use the alpha channel for external images. gpus prefer aligned data anyway.
+				int mark = Hunk_LowMark();
+				char modelname[MAX_QPATH];
+				char filename[MAX_QPATH];
+				char filename2[MAX_QPATH];
+				int l;
+				byte *data;
+				int fwidth, fheight;
+				qboolean malloced = false;
 
-	    } else /*if (k == ALIAS_SKIN_GROUP)*/
-	    {						/* animating skin group.  yuck. */
-		pskintype++;
-		pinskingroup = (daliasskingroup_t *)pskintype;
-		groupskins = LittleLong (pinskingroup->numskins);
-		pinskinintervals = (daliasskininterval_t *)(pinskingroup + 1);
+				COM_StripExtension(loadmodel->name, modelname, sizeof(modelname));
+				q_snprintf(filename, sizeof(filename), "%s_%i", modelname, i);
+				data = !gl_load24bit.value ? NULL : Image_LoadImage(filename, &fwidth, &fheight/*, &malloced*/);
 
-		pskintype = (daliasskintype_t *)(pinskinintervals + groupskins);
-		for (j = 0; j < groupskins; j++)
-		{
-			Mod_FloodFillSkin (skin, pheader->skinwidth, pheader->skinheight);
-			q_snprintf (name, sizeof(name), "%s_%i_%i", loadmodel->name, i, j);
-			pheader->gl_texturenum[i][j&3] = GL_LoadTexture (name, (byte *)(pskintype),
-						pheader->skinwidth, pheader->skinheight, tex_mode);
-			pskintype = (daliasskintype_t *)((byte *)(pskintype) + s);
+				//now load whatever we found
+				if (data) //load external image
+				{
+
+					pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, filename, fwidth, fheight,
+						SRC_RGBA, data, filename, 0, TEXPREF_ALPHA | tex_mode | TEXPREF_MIPMAP);
+
+					//now try to load glow/luma image from the same place
+					if (malloced)
+						free(data);
+					Hunk_FreeToLowMark(mark);
+					q_snprintf(filename2, sizeof(filename2), "%s_glow", filename);
+					data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight/*, &malloced*/);
+					if (!data)
+					{
+						q_snprintf(filename2, sizeof(filename2), "%s_luma", filename);
+						data = !gl_load24bit.value ? NULL : Image_LoadImage(filename2, &fwidth, &fheight/*, &malloced*/);
+					}
+
+					if (data)
+						pheader->fbtextures[i][0] = TexMgr_LoadImage(loadmodel, filename2, fwidth, fheight,
+							SRC_RGBA, data, filename, 0, TEXPREF_ALPHA | tex_mode | TEXPREF_MIPMAP);
+					else
+						pheader->fbtextures[i][0] = NULL;
+				}
+				else
+				{
+					offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
+					q_snprintf(name, sizeof(name), "%s_%i", loadmodel->name, i);
+					pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+						SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+					//pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, name, pheader->gltextures[i][0]->source_width, pheader->gltextures[i][0]->source_height,
+					//	SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+				}
+			}
+			else
+			{
+				offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
+				q_snprintf(name, sizeof(name), "%s_%i", loadmodel->name, i);
+				//pheader->gltextures[i][0] =	TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+				//		SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+				pheader->gltextures[i][0] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+					SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode | TEXPREF_NOBRIGHT);
+				//pheader->skinwidth = TexMgr_PadConditional(pheader->gltextures[i][0]->source_width);
+				//pheader->skinheight = TexMgr_PadConditional(pheader->gltextures[i][0]->source_height);
+			}
+			//GL_LoadTexture (name, (byte *)(pskintype + 1),
+			//pheader->skinwidth, pheader->skinheight, tex_mode);
+			pheader->gltextures[i][3] = pheader->gltextures[i][2] = pheader->gltextures[i][1] = pheader->gltextures[i][0];
+			pheader->fbtextures[i][3] = pheader->fbtextures[i][2] = pheader->fbtextures[i][1] = pheader->fbtextures[i][0];
+			//johnfitz
+			pskintype = (daliasskintype_t *)((byte *)(pskintype + 1) + s);
+
 		}
-		for (k = j; j < 4; j++)
-			pheader->gl_texturenum[i][j&3] = pheader->gl_texturenum[i][j - k];
-	    }
+		else /*if (k == ALIAS_SKIN_GROUP)*/
+		{						/* animating skin group.  yuck. */
+			pskintype++;
+			pinskingroup = (daliasskingroup_t *)pskintype;
+			groupskins = LittleLong(pinskingroup->numskins);
+			pinskinintervals = (daliasskininterval_t *)(pinskingroup + 1);
+
+			pskintype = (daliasskintype_t *)(pinskinintervals + groupskins);
+			for (j = 0; j < groupskins; j++)
+			{
+				Mod_FloodFillSkin(skin, pheader->skinwidth, pheader->skinheight);
+				offset = (src_offset_t)(pskintype + 1) - (src_offset_t)mod_base;
+				q_snprintf(name, sizeof(name), "%s_%i_%i", loadmodel->name, i, j);
+				pheader->gltextures[i][j & 3] = TexMgr_LoadImage(loadmodel, name, pheader->skinwidth, pheader->skinheight,
+					SRC_INDEXED, (byte *)(pskintype + 1), loadmodel->name, offset, tex_mode);
+
+				//GL_LoadTexture (name, (byte *)(pskintype),
+				//	pheader->skinwidth, pheader->skinheight, tex_mode);
+				pskintype = (daliasskintype_t *)((byte *)(pskintype)+s);
+			}
+			for (k = j; j < 4; j++)
+				pheader->gltextures[i][j & 3] = pheader->gltextures[i][j - k];
+		}
 	}
 
 	return (void *)pskintype;
@@ -2507,6 +2883,7 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	start = Hunk_LowMark ();
 
 	pinmodel = (newmdl_t *)buffer;
+	mod_base = (byte *)buffer; //johnfitz
 
 	version = LittleLong (pinmodel->version);
 	if (version != ALIAS_NEWVERSION)
@@ -2532,8 +2909,12 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	pheader->skinwidth = LittleLong (pinmodel->skinwidth);
 	pheader->skinheight = LittleLong (pinmodel->skinheight);
 
-	if (pheader->skinheight > MAX_SKIN_HEIGHT)
-		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);
+	/*if (pheader->skinheight > MAX_SKIN_HEIGHT)
+		Sys_Print("model %s has a skin taller than %d\n", mod->name,
+			MAX_SKIN_HEIGHT);	//Spike -- this was always a bogus error in gl renderers. its width*height that really matters.
+			*/
+	/*if (pheader->skinheight > MAX_SKIN_HEIGHT)
+		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);*/
 
 	pheader->numverts = LittleLong (pinmodel->numverts);
 	pheader->version = LittleLong (pinmodel->num_st_verts);	//hide num_st in version
@@ -2643,7 +3024,12 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 	mod->maxs[0] = aliasmaxs[0] + 10;
 	mod->maxs[1] = aliasmaxs[1] + 10;
 	mod->maxs[2] = aliasmaxs[2] + 10;
-
+	
+	/*if (pheader->numskins)
+	{
+		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
+		pheader->skinheight = pheader->gltextures[0][0]->source_height;
+	}*/
 //
 // build the draw lists
 //
@@ -2669,7 +3055,7 @@ static void Mod_LoadAliasModelNew (qmodel_t *mod, void *buffer)
 Mod_LoadAliasModel
 =================
 */
-static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
+void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 {
 	int			i, j;
 	mdl_t			*pinmodel;
@@ -2686,6 +3072,7 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	start = Hunk_LowMark ();
 
 	pinmodel = (mdl_t *)buffer;
+	mod_base = (byte *)buffer; //johnfitz
 
 	version = LittleLong (pinmodel->version);
 	if (version != ALIAS_VERSION)
@@ -2710,8 +3097,8 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	pheader->skinwidth = LittleLong (pinmodel->skinwidth);
 	pheader->skinheight = LittleLong (pinmodel->skinheight);
 
-	if (pheader->skinheight > MAX_SKIN_HEIGHT)
-		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);
+	/*if (pheader->skinheight > MAX_SKIN_HEIGHT)
+		Sys_Error ("model %s has a skin taller than %d", mod->name, MAX_SKIN_HEIGHT);*/
 
 	pheader->numverts = LittleLong (pinmodel->numverts);
 	pheader->version = pheader->numverts;	//hide num_st in version
@@ -2823,6 +3210,12 @@ static void Mod_LoadAliasModel (qmodel_t *mod, void *buffer)
 	mod->maxs[1] = aliasmaxs[1] + 10;
 	mod->maxs[2] = aliasmaxs[2] + 10;
 
+	/*if (pheader->numskins)
+	{
+		pheader->skinwidth = pheader->gltextures[0][0]->source_width;
+		pheader->skinheight = pheader->gltextures[0][0]->source_height;
+	}*/
+	
 //
 // build the draw lists
 //
@@ -2856,6 +3249,7 @@ static void *Mod_LoadSpriteFrame (void *pin, mspriteframe_t **ppframe, int frame
 	mspriteframe_t		*pspriteframe;
 	int			width, height, size, origin[2];
 	char			name[MAX_QPATH];
+	src_offset_t			offset; //johnfitz
 
 	pinframe = (dspriteframe_t *)pin;
 
@@ -2883,8 +3277,16 @@ static void *Mod_LoadSpriteFrame (void *pin, mspriteframe_t **ppframe, int frame
 	pspriteframe->left = origin[0];
 	pspriteframe->right = width + origin[0];
 
+	//johnfitz -- image might be padded
+	pspriteframe->smax = (float)width / (float)TexMgr_PadConditional(width);
+	pspriteframe->tmax = (float)height / (float)TexMgr_PadConditional(height);
+	//johnfitz
+
 	q_snprintf (name, sizeof(name), "%s_%i", loadmodel->name, framenum);
-	pspriteframe->gl_texturenum = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);
+	offset = (src_offset_t)(pinframe + 1) - (src_offset_t)mod_base; //johnfitz
+	//pspriteframe->gltexture = GL_LoadTexture (name, (byte *)(pinframe + 1), width, height, TEX_MIPMAP | TEX_ALPHA);
+	pspriteframe->gltexture = TexMgr_LoadImage(loadmodel, name, width, height, SRC_INDEXED, (byte *)(pinframe + 1),
+		loadmodel->name, offset, TEXPREF_PAD | TEXPREF_ALPHA | TEXPREF_NOPICMIP);
 
 	return (void *)((byte *)pinframe + sizeof (dspriteframe_t) + size);
 }
@@ -2969,6 +3371,7 @@ static void Mod_LoadSpriteModel (qmodel_t *mod, void *buffer)
 	dspriteframetype_t	*pframetype;
 
 	pin = (dsprite_t *)buffer;
+	mod_base = (byte *)buffer; //johnfitz
 
 	version = LittleLong (pin->version);
 	if (version != SPRITE_VERSION)

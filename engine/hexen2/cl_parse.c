@@ -102,6 +102,8 @@ qmodel_t	*player_models[MAX_PLAYER_CLASS];
 extern	cvar_t	precache;
 extern	qboolean menu_disabled_mouse;
 
+extern void Sky_LoadSkyBox(const char *name);
+extern void Fog_ParseServerMessage(void);
 
 //=============================================================================
 
@@ -452,7 +454,7 @@ static void CL_ParseServerInfo (void)
 	R_NewMap ();
 
 	if (!sv.active)
-		Host_LoadStrings();
+		Host_LoadStrings(NULL);
 	CL_LoadPuzzleStrings();
 	// mission pack, objectives strings
 	if (gameflags & GAME_PORTALS)
@@ -587,7 +589,7 @@ static void CL_ParseUpdate (int bits)
 		else	forcelink = true;	// hack to make null model players work
 #ifdef GLQUAKE
 		if (num > 0 && num <= cl.maxclients)
-			R_TranslatePlayerSkin (num - 1);
+			R_TranslateNewPlayerSkin(num - 1); //johnfitz -- was R_TranslatePlayerSkin
 #endif
 	}
 
@@ -974,7 +976,7 @@ static void CL_NewTranslation (int slot)
 		return;
 
 #ifdef GLQUAKE
-	R_TranslatePlayerSkin (slot);
+	R_TranslatePlayerSkin(slot);
 	return;
 #else
 
@@ -1808,8 +1810,14 @@ void CL_ParseServerMessage (void)
 
 		case svc_mod_name:
 		case svc_skybox:
-			MSG_ReadString();
-			Con_DPrintf ("Ignored server msg %d (%s)\n", cmd, svc_strings[cmd]);
+#ifdef GLQUAKE
+			Sky_LoadSkyBox(MSG_ReadString());
+#endif
+			break;
+		case svc_fog:
+#ifdef GLQUAKE
+			Fog_ParseServerMessage();
+#endif
 			break;
 		}
 	}

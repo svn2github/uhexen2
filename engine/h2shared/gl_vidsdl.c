@@ -164,7 +164,9 @@ static const char	*gl_version;
 static const char	*gl_extensions;
 qboolean	is_3dfx = false;
 
-GLint		gl_max_size = 256;
+// extern GLint		gl_max_size = 256;
+extern cvar_t gl_max_size;
+
 static qboolean	have_NPOT = false;
 qboolean	gl_tex_NPOT = false;
 static cvar_t	gl_texture_NPOT = {"gl_texture_NPOT", "0", CVAR_ARCHIVE};
@@ -951,10 +953,12 @@ static void GL_Init (void)
 	gl_extensions = (const char *)glGetString_fp (GL_EXTENSIONS);
 	Con_SafeDPrintf ("GL_EXTENSIONS: %s\n", gl_extensions);
 
-	glGetIntegerv_fp(GL_MAX_TEXTURE_SIZE, &gl_max_size);
-	if (gl_max_size < 256)	// Refuse to work when less than 256
-		Sys_Error ("hardware capable of min. 256k opengl texture size needed");
-	Con_SafePrintf("OpenGL max.texture size: %i\n", (int) gl_max_size);
+	// glGetIntegerv_fp(GL_MAX_TEXTURE_SIZE, &gl_max_size);
+	glGetIntegerv_fp(GL_MAX_TEXTURE_SIZE, &gl_max_size.integer);
+
+	//if (gl_max_size < 256)	// Refuse to work when less than 256
+	//	Sys_Error ("hardware capable of min. 256k opengl texture size needed");
+	Con_SafePrintf("OpenGL max.texture size: %i\n", (int) gl_max_size.integer);
 
 	is_3dfx = false;
 	if (!q_strncasecmp(gl_renderer, "3dfx", 4)	  ||
@@ -1196,7 +1200,7 @@ static void VID_InitPalette (const unsigned char *palette)
 
 	// Initialize the palettized textures data
 	mark = Hunk_LowMark ();
-	inverse_pal = (unsigned char *) FS_LoadHunkFile (INVERSE_PALNAME, NULL);
+	inverse_pal = (unsigned char *) FS_LoadHunkFile (INVERSE_PALNAME, NULL, NULL);
 	if (inverse_pal != NULL && fs_filesize != INVERSE_PAL_SIZE)
 	{
 		Hunk_FreeToLowMark (mark);
@@ -1257,7 +1261,7 @@ static void VID_ChangeVideoMode (int newmode)
 	S_ClearBuffer ();
 
 	// Unload all textures and reset texture counts
-	D_ClearOpenGLTextures(0);
+	// D_ClearOpenGLTextures(0);
 	memset (lightmap_textures, 0, sizeof(lightmap_textures));
 
 	// reset all opengl function pointers

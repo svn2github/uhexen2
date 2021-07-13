@@ -130,8 +130,17 @@ typedef struct client_s
 	byte		current_frame, last_frame;
 	byte		current_sequence, last_sequence;
 
-// mission pack, objectives strings
+	struct entity_num_state_s {
+		unsigned int num;	//ascending order, there can be gaps.
+		entity_state_t state;
+	} *previousentities;
+	size_t numpreviousentities;
+	size_t maxpreviousentities;
+
+	// mission pack, objectives strings
 	unsigned int	info_mask, info_mask2;
+
+	qboolean refreshed;
 } client_t;
 
 

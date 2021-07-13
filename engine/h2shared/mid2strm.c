@@ -85,7 +85,7 @@ static int MID2STREAM_fileopen(const char *filename)
 	qboolean pak;
 	size_t length;
 
-	length = FS_OpenFile(filename, &handle, NULL);
+	length = FS_OpenFile(filename, &handle, NULL, NULL);
 	pak = file_from_pak;
 	if (length == (size_t)-1)
 		return -1;
@@ -918,6 +918,7 @@ static int AddEventToStreamBuffer (temp_event_t *te, convert_buf_t *buf)
 			/* If this is a volume change, generate a callback
 			 * so we can grab the new volume for our cache. */
 			me->dwEvent |= MEVT_F_CALLBACK;
+			te->shortdata[2] *= 0;
 		}
 		buf->bytes_in += 3 *sizeof(DWORD);
 	}

@@ -286,7 +286,7 @@ snd_stream_t *S_CodecUtilOpen(const char *filename, snd_codec_t *codec)
 	size_t length;
 
 	/* Try to open the file */
-	length = FS_OpenFile(filename, &handle, NULL);
+	length = FS_OpenFile(filename, &handle, NULL, NULL);
 	pak = file_from_pak;
 	if (length == (size_t)-1)
 	{

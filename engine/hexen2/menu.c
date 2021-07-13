@@ -394,8 +394,8 @@ static void M_BuildBigCharWidth (void)
 	int	biggestX, adjustment;
 	char	After[20], Before[20];
 
-	p = (qpic_t *)FS_LoadTempFile (BIGCHAR_FONT_FILE, NULL);
-	if (!p) p = (qpic_t *)FS_LoadTempFile (BIGCHAR_FONT_FILE0, NULL);
+	p = (qpic_t *)FS_LoadTempFile (BIGCHAR_FONT_FILE, NULL, NULL);
+	if (!p) p = (qpic_t *)FS_LoadTempFile (BIGCHAR_FONT_FILE0, NULL, NULL);
 	if (!p)
 		Sys_Error ("Failed to load %s", BIGCHAR_FONT_FILE);
 	SwapPic(p);
@@ -2285,7 +2285,7 @@ static void M_OpenGL_Draw (void)
 	M_DrawCheckbox (232, 90 + 8*OGL_COLOREDEXTRA, gl_extra_dynamic_lights.integer);
 
 	M_Print (32 + (5 * 8), 90 + 8*OGL_TEXFILTER,	"Texture filtering");
-	M_Print (232, 90 + 8*OGL_TEXFILTER, gl_texmodes[gl_filter_idx].name);
+	M_Print (232, 90 + 8*OGL_TEXFILTER, glmodes[glmode_idx].name);
 
 	M_Print (32 + (5 * 8), 90 + 8*OGL_ANISOTROPY,	"Anisotropy level:");
 	M_Print (232, 90 + 8*OGL_ANISOTROPY, (gl_max_anisotropy < 2) ? "N/A" :
@@ -2421,7 +2421,7 @@ static void M_OpenGL_Key (int k)
 			break;
 
 		case OGL_TEXFILTER:	// texture filter
-			tex_mode = gl_filter_idx;
+			tex_mode = glmode_idx;
 			switch (k)
 			{
 			case K_LEFTARROW:
@@ -2435,7 +2435,7 @@ static void M_OpenGL_Key (int k)
 			default:
 				return;
 			}
-			Cvar_Set ("gl_texturemode", gl_texmodes[tex_mode].name);
+			Cvar_Set ("gl_texturemode", glmodes[tex_mode].name);
 			break;
 
 		case OGL_ANISOTROPY:	// anisotropic filter level
@@ -4976,7 +4976,7 @@ void M_Init (void)
 {
 	char		*ptr;
 
-	ptr = (char *) FS_LoadTempFile (BIGCHAR_WIDTH_FILE, NULL);
+	ptr = (char *) FS_LoadTempFile (BIGCHAR_WIDTH_FILE, NULL, NULL);
 	if (ptr == NULL)
 		M_BuildBigCharWidth();
 	else

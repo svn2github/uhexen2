@@ -33,7 +33,7 @@ Returns false if any part of the bottom of the entity is off an edge that
 is not a staircase.
 =============
 */
-qboolean SV_CheckBottom (edict_t *ent)
+qboolean SV_CheckBottom(edict_t *ent)
 {
 	// By this point, ent has been moved to its new position after the
 	// move, and adjusted for steps
@@ -47,38 +47,38 @@ qboolean SV_CheckBottom (edict_t *ent)
 	float	mid, bottom;
 	float	save_hull;
 
-	VectorAdd (ent->v.origin, ent->v.mins, mins);
-	VectorAdd (ent->v.origin, ent->v.maxs, maxs);
+	VectorAdd(ent->v.origin, ent->v.mins, mins);
+	VectorAdd(ent->v.origin, ent->v.maxs, maxs);
 
-/*	// Make it use the clipping hull's size, not their bounding box...
-	model = sv.models[ (int)sv.edicts->v.modelindex ];
-	VectorSubtract (ent->v.maxs, ent->v.mins, size);
-	if (ent->v.hull)
-	{
-		index = ent->v.hull-1;
-		wclip_hull = &model->hulls[index];
-		if (!wclip_hull) // Invalid hull
+	/*	// Make it use the clipping hull's size, not their bounding box...
+		model = sv.models[ (int)sv.edicts->v.modelindex ];
+		VectorSubtract (ent->v.maxs, ent->v.mins, size);
+		if (ent->v.hull)
 		{
-			Con_Printf ("ERROR: hull %d is null.\n",wclip_hull);
-			wclip_hull = &model->hulls[0];
+			index = ent->v.hull-1;
+			wclip_hull = &model->hulls[index];
+			if (!wclip_hull) // Invalid hull
+			{
+				Con_Printf ("ERROR: hull %d is null.\n",wclip_hull);
+				wclip_hull = &model->hulls[0];
+			}
 		}
-	}
-	else  // Using the old way uses size to determine hull to use
-	{
-		if (size[0] < 3) // Point
-			wclip_hull = &model->hulls[0];
-		else if (size[0] <= 8)  // Pentacles
-			wclip_hull = &model->hulls[4];
-		else if (size[0] <= 32 && size[2] <= 28)  // Half Player
-			wclip_hull = &model->hulls[3];
-		else if (size[0] <= 32)  // Full Player
-			wclip_hull = &model->hulls[1];
-		else // Golumn
-			wclip_hull = &model->hulls[5];
-	}
-	VectorAdd (ent->v.origin, wclip_hull->clip_mins, mins);
-	VectorAdd (ent->v.origin, wclip_hull->clip_maxs, maxs);
-*/
+		else  // Using the old way uses size to determine hull to use
+		{
+			if (size[0] < 3) // Point
+				wclip_hull = &model->hulls[0];
+			else if (size[0] <= 8)  // Pentacles
+				wclip_hull = &model->hulls[4];
+			else if (size[0] <= 32 && size[2] <= 28)  // Half Player
+				wclip_hull = &model->hulls[3];
+			else if (size[0] <= 32)  // Full Player
+				wclip_hull = &model->hulls[1];
+			else // Golumn
+				wclip_hull = &model->hulls[5];
+		}
+		VectorAdd (ent->v.origin, wclip_hull->clip_mins, mins);
+		VectorAdd (ent->v.origin, wclip_hull->clip_maxs, maxs);
+	*/
 	// if all of the points under the corners are solid world, don't bother
 	// with the tougher checks
 	// the corners must be within 16 of the midpoint
@@ -87,8 +87,8 @@ qboolean SV_CheckBottom (edict_t *ent)
 	{
 		for (y = 0; y < 2; y++)
 		{
-		//	start[0] = x ? maxs[0] : mins[0];
-		//	start[1] = y ? maxs[1] : mins[1];
+			//	start[0] = x ? maxs[0] : mins[0];
+			//	start[1] = y ? maxs[1] : mins[1];
 			if (x)
 				start[0] = maxs[0];
 			else
@@ -98,7 +98,7 @@ qboolean SV_CheckBottom (edict_t *ent)
 			else
 				start[1] = mins[1];
 
-			if (SV_PointContents (start) != CONTENTS_SOLID)
+			if (SV_PointContents(start) != CONTENTS_SOLID)
 				goto realcheck;
 		}
 	}
@@ -112,7 +112,7 @@ realcheck:	// check it for real...
 	// the midpoint must be within 16 of the bottom
 	start[0] = stop[0] = (mins[0] + maxs[0]) * 0.5;
 	start[1] = stop[1] = (mins[1] + maxs[1]) * 0.5;
-	stop[2] = start[2] - 2*STEPSIZE;
+	stop[2] = start[2] - 2 * STEPSIZE;
 
 	// do a trace from the bottom center of the ent down
 	// to 36 below the bottom center of the ent, using a point hull
@@ -123,19 +123,20 @@ realcheck:	// check it for real...
 	// Technically, these can't possibly be a valid result since
 	// the start point is in the ent, but what about imprecision?
 
-	save_hull = ent->v.hull;//temp hack so it HullForEntity doesn't calculate the wrong offset
-	ent->v.hull = 0;
-	trace = SV_Move (start, vec3_origin, vec3_origin, stop, true, ent);
-	ent->v.hull = save_hull;
+	//save_hull = ent->v.hull;//temp hack so it HullForEntity doesn't calculate the wrong offset
+	//ent->v.hull = 0;
+	//trace = SV_Move(start, vec3_origin, vec3_origin, stop, true, ent);
+	trace = SV_Move(start, ent->v.mins, ent->v.maxs, stop, true, ent);
+	//ent->v.hull = save_hull;
 
-/*	if ((int)ent->v.flags & FL_MONSTER)
-	{
-		if (trace.allsolid)
-			Con_DPrintf("Checkbottom midpoint check was all solid!!!\n");
-		else if (trace.startsolid)
-			Con_DPrintf("Checkbottom midpoint check started solid!!!\n");
-	}
-*/
+	/*	if ((int)ent->v.flags & FL_MONSTER)
+		{
+			if (trace.allsolid)
+				Con_DPrintf("Checkbottom midpoint check was all solid!!!\n");
+			else if (trace.startsolid)
+				Con_DPrintf("Checkbottom midpoint check started solid!!!\n");
+		}
+	*/
 	if (trace.fraction == 1.0)
 		return false;
 
@@ -167,22 +168,23 @@ realcheck:	// check it for real...
 				start[1] = stop[1] = mins[1];
 
 			// same check as above, just from the 4 corners down 36
-			save_hull = ent->v.hull;//temp hack so it HullForEntity doesn't calculate the wrong offset
-			ent->v.hull = 0;
-			trace = SV_Move (start, vec3_origin, vec3_origin, stop, true, ent);
-			ent->v.hull = save_hull;
+			//save_hull = ent->v.hull;//temp hack so it HullForEntity doesn't calculate the wrong offset
+			//ent->v.hull = 0;
+			//trace = SV_Move(start, vec3_origin, vec3_origin, stop, true, ent);
+			trace = SV_Move(start, ent->v.mins, ent->v.maxs, stop, true, ent);
+			//ent->v.hull = save_hull;
 
-		/*	if ((int)ent->v.flags & FL_MONSTER)
-			{
-				if (trace.allsolid)
-					Con_DPrintf("Checkbottom (x=%d,y=%d) check was all solid!!!\n",x,y);
-				else if (trace.startsolid)
-					Con_DPrintf("Checkbottom (x=%d,y=%d) check started solid!!!\n",x,y);
-			}*/
+			/*	if ((int)ent->v.flags & FL_MONSTER)
+				{
+					if (trace.allsolid)
+						Con_DPrintf("Checkbottom (x=%d,y=%d) check was all solid!!!\n",x,y);
+					else if (trace.startsolid)
+						Con_DPrintf("Checkbottom (x=%d,y=%d) check started solid!!!\n",x,y);
+				}*/
 
-			// Hit a closer surface than did when checked center,
-			// so set the "bottom" to the new, closer z height
-			// we hit
+				// Hit a closer surface than did when checked center,
+				// so set the "bottom" to the new, closer z height
+				// we hit
 			if (trace.fraction != 1.0 && trace.endpos[2] > bottom)
 				bottom = trace.endpos[2];
 

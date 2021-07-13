@@ -447,6 +447,8 @@ COMMONOBJS = &
 	$(SYSOBJ_CDA) &
 	$(SYSOBJ_MIDI) &
 	$(SYSOBJ_NET) &
+	lodepng.obj &
+	image.obj &
 	net_dgrm.obj &
 	net_loop.obj &
 	net_main.obj &

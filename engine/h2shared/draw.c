@@ -104,7 +104,7 @@ qpic_t	*Draw_CachePic (const char *path)
 //
 // load the pic from disk
 //
-	FS_LoadCacheFile (path, &pic->cache, NULL);
+	FS_LoadCacheFile (path, &pic->cache, NULL, NULL);
 
 	dat = (qpic_t *)pic->cache.data;
 	Draw_PicCheckError (dat, path);
@@ -147,7 +147,7 @@ qpic_t	*Draw_CacheLoadingPic (void)
 //
 // load the pic from disk
 //
-	FS_LoadCacheFile (ls_path, &pic->cache, NULL);
+	FS_LoadCacheFile (ls_path, &pic->cache, NULL, NULL);
 
 	dat = (qpic_t *)pic->cache.data;
 	Draw_PicCheckError (dat, ls_path);
@@ -198,10 +198,10 @@ qpic_t *Draw_CachePicResize (const char *path, int targetWidth, int targetHeight
 		if (targetWidth == dat->width && targetHeight == dat->height)
 			return dat;
 		else
-			Cache_Free (&pic->cache);
+			Cache_Free (&pic->cache, true);
 	}
 	// Allocate original data temporarily
-	temp = (qpic_t *)FS_LoadTempFile(path, NULL);
+	temp = (qpic_t *)FS_LoadTempFile(path, NULL, NULL);
 	Draw_PicCheckError (temp, path);
 	SwapPic(temp);
 	/* I wish Carmack would thought of something more intuitive than
@@ -257,14 +257,14 @@ void Draw_Init (void)
 
 	if (draw_chars)
 		Z_Free (draw_chars);
-	draw_chars = FS_LoadZoneFile ("gfx/menu/conchars.lmp", Z_SECZONE, NULL);
+	draw_chars = FS_LoadZoneFile ("gfx/menu/conchars.lmp", Z_SECZONE, NULL, NULL);
 	Draw_PicCheckError (draw_chars, "gfx/menu/conchars.lmp");
 
 	draw_smallchars = (byte *) W_GetLumpName("tinyfont");
 
 	if (draw_backtile)
 		Z_Free (draw_backtile);
-	draw_backtile = (qpic_t	*)FS_LoadZoneFile ("gfx/menu/backtile.lmp", Z_SECZONE, NULL);
+	draw_backtile = (qpic_t	*)FS_LoadZoneFile ("gfx/menu/backtile.lmp", Z_SECZONE, NULL, NULL);
 	Draw_PicCheckError (draw_backtile, "gfx/menu/backtile.lmp");
 	SwapPic (draw_backtile);
 
@@ -293,6 +293,7 @@ void Draw_ReInit (void)
 	draw_reinit = true;
 
 	W_LoadWadFile ("gfx.wad");
+	//TexMgr_Init(); //johnfitz
 	Draw_Init();
 	SCR_Init();
 	Sbar_Init();
