@@ -238,7 +238,7 @@ qpic_t	*Draw_CachePic (const char *path)
 	pic->pic.height = dat->height;
 
 	gl.gltexture = TexMgr_LoadImage(NULL, path, dat->width, dat->height, SRC_INDEXED, dat->data, path,
-		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_NOPICMIP); //johnfitz -- TexMgr
+		sizeof(int) * 2, TEXPREF_ALPHA | TEXPREF_NOPICMIP | TEXPREF_NEAREST); //johnfitz -- TexMgr
 
 	gl.sl = 0;
 	gl.sh = 1;
@@ -1917,6 +1917,6 @@ gltexture_t* GL_LoadPicTexture (qpic_t *pic)
 {
 	//return GL_LoadTexture ("", pic->data, pic->width, pic->height, TEX_ALPHA|TEX_NEAREST);
 	return TexMgr_LoadImage(NULL, "", pic->width, pic->height, SRC_INDEXED, pic->data,
-		WADFILENAME, 0, TEXPREF_ALPHA | TEX_NEAREST);
+		WADFILENAME, 0, TEXPREF_ALPHA | TEXPREF_LINEAR);
 }
 
